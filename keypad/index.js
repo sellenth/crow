@@ -10,6 +10,19 @@ app.use(express.static('public'))
 app.post('/auth:pw', (req, res) => {
   let username = req.headers.cookie;
   let pw = req.params.pw;
+  var spawn = require("child_process").spawn;
+  var process = spawn('python3',["./shamir_client.py",
+    "r3k",
+    "web",
+    pw]);
+
+    //req.query.firstname,
+    //req.query.lastname] );
+
+  process.stdout.on('data', function(data) {
+    console.log(data.toString());
+        res.send(data.toString());
+  } )
 })
 
 app.get('/', (req, res) => {
@@ -17,6 +30,6 @@ app.get('/', (req, res) => {
 })
 
 const server = http.createServer(app)
-    .listen(port, () => {
-        console.log('server running at ' + port)
-    })
+  .listen(port, () => {
+    console.log('server running at ' + port)
+  })
