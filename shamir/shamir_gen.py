@@ -56,3 +56,4 @@ def add_user(username, name, db_list, keys):
     gen_secrets(username, name, dbs)
 
 add_user("r3k", "Ryan Kennedy", ["web", "qr", "face", "voice"], ["","","",""])
+add_user("tt", "Tom Tom", ["web", "qr", "face", "voice"], ["","","",""])
