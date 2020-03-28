@@ -60,7 +60,7 @@ def Shamir_Server_Multicast(address, port):
 
     while 1 == 1:
         data, address = s.recvfrom(1024)
-        print(data)
+        add_secret(data, conn)
 
 conn = sqlite3.connect("shares.db")
 conn.row_factory = sqlite3.Row
