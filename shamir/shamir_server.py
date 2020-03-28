@@ -1,4 +1,5 @@
-import asyncore
+import struct
+import socket
 import sqlite3
 import time
 import shamir_auth
@@ -49,26 +50,19 @@ def add_secret(d, conn):
     auth_user(share, conn)
     shamir_auth.auth_user(share['id'], conn)
 
+def Shamir_Server_Multicast(address, port):
+    tup = ('', port)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.bind(tup)
+    group = socket.inet_aton(address)
+    mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+    s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-class Shamir_Handler(asyncore.dispatcher_with_send):
-    def handle_read(self):
-        data = self.recv(4096)
-        if data:
-            add_secret(data, conn)
-
-class Shamir_Server(asyncore.dispatcher):
-    def __init__(self, host, port):
-        asyncore.dispatcher.__init__(self)
-        self.create_socket()
-        self.set_reuse_addr()
-        self.bind((host,port))
-        self.listen(5)
-    
-    def handle_accepted(self, sock, addr):
-        Shamir_Handler(sock)
+    while 1 == 1:
+        data, address = s.recvfrom(1024)
+        print(data)
 
 conn = sqlite3.connect("shares.db")
 conn.row_factory = sqlite3.Row
 conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x1, y1, x2, y2, x3, y3, num_shares, timeout)")
-server = Shamir_Server('0.0.0.0',13337)
-asyncore.loop()
+server = Shamir_Server_Multicast('224.3.29.1',13337)
