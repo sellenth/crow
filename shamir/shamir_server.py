@@ -3,6 +3,8 @@ import socket
 import sqlite3
 import time
 import shamir_auth
+import rsa_encrypt
+import aes_crypt
 
 def add_line(username, conn):
     c = conn.cursor()
@@ -30,12 +32,10 @@ def auth_user(incoming, conn):
     
     
     if share["num_shares"] >= 3:
-        conn.close()
         return
     i = share["num_shares"] +1
     for j in range(i):
         if share["x"+str(j+1)] == incoming["x"]:
-            conn.close()
             return
     upd = "UPDATE shares SET x" + str(i)+" = \"" +incoming["x"]+ "\", y" + str(i) + " = \"" + incoming["y"] + "\", num_shares = " + str(i) +", timeout = " + str(int(time.time())) + " WHERE id = \"" + username + "\""
     c.execute(upd)
@@ -60,6 +60,7 @@ def Shamir_Server_Multicast(address, port):
 
     while 1 == 1:
         data, address = s.recvfrom(1024)
+        data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         add_secret(data, conn)
 
 conn = sqlite3.connect("shares.db")

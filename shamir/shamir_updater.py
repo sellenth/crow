@@ -1,6 +1,9 @@
-import asyncore
 import sqlite3
 import sys
+import socket
+import aes_crypt
+import rsa_encrypt
+import base64
 
 def update_db(data, conn):
     data = data.decode('utf-8').split(":")
@@ -10,33 +13,30 @@ def update_db(data, conn):
     share['y'] = data[2]
     share['key'] = data[3]
     c = conn.cursor()
-    c.execute("SELECT * FROM shares WHERE id = ?", share['id'])
-    if(c.rowcount()):
-        c.execute("UPDATE shares SET x = ?, y = ?, key = ?", share["x"], share["y"], share["key"])
+    c.execute("SELECT * FROM shares WHERE id = ?", [share['id']])
+    if(c.rowcount > 0):
+        c.execute("UPDATE shares SET x = ?, y = ?, key = ?", [share["x"], share["y"], share["key"]])
+        print("there")
     else:
-        c.execute("INSERT INTO shares VALUES(?,?,?,?)", share['id'], share['x'], share['y'], share['key'])
+        c.execute("INSERT INTO shares VALUES(?,?,?,?)", [share['id'], share['x'], share['y'], share['key']])
+        print("here")
     conn.commit()
 
-class Shamir_Update_Handler(asyncore.dispatcher_with_send):
-    def handle_read(self):
-        data = self.recv(4096)
-        if data:
-            update_db(data, conn)
+def update(key, port, db):
+    conn = sqlite3.connect(db + ".db")
+    conn.row_factory = sqlite3.Row
+    conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x, y, key)")
+    data = ""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("0.0.0.0", port))
+        s.listen(5)
+        (cli, add) = s.accept()
+        data = cli.recv(4096)
+    data = str(aes_crypt.aes_dec(key, data),'ascii').split(":")
+    for i in data:
+        temp = rsa_encrypt.get_priv_key_db(db).decrypt((base64.b64decode(i),))
+        update_db(temp, conn)
+    conn.close()
 
-class Shamir_Update_Server(asyncore.dispatcher):
-    def __init__(self, host, port):
-        asyncore.dispatcher.__init__(self)
-        self.create_socket()
-        self.set_reuse_addr()
-        self.bind((host,port))
-        self.listen(5)
-    
-    def handle_accepted(self, sock, addr):
-        Shamir_Update_Handler(sock)
 
-
-conn = sqlite3.connect(sys.argv[1] + ".db")
-conn.row_factory = sqlite3.Row
-conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x, y, key)")
-server = Shamir_Update_Server('0.0.0.0',24448)
-asyncore.loop()
+update(rsa_encrypt.get_priv_key(), 55558, "face")

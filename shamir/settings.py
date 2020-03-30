@@ -1,0 +1,1 @@
+DBS = ["face", "qr", "voice", "web"]

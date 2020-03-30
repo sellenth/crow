@@ -1,6 +1,8 @@
 import socket
 import sqlite3
 import sys
+import aes_crypt
+import rsa_encrypt
 
 class Host():
     def __init__(self):
@@ -11,7 +13,7 @@ def send_share(share, host):
     payload = share['id'] + ":" + share['x'] + ":" + share['y']
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        s.sendto(bytes(payload, "utf-8"), ((host.host, host.port)))
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))
         return
 
 def grab(user, n): 

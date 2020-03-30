@@ -1,33 +1,39 @@
 import socket
 import sqlite3
 import sys
+import aes_crypt
+import rsa_encrypt
 
 class Host():
-    def __init__(self):
-        self.host = "localhost"
-        self.port = 24448
+    def __init__(self, ip, port):
+        self.host = ip
+        self.port = port
 
-def send_share(share, host):
-    payload = share['id'] + ":" + share['x'] + ":" + share['y'] + ":" + str(share['key'])
+def send_share(key, shares, host):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((host.host, host.port))
-        s.send(bytes(payload, "utf-8"))
+        s.connect((host.host, host.port))    
+        payload = aes_crypt.aes_enc(key, ':'.join(shares))
+        s.send(payload)
         return
 
-def grab(user, n): 
+def grab(t, n): 
     conn = sqlite3.connect(n + ".db")
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute("SELECT * FROM shares WHERE id = \""+ user +"\"")
-    inc = c.fetchone()
+    c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(t)])
+    temp = c.fetchall()
+    shares = []
+    for i in temp:
+        shares.append(i['share'])
     conn.close()
-    return inc
+    return shares
 
-def send_user(user, db):
+def update(key, t, host, db):
     #UNCOMMENT LINES TO IMPLEMENT KEY CHECKING
-    share = grab(user, db)
-    send_share(share, host)
+    shares = grab(t, db)
+    send_share(key, shares, host)
     return 1
 
-host = Host()
-send_user(str(sys.argv[1]), str(sys.argv[2]))
+key = rsa_encrypt.get_pub_key()
+update(key, 0, Host("192.168.1.232", 55558), "face")
+
