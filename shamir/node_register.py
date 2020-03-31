@@ -1,3 +1,9 @@
+import socket
+import sqlite3
+import sys
+import aes_crypt
+import rsa_encrypt
+
 class Host():
     def __init__(self):
         self.host = "224.3.29.1"
