@@ -1,11 +1,14 @@
 import struct
 import socket
+import hashlib
 import sqlite3
 import time
 import shamir_auth
 import rsa_encrypt
 import aes_crypt
 import threading
+import base64
+from Crypto import Random
 
 def add_line(username, conn):
     c = conn.cursor()
@@ -56,8 +59,21 @@ def add_secret(d):
 
 def register_node(data, address, keys):
     data = str(data, 'ascii').split(":")
+    print(data)
+
     for i in keys:
-        print (i)
+        if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((address, 44432))
+                x = str(int.from_bytes(Random.get_random_bytes(4), "big"))
+                s.send(aes_crypt.aes_enc(i,bytes(x, 'ascii')))
+                y = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv()), 'ascii')
+                x = int(x)
+                y = int(y)
+                if (x+1) == y:
+                    i.ip = address 
+                    print("WWWWWWOOOOOOOOOOTTTTT")
+            break
 
 def Shamir_Server_Multicast(address, port):
     tup = ('', port)

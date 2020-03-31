@@ -16,6 +16,15 @@ def register(host):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))
-        return
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('0.0.0.0', 44432))
+        s.listen(1)
+        s.accept()
+        x = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), s.recv())
+        y = str(int(str(x, 'ascii')) + 1)
+        s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), bytes(y, 'ascii')))
+        
+    
+    return
 
 register(Host())
