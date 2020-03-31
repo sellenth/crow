@@ -32,6 +32,7 @@ def update(key, port, db):
         s.listen(5)
         (cli, add) = s.accept()
         data = cli.recv(4096)
+        cli.close()
     data = str(aes_crypt.aes_dec(key, data),'ascii').split(":")
     for i in data:
         temp = rsa_encrypt.get_priv_key_db(db).decrypt((base64.b64decode(i),))

@@ -75,7 +75,7 @@ def register_node(data, address, keys):
                 y = int(y)
                 if (x+1) == y:
                     i.ip = address[0]
-                    print("WWWWWWOOOOOOOOOOTTTTT")
+                    print("Node Registered")
             break
 
 def Shamir_Server_Multicast(address, port):
