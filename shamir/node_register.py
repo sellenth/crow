@@ -9,3 +9,5 @@ def register(host):
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))
         return
+
+register(Host())
