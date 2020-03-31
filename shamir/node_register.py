@@ -25,7 +25,7 @@ def register(host):
         y = str(int(str(x, 'ascii')) + 1)
         print(y)
         payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), y)
-        print payload
+        print (payload)
         s.send(payload)
         
     
