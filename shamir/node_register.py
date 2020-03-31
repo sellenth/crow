@@ -25,7 +25,7 @@ def register(host):
         payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), y)
         cli.send(payload)
         cli.close()
-    
+        s.close()
     return
 
 register(Host())
