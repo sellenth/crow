@@ -35,5 +35,5 @@ def update(key, t, host, db):
     return 1
 
 key = rsa_encrypt.get_pub_key()
-update(key, 0, Host("192.168.1.232", 55558), "face")
+update(key, 0, Host("192.168.1.223", 55558), "face")
 

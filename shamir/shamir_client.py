@@ -10,7 +10,7 @@ class Host():
         self.port = 13337
 
 def send_share(share, host):
-    payload = share['id'] + ":" + share['x'] + ":" + share['y']
+    payload = "auth:"+ share['id'] + ":" + share['x'] + ":" + share['y']
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))

@@ -5,6 +5,7 @@ import time
 import shamir_auth
 import rsa_encrypt
 import aes_crypt
+import threading
 
 def add_line(username, conn):
     c = conn.cursor()
@@ -41,7 +42,10 @@ def auth_user(incoming, conn):
     c.execute(upd)
     conn.commit()
 
-def add_secret(d, conn):
+def add_secret(d):
+    conn = sqlite3.connect("shares.db")
+    conn.row_factory = sqlite3.Row
+    conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x1, y1, x2, y2, x3, y3, num_shares, timeout)")
     d = d.decode("utf-8").split(":")
     share = {}
     share['id'] = d[0]
@@ -61,9 +65,9 @@ def Shamir_Server_Multicast(address, port):
     while 1 == 1:
         data, address = s.recvfrom(1024)
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-        add_secret(data, conn)
+        if data[0:4] == "auth":
+            t = threading.Thread(target=add_secret, args=[data[5:]])
+        t.start()
 
-conn = sqlite3.connect("shares.db")
-conn.row_factory = sqlite3.Row
-conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x1, y1, x2, y2, x3, y3, num_shares, timeout)")
-server = Shamir_Server_Multicast('224.3.29.1',13337)
+
+Shamir_Server_Multicast('224.3.29.1',13337)
