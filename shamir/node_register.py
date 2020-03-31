@@ -20,7 +20,7 @@ def register(host):
         s.bind(('0.0.0.0', 44432))
         s.listen(1)
         s.accept()
-        x = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), s.recv())
+        x = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), s.recv(32))
         y = str(int(str(x, 'ascii')) + 1)
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), y))
         
