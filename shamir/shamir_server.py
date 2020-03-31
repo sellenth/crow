@@ -67,8 +67,10 @@ def register_node(data, address, keys):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((address[0], 44432))
                 x = str(int.from_bytes(Random.get_random_bytes(4), "big"))
-                s.send(aes_crypt.aes_enc(i.key,x))
-                y = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(256)), 'ascii')
+                pay = aes_crypt.aes_enc(i.key,x)
+                print(pay)
+                s.send(pay)
+                y = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
                 x = int(x)
                 y = int(y)
                 if (x+1) == y:
