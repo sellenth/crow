@@ -2,6 +2,7 @@ import Crypto
 from Crypto.PublicKey import RSA
 from Crypto import Random
 import base64
+import os
 
 class key_holder():
     def __init__(self, key):
@@ -42,9 +43,10 @@ def generate_auth_keys():
     f1.close()
 
 def generate_device_key():
+    x = str(int.from_bytes(Random.get_random_bytes(8), "big"))
     key = RSA.generate(2048, Random.get_random_bytes)
-    f1 = open('./assets/local','wb')
-    f2 = open('./assets/local.pub'+i+'.pub','wb')
+    f1 = open('./assets/hosts/'+ x,'wb')
+    f2 = open('./assets/hosts/'+x+'.pub','wb')
     f2.write(key.publickey().exportKey('PEM'))
     f2.close()
     f1.write(key.exportKey('PEM'))
@@ -55,6 +57,14 @@ def get_priv_key():
     x = RSA.importKey(f.read())
     f.close()
     return x
+
+def get_keys_nodes():
+    keys = []
+    for i in os.listdir("./assets/hosts"):
+        with open("./assets/hosts/" + i) as f:
+            k = key_holder(RSA.importKey(f.read()))
+            keys.append(k)
+    return keys
 
 def get_pub_key():
     f = open('./assets/local.pub','r')

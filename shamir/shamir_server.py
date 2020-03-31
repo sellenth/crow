@@ -54,6 +54,11 @@ def add_secret(d):
     auth_user(share, conn)
     shamir_auth.auth_user(share['id'], conn)
 
+def register_node(data, address, keys):
+    data = str(data, 'ascii').split(":")
+    for i in keys:
+        print (i)
+
 def Shamir_Server_Multicast(address, port):
     tup = ('', port)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -61,13 +66,18 @@ def Shamir_Server_Multicast(address, port):
     group = socket.inet_aton(address)
     mreq = struct.pack('4sL', group, socket.INADDR_ANY)
     s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-
+    keys = rsa_encrypt.get_keys_nodes()
     while 1 == 1:
         data, address = s.recvfrom(1024)
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-        if data[0:4] == "auth":
+        if data[0:5] == b"auth:":
             t = threading.Thread(target=add_secret, args=[data[5:]])
-        t.start()
+            t.start()
+        elif data[0:5] == b"imup:":
+            t = threading.Thread(target=register_node, args=[data[5:], address, keys])
+            t.start()
+        else:
+            continue
 
 
 Shamir_Server_Multicast('224.3.29.1',13337)
