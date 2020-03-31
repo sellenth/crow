@@ -29,7 +29,6 @@ def grab(t, n):
     return shares
 
 def update(key, t, host, db):
-    #UNCOMMENT LINES TO IMPLEMENT KEY CHECKING
     shares = grab(t, db)
     send_share(key, shares, host)
     return 1
