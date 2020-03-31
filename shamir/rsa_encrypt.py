@@ -45,10 +45,13 @@ def generate_auth_keys():
 def generate_device_key():
     x = str(int.from_bytes(Random.get_random_bytes(8), "big"))
     key = RSA.generate(2048, Random.get_random_bytes)
-    f1 = open('./assets/hosts/'+ x,'wb')
-    f2 = open('./assets/hosts/'+x+'.pub','wb')
+    f1 = open('./assets/local','wb')
+    f2 = open('./assets/'+x+'.pub','wb')
+    f3 = open('./assets/local.pub','wb')
     f2.write(key.publickey().exportKey('PEM'))
+    f3.write(key.publickey().exportKey('PEM'))
     f2.close()
+    f3.close()
     f1.write(key.exportKey('PEM'))
     f1.close()
 
