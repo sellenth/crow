@@ -63,6 +63,7 @@ def register_node(data, address, keys):
 
     for i in keys:
         if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
+            print(address)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((address[0], 44432))
                 x = str(int.from_bytes(Random.get_random_bytes(4), "big"))
