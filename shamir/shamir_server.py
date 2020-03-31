@@ -67,7 +67,7 @@ def register_node(data, address, keys):
                 s.connect((address[0], 44432))
                 x = str(int.from_bytes(Random.get_random_bytes(4), "big"))
                 s.send(aes_crypt.aes_enc(i.key,x))
-                y = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(32)), 'ascii')
+                y = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(256)), 'ascii')
                 x = int(x)
                 y = int(y)
                 if (x+1) == y:
