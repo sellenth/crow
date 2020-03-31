@@ -19,7 +19,7 @@ def register(host):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(('0.0.0.0', 44432))
         s.listen(1)
-        cli, addr = s.accept()
+        (cli, addr) = s.accept()
         x = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), cli.recv(256))
         print(x)
         y = str(int(str(x, 'ascii')) + 1)
