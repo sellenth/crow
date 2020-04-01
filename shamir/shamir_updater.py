@@ -12,32 +12,37 @@ def update_db(data, conn):
     share['x'] = data[1]
     share['y'] = data[2]
     share['key'] = data[3]
+    share['timestamp'] = data[4]
     c = conn.cursor()
     c.execute("SELECT * FROM shares WHERE id = ?", [share['id']])
     if(c.rowcount > 0):
-        c.execute("UPDATE shares SET x = ?, y = ?, key = ?", [share["x"], share["y"], share["key"]])
+        c.execute("UPDATE shares SET x = ?, y = ?, key = ?, timestamp = ?", [share["x"], share["y"], share["key"], share['timestamp']])
         print("there")
     else:
-        c.execute("INSERT INTO shares VALUES(?,?,?,?)", [share['id'], share['x'], share['y'], share['key']])
+        c.execute("INSERT INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
         print("here")
     conn.commit()
 
-def update(key, port, db):
+def update(key, db):
     conn = sqlite3.connect(db + ".db")
     conn.row_factory = sqlite3.Row
-    conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x, y, key)")
-    data = ""
+    conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x, y, key, timestamp)")
+    data = b""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("0.0.0.0", port))
+        s.bind(("0.0.0.0", 55588))
         s.listen(5)
         (cli, add) = s.accept()
-        data = cli.recv(4096)
+        temp =""
+        temp = cli.recv(4096)
+        while not temp == "" and not len(temp) < 4096:
+            data += temp
+            temp = cli.recv(4096)
+        data += temp
         cli.close()
     data = str(aes_crypt.aes_dec(key, data),'ascii').split(":")
     for i in data:
-        temp = rsa_encrypt.get_priv_key_db(db).decrypt((base64.b64decode(i),))
+        print(i)
+        d = i.split("|")
+        temp = rsa_encrypt.get_priv_key_db(db).decrypt((base64.b64decode(d[0]),)) + b':' + bytes(d[1], 'ascii')
         update_db(temp, conn)
     conn.close()
-
-
-update(rsa_encrypt.get_priv_key(), 55558, "face")

@@ -5,9 +5,9 @@ import aes_crypt
 import rsa_encrypt
 
 class Host():
-    def __init__(self, ip, port):
+    def __init__(self, ip):
         self.host = ip
-        self.port = port
+        self.port = 55588
 
 def send_share(key, shares, host):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -24,7 +24,7 @@ def grab(t, n):
     temp = c.fetchall()
     shares = []
     for i in temp:
-        shares.append(i['share'])
+        shares.append(i['share'] + "|" + str(i['timestamp']))
     conn.close()
     return shares
 
@@ -32,7 +32,3 @@ def update(key, t, host, db):
     shares = grab(t, db)
     send_share(key, shares, host)
     return 1
-
-key = rsa_encrypt.get_pub_key()
-update(key, 0, Host("192.168.1.223", 55558), "face")
-

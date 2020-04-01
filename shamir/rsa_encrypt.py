@@ -7,20 +7,18 @@ import os
 class key_holder():
     def __init__(self, key):
         self.key = key
-        self.db = ""
         self.ip = "0"
-        self.db_key = 0
+        self.db = ""
 
 
 def get_keys(dbs):
 
-    keyholder = []
+    keyholder = {}
     for i in dbs:
         with open("./assets/"+i+".pub", "r") as key:
             k = key.read()   
-            keyholder.append(key_holder(RSA.importKey(k)))
-            keyholder[-1].db = i
-            keyholder[-1].db_key = 1
+            keyholder[i] = key_holder(RSA.importKey(k))
+            keyholder[i].db = i
     return keyholder
 
 def generate_db_keys(dbs):
