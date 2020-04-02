@@ -13,8 +13,8 @@ import shamir_client
 
 class Host():
     def __init__(self):
-        self.host = "224.3.29.1"
-        self.port = 13337
+        self.host = settings.MULT_ADDR
+        self.port = settings.MULT_PORT
 
 def register(host, s):
     payload = "imup:" + str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()), 'ascii') + ":" + settings.ID
@@ -53,7 +53,7 @@ def update(cli, address):
     cli.close()
     return
 
-def startup():
+def start():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('0.0.0.0', 44432))
     s.listen(5)
@@ -64,5 +64,3 @@ def startup():
         print("hi")
         t = threading.Thread(update, args= [cli, address])
         t.start()
-
-startup()

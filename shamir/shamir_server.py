@@ -88,7 +88,9 @@ def register_node(data, address, keys, dbkeys):
 				
 	return
 
-def Shamir_Server_Multicast(address, port):
+def start():
+	address = settings.MULT_ADDR
+	port = settings.MULT_PORT 
 	tup = ('', port)
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	s.bind(tup)
@@ -110,4 +112,4 @@ def Shamir_Server_Multicast(address, port):
 			continue
 
 
-Shamir_Server_Multicast('224.3.29.1',13337)
+
