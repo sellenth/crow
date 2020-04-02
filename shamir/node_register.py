@@ -51,6 +51,7 @@ def update(cli, address):
     if(data[0] == "user"):
         print("user")
     cli.close()
+    return
 
 def startup():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,6 +61,7 @@ def startup():
     threading.Thread(shamir_client.start()).start()
     while 1 == 1:
         cli, address = s.accept()
+        print("hi")
         t = threading.Thread(update, args= [cli, address])
         t.start()
 

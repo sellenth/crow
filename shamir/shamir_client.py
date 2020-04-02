@@ -15,7 +15,7 @@ def send_share(share, host):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))
-        return
+    return
 
 def grab(user, n): 
     conn = sqlite3.connect(n + ".db")
