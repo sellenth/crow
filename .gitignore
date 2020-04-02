@@ -1,2 +1,3 @@
 *.db
 ./shamir/assets/*
+./shamir/assets/hosts/*
