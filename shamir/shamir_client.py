@@ -3,6 +3,7 @@ import sqlite3
 import sys
 import aes_crypt
 import rsa_encrypt
+import settings
 
 class Host():
     def __init__(self):
@@ -34,8 +35,16 @@ def auth_user(user, db,key):
         return 1
     return 0 
     '''   
-    send_share(share, host)
+    send_share(share, Host())
     return 1
 
-host = Host()
-auth_user(str(sys.argv[1]), str(sys.argv[2]), "0000")
+def start():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 55556))
+        s.listen(5)
+        while 1 == 1:
+            cli, addr = s.accept()
+            data = str(cli.recv(1024), 'ascii')
+            data = data.split(":")
+            auth_user(data[0], settings.ID, data[1])
+            cli.close()

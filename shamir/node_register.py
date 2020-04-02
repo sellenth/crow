@@ -9,6 +9,7 @@ import settings
 import threading
 import sqlite3
 import shamir_updater
+import shamir_client
 
 class Host():
     def __init__(self):
@@ -47,9 +48,7 @@ def register(host, s):
 def update(cli, address):
     data = cli.recv(2048)
     data = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), data), 'ascii').split(":")
-    if(data[0] == "keys"):
-        print("keys")
-    elif(data[0] == "user"):
+    if(data[0] == "user"):
         print("user")
     cli.close()
 
@@ -58,6 +57,7 @@ def startup():
     s.bind(('0.0.0.0', 44432))
     s.listen(5)
     register(Host(), s)
+    threading.Thread(shamir_client.start()).start()
     while 1 == 1:
         cli, address = s.accept()
         t = threading.Thread(update, args= [cli, address])

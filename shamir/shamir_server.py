@@ -82,7 +82,7 @@ def register_node(data, address, keys, dbkeys):
 					i.ip = address[0]
 					i.db = data[1]
 					print("Node Registered")
-					timestamp = int(str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii'))
+					timestamp = float(str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii'))
 					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
 
 				

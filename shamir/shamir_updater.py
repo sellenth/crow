@@ -17,10 +17,8 @@ def update_db(data, conn):
     c.execute("SELECT * FROM shares WHERE id = ?", [share['id']])
     if(c.rowcount > 0):
         c.execute("UPDATE shares SET x = ?, y = ?, key = ?, timestamp = ?", [share["x"], share["y"], share["key"], share['timestamp']])
-        print("there")
     else:
         c.execute("INSERT INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
-        print("here")
     conn.commit()
 
 def update(key, db):
@@ -40,6 +38,8 @@ def update(key, db):
         data += temp
         cli.close()
     data = str(aes_crypt.aes_dec(key, data),'ascii').split(":")
+    if data == ['']:
+        return 
     for i in data:
         print(i)
         d = i.split("|")
