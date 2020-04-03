@@ -89,10 +89,10 @@ def register_node(data, address, keys, dbkeys):
 def register_auth(data, address):
 	return 
 
-def contest(my_number, address, data):
+def contest(my_number, address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		print(bytes(my_number))
-		s.sendto(bytes(my_number), (address, 44443))
+		print(str(my_number))
+		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
 
 def start():
 	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
@@ -112,7 +112,7 @@ def start():
 		if data[0:5] == b"auth:":
 			threading.Thread(target=add_secret, args=[data[5:]]).start()
 		elif data[0:5] == b"who?:":
-			threading.Thread(target = contest, args = [my_number, address[0]])
+			threading.Thread(target = contest, args = [my_number, address[0]]).start()
 		elif data[0:5] == b"you!:":
 			if int(str(data[5:22], 'ascii')) == my_number:
 				if data[22:27] == b"imup:":
