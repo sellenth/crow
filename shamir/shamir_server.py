@@ -84,11 +84,17 @@ def register_node(data, address, keys, dbkeys):
 					print("Node Registered")
 					timestamp = float(str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii'))
 					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
-
-				
 	return
 
+def register_auth(data, address):
+	return 
+
+def contest(my_number, address, data):
+	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+		s.sendto(my_number, (address, 44443))
+
 def start():
+	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 	address = settings.MULT_ADDR
 	port = settings.MULT_PORT 
 	tup = ('', port)
@@ -103,11 +109,16 @@ def start():
 		data, address = s.recvfrom(4096)
 		data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 		if data[0:5] == b"auth:":
-			t = threading.Thread(target=add_secret, args=[data[5:]])
-			t.start()
-		elif data[0:5] == b"imup:":
-			t = threading.Thread(target=register_node, args=[data[5:], address, keys, dbkeys])
-			t.start()
+			threading.Thread(target=add_secret, args=[data[5:]]).start()
+		elif data[0:5] == b"who?:":
+			threading.Thread(target = contest, args = [my_number, address[0]])
+		elif data[0:5] == b"you!:":
+			if int(str(data[5:22], 'ascii')) == my_number:
+				if data[22:27] == b"imup:":
+					threading.Thread(target=register_node, args=[data[28:], address, keys, dbkeys]).start()
+				elif data[22:27] == b"woke:":
+					threading.Thread(target=register_auth, args=[data[28:], address[0]]).start()
+
 		else:
 			continue
 

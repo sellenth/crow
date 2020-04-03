@@ -20,7 +20,12 @@ def register(host, s):
     payload = "imup:" + str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()), 'ascii') + ":" + settings.ID
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s2:
         s2.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))
+        s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
+        data = ""
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
+            us.bind(('0.0.0.0', 44443))
+            data = us.recv(16)
+        s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload))
     
     (cli, addr) = s.accept()
     
