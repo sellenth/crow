@@ -19,7 +19,7 @@ def grab_timestamp():
     c = conn.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
     c.execute("SELECT MAX(timestamp) FROM secrets")
-    timestamp = c.fetchone[0]
+    timestamp = c.fetchone()[0]
     if timestamp == None:
         timestamp = 0
     conn.close()
