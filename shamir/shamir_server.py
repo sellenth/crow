@@ -90,6 +90,7 @@ def register_auth(data, address):
 	return 
 
 def contest(my_number, address):
+	print("here")
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		print(str(my_number))
 		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
@@ -109,15 +110,17 @@ def start():
 	while 1 == 1:
 		data, address = s.recvfrom(4096)
 		data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-		if data[0:5] == b"auth:":
+		print(data.split(b":")[0])
+		if data.split(b":")[0] == b"auth":
 			threading.Thread(target=add_secret, args=[data[5:]]).start()
-		elif data[0:5] == b"who?:":
+		elif data.split(b":")[0] == b"who?":
 			threading.Thread(target = contest, args = [my_number, address[0]]).start()
-		elif data[0:5] == b"you!:":
-			if int(str(data[5:22], 'ascii')) == my_number:
-				if data[22:27] == b"imup:":
+		elif data.split(b":")[0] == b"you!":
+			print(int(str(data.split(b":")[1], 'ascii')))
+			if int(str(data.split(b":")[1], 'ascii')) == my_number:
+				if data.split(b":")[2] == b"imup":
 					threading.Thread(target=register_node, args=[data[28:], address, keys, dbkeys]).start()
-				elif data[22:27] == b"woke:":
+				elif data.split(b":")[2] == b"woke":
 					threading.Thread(target=register_auth, args=[data[28:], address[0]]).start()
 
 		else:
