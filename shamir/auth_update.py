@@ -51,7 +51,7 @@ def updateee():
         data = str(data, 'ascii')
         data = str(int(data) + 1)
         cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamp()))
-        data = ""
+        data = b""
         temp = cli.recv(4096)
         while not temp == "":
             data += temp
@@ -76,9 +76,9 @@ def updater(address):
         challenge = int.from_bytes(Random.get_random_bytes(10), 'big')
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(challenge)))
         response = s.recv(2048)
-        response = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response)).split(":")
+        response = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response), 'ascii').split(":")
 
-        if (challenge + 1) == int(response[0]):
+        if (challenge + 1) == int(response[0], 0):
             timestamp = response[1]
             data = ""
             for i in settings.DBS:
