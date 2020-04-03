@@ -91,7 +91,8 @@ def register_auth(data, address):
 
 def contest(my_number, address, data):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		s.sendto(my_number, (address, 44443))
+		print(bytes(my_number))
+		s.sendto(bytes(my_number), (address, 44443))
 
 def start():
 	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
