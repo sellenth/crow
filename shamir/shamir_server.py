@@ -51,7 +51,6 @@ def add_secret(d):
 	conn = sqlite3.connect("shares.db")
 	conn.row_factory = sqlite3.Row
 	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x1, y1, x2, y2, x3, y3, num_shares, timeout)")
-	d = d.decode("utf-8").split(":")
 	share = {}
 	share['id'] = d[0]
 	share['x'] = d[1]
@@ -60,7 +59,6 @@ def add_secret(d):
 	shamir_auth.auth_user(share['id'], conn)
 
 def register_node(data, address, keys, dbkeys):
-	data = str(data, 'ascii').split(":")
 	print(data)
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
@@ -92,7 +90,6 @@ def register_auth(data, address):
 def contest(my_number, address):
 	print("here")
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		print(str(my_number))
 		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
 
 def start():
@@ -110,18 +107,17 @@ def start():
 	while 1 == 1:
 		data, address = s.recvfrom(4096)
 		data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-		print(data.split(b":")[0])
-		if data.split(b":")[0] == b"auth":
-			threading.Thread(target=add_secret, args=[data[5:]]).start()
-		elif data.split(b":")[0] == b"who?":
+		data = str(data, 'ascii').split(":")
+		if data[0] == "auth":
+			threading.Thread(target=add_secret, args=[data[1:]]).start()
+		elif data[0] == "who?":
 			threading.Thread(target = contest, args = [my_number, address[0]]).start()
-		elif data.split(b":")[0] == b"you!":
-			print(int(str(data.split(b":")[1], 'ascii')))
-			if int(str(data.split(b":")[1], 'ascii')) == my_number:
-				if data.split(b":")[2] == b"imup":
-					threading.Thread(target=register_node, args=[data[28:], address, keys, dbkeys]).start()
-				elif data.split(b":")[2] == b"woke":
-					threading.Thread(target=register_auth, args=[data[28:], address[0]]).start()
+		elif data[0] == "you!":
+			if int(data[1]) == my_number:
+				if data[2] == "imup":
+					threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+				elif data[2] == "woke":
+					threading.Thread(target=register_auth, args=[data[3:], address[0]]).start()
 
 		else:
 			continue

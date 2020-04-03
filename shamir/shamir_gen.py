@@ -30,7 +30,7 @@ def add_shares(username, dbs, shares, keys):
     for i in range(len(dbs)):
         conn = sqlite3.connect(dbs[i].name + ".db")
         c = conn.cursor()
-        create = "CREATE TABLE IF NOT EXISTS enc_shares(\"share\" PRIMARY KEY, \"timestamp\")"
+        create = "CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\")"
         c.execute(create)
         key = "NULL"
         if not dbs[i].key == "":
@@ -44,7 +44,7 @@ def add_shares(username, dbs, shares, keys):
                 k = keys[j]
         print (k)
         payload = str(base64.b64encode(k.key.encrypt(bytes(payload, "ascii"), len(payload))[0]), "ascii")
-        c.execute("INSERT INTO enc_shares VALUES(?, ?)", [payload, time.time()])
+        c.execute("INSERT INTO enc_shares VALUES(?, ?, ?)", [username, payload, time.time()])
         conn.commit()
         conn.close()
 

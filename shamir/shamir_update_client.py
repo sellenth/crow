@@ -20,7 +20,7 @@ def grab(t, n):
     conn = sqlite3.connect(n + ".db")
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(t)])
+    c.execute("SELECT share, timestamp FROM enc_shares WHERE timestamp > ?", [float(t)])
     temp = c.fetchall()
     shares = []
     for i in temp:
