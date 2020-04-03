@@ -41,6 +41,7 @@ def updateee():
                     us.settimeout(.5)
                     data, address = us.recvfrom(128)
                 except socket.timeout:
+                    us.close()
                     return
             s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
         
