@@ -34,7 +34,7 @@ def updateee():
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s2:
             s2.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
             s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
-            data = ""
+            data = b""
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
                 try:  
                     us.bind(('0.0.0.0', 44443))
