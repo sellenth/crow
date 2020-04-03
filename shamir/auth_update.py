@@ -14,7 +14,7 @@ class Host():
         self.port = settings.MULT_PORT
 
 def grab_timestamp():
-    conn = sqlite3.connect("secrets.db")
+    conn = sqlite3.connect("secrets.db") 
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
