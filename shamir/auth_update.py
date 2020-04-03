@@ -37,6 +37,8 @@ def updateee():
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
                 us.bind(('0.0.0.0', 44443))
                 data, address = us.recvfrom(128)
+                if(data == ""):
+                    return
             s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
         
         (cli, addr) = s.accept()
@@ -76,27 +78,27 @@ def updater(address):
             timestamp = response[1]
             data = ""
             for i in settings.DBS:
-                conn = sqlite3.connect(i + ".db"):
+                conn = sqlite3.connect(i + ".db")
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
-                c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)]):
+                c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)])
                 d = c.fetchall()
-                ret = ''
-                for i in d:
-                    ret += i['id'] + "|" + i['share'] + "|" + str(i['timestamp']) + "::"
-                ret = ret[:-2]
-                data += (ret + ":::")
+                for i in range(len(d)):
+                    d[i] = d[i].join("|")
+                d = d.join("::")
+                data += (d + ":::")
                 conn.close()
-            conn = sqlite3.connect("secrets.db"):
+            conn = sqlite3.connect("secrets.db")
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute("SELECT * FROM secrets WHERE timestamp > ?", [float(timestamp)])
             d = c.fetchall()
             ret = ""
-            for i in d:
-                ret += i['username'] + i['name'] + i['secret'] + str(i['timestamp']) + "::" 
-            data += ret[:-2]
+            for i in range(len(d)):
+                d[i] = d[i].join("|")
+            data += d.join("::")
             data = str(time.time()) + ":::" + data
+            print(data)
             s.send(data)
     return
 

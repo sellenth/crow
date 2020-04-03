@@ -94,6 +94,7 @@ def contest(my_number, address):
 		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
 
 def start():
+	auth_update.updateee()
 	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 	address = settings.MULT_ADDR
 	port = settings.MULT_PORT 
