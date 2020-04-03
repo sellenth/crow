@@ -44,7 +44,7 @@ def updateee():
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         data = str(data, 'ascii')
         data = str(int(data) + 1)
-        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamp))
+        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamp()))
         data = ""
         temp = cli.recv(4096)
         while not temp == "":
@@ -58,17 +58,15 @@ def updateee():
             return -1
 
         for i in range(len(data)):
-            data[i] = data[i].split("::")
-            for j in range(data[i])
-            data[i][j] = list(data[i][j])
+            data[i] = data[i].split
         updates = {}
         for i in range(len(settings.DBS)):
             updates[settings.DBS[i]] = data[i]
         updates['secrets'] = data[-1]
 
-def updater():
+def updater(address):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('0.0.0.0', 44441))
+        s.connect((address, 44441))
         challenge = int.from_bytes(Random.get_random_bytes(10), 'big')
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(challenge)))
         response = s.recv(2048)
@@ -82,15 +80,21 @@ def updater():
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
                 c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)]):
-                d = c.fetchall
-                print(d)
-                data += (str(d) + ":::")
+                d = c.fetchall()
+                ret = ''
+                for i in d:
+                    ret += i['id'] + "|" + i['share'] + "|" + str(i['timestamp']) + "::"
+                ret = ret[:-2]
+                data += (ret + ":::")
                 conn.close()
             conn = sqlite3.connect("secrets.db"):
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             c.execute("SELECT * FROM secrets WHERE timestamp > ?", [float(timestamp)])
             d = c.fetchall()
+            ret = ""
+            for i in d:
+                
             data += str(d)
             data = str(time.time()) + ":::" + data
             s.send(data)
