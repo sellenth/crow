@@ -14,9 +14,10 @@ class Host():
         self.port = settings.MULT_PORT
 
 def grab_timestamp():
-    conn = sqlite3.connect(secrets.db)
+    conn = sqlite3.connect("secrets.db")
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
+    c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
     c.execute("SELECT MAX(timestamp) FROM secrets")
     timestamp = c.fetchone[0]
     if timestamp == None:
@@ -35,9 +36,11 @@ def updateee():
             s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
             data = ""
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
-                us.bind(('0.0.0.0', 44443))
-                data, address = us.recvfrom(128)
-                if(data == ""):
+                try:  
+                    us.bind(('0.0.0.0', 44443))
+                    us.settimeout(.5)
+                    data, address = us.recvfrom(128)
+                except socket.timeout:
                     return
             s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
         
