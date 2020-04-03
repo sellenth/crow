@@ -23,7 +23,7 @@ def grab_timestamp():
     if timestamp == None:
         timestamp = 0
     conn.close()
-    return str(timestamp) 
+    return str(timestamp)
 
 def updateee():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
