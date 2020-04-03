@@ -94,8 +94,8 @@ def updater(address):
             d = c.fetchall()
             ret = ""
             for i in d:
-                
-            data += str(d)
+                ret += i['username'] + i['name'] + i['secret'] + str(i['timestamp']) + "::" 
+            data += ret[:-2]
             data = str(time.time()) + ":::" + data
             s.send(data)
     return

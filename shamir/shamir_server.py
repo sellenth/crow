@@ -10,6 +10,7 @@ import threading
 import settings
 import base64
 import shamir_update_client
+import auth_update
 from Crypto import Random
 
 def add_line(username, conn):
@@ -117,7 +118,7 @@ def start():
 				if data[2] == "imup":
 					threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
 				elif data[2] == "woke":
-					threading.Thread(target=register_auth, args=[data[3:], address[0]]).start()
+					threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
 		else:
 			continue

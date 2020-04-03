@@ -19,7 +19,7 @@ def add_secret(username, name, secret):
     c = conn.cursor()
 
     c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
-    c.execute("INSERT INTO secrets VALUES (?,?,?,?)", [username, name, secret, time.time()])
+    c.execute("INSERT INTO secrets VALUES (?,?,?,?)", [username, name, str(secret), time.time()])
     conn.commit()
     conn.close()
 
