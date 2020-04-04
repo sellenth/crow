@@ -53,7 +53,7 @@ def updateee():
         cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamp()))
         data = b""
         temp = cli.recv(4096)
-        while not temp == "":
+        while not temp == "" and not len(temp) < 4096:
             data += temp
             temp = cli.recv(4096)
         data += temp
