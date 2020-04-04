@@ -24,12 +24,14 @@ def fill_dbs(updates):
         c = conn.cursor()
         shares = updates[i]
         if i == 'secrets':
+            c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\""))
             for j in shares:
                 share = j.split("|")
                 if(share[2] == "DEL"):
                     delete_all(share[0])
                 c.execute("REPLACE INTO secrets VALUES (?, ?, ?, ?)", share)
         else:
+            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\""))
             for j in shares:
                 share = j.split("|")
                 c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
