@@ -38,8 +38,8 @@ def fill_dbs(updates):
                 share = j.split("|")
                 print (share)
                 c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
-        c.commit()
-        c.close()
+        conn.commit()
+        conn.close()
     return
 
 def grab_timestamp():
