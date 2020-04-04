@@ -18,7 +18,7 @@ def delete_all(id):
 
 def fill_dbs(updates):
     for i in updates:
-        conn = sqlite3.connect(i+"db")
+        conn = sqlite3.connect(i+".db")
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         shares = updates[i]
@@ -38,6 +38,8 @@ def fill_dbs(updates):
                 share = j.split("|")
                 print (share)
                 c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
+        c.commit()
+        c.close()
     return
 
 def grab_timestamp():
