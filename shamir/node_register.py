@@ -58,12 +58,16 @@ def update(cli, address):
     cli.close()
     return
 
+def timer_update_start():
+    return
+
 def start():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('0.0.0.0', 44432))
     s.listen(5)
     register(Host(), s)
     threading.Thread(shamir_client.start()).start()
+    threading.Thread(timer_update_start()).start()
     while 1 == 1:
         cli, address = s.accept()
         print("hi")

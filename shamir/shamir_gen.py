@@ -13,17 +13,17 @@ class db:
         self.name = ""
         self.key = ""
 
-def add_secret(username, name, secret):
+def add_secret(username, name, secret, currtime):
     conn = sqlite3.connect("secrets.db")
 
     c = conn.cursor()
 
     c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
-    c.execute("INSERT INTO secrets VALUES (?,?,?,?)", [username, name, str(secret), time.time()])
+    c.execute("INSERT INTO secrets VALUES (?,?,?,?)", [username, name, str(secret), currtime])
     conn.commit()
     conn.close()
 
-def add_shares(username, dbs, shares, keys):
+def add_shares(username, dbs, shares, keys, currtime):
     if((not len(shares) == len(dbs))):
         #shares must be equal to dbs to prevent loss or oversharing
         return -1
@@ -44,7 +44,7 @@ def add_shares(username, dbs, shares, keys):
                 k = keys[j]
         print (k)
         payload = str(base64.b64encode(k.key.encrypt(bytes(payload, "ascii"), len(payload))[0]), "ascii")
-        c.execute("INSERT INTO enc_shares VALUES(?, ?, ?)", [username, payload, time.time()])
+        c.execute("INSERT INTO enc_shares VALUES(?, ?, ?)", [username, payload, currtime])
         conn.commit()
         conn.close()
 
@@ -52,8 +52,9 @@ def gen_secrets(username, name, dbs, keys):
     if(len(dbs) < settings.TOTAL):
         exit(1)
     secret, shares = shamir.make_random_shares(settings.THRESH, len(dbs))
-    add_secret(username, name, secret)
-    add_shares(username, dbs, shares, keys)
+    currtime = time.time()
+    add_secret(username, name, secret, currtime)
+    add_shares(username, dbs, shares, keys, currtime)
 
 def add_user(username, name, keys_list):
     keys = rsa_encrypt.get_keys(settings.DBS)

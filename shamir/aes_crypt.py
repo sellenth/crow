@@ -10,6 +10,7 @@ import hashlib
 def aes_enc(rsa_key, message):
     k = os.urandom(32)
     iv = os.urandom(16)
+    message = str(time.time) + "|||" + message
     message = message + "\x00" * (16 - (len(message) % 16))
     Cip =AES.new(k, AES.MODE_CBC, iv)    
     x = Cip.encrypt(message)
@@ -33,7 +34,13 @@ def aes_dec(rsa_key, ciphertext):
     if(hsh == hashlib.sha256(cip).digest()):
         Cip = AES.new(key, AES.MODE_CBC, cip[0:16])
         cip = Cip.decrypt(cip)
-        return cip[16:].strip(b'\x00')
+        
+        message = cip[16:].strip(b'\x00')
+        message = message.split(b"|||")
+        if time.time() - float(str(message[0], 'ascii')):
+            return message[1]
+        else:
+            return -2
     else:
         return -1
 

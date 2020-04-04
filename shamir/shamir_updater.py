@@ -18,7 +18,7 @@ def update_db(data, conn):
     if(c.rowcount > 0):
         c.execute("UPDATE shares SET x = ?, y = ?, key = ?, timestamp = ?", [share["x"], share["y"], share["key"], share['timestamp']])
     else:
-        c.execute("INSERT INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
+        c.execute("REPLACE INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
     conn.commit()
 
 def update(key, db):

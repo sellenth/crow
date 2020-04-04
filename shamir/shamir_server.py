@@ -92,9 +92,44 @@ def contest(my_number, address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
 
+def handle_response(data, address)
+	#Decrypt message and validate
+	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
+	
+	#invalid data is ignored
+	if data == -1 or data == -2:
+		continue
+
+	#split the message and determine how to respond to it
+	data = str(data, 'ascii').split(":")
+
+	#Node is sending share for authentication
+	if data[0] == "auth":
+		threading.Thread(target=add_secret, args=[data[1:]]).start()
+	
+	#Node needs an auth node, so the auth contest is started
+	elif data[0] == "who?":
+		threading.Thread(target = contest, args = [my_number, address[0]]).start()
+	
+	#A node has picked an auth node to use, check if it is this server
+	elif data[0] == "you!":
+		if int(data[1]) == my_number:
+			if data[2] == "imup":
+				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+			elif data[2] == "woke":
+				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
+
+
+#Start runs the shamir server, it is responsible for listening on the multicast
+#address and assigning messages to the proper threads
 def start():
+	#Run the auth node update process which is required for the server to start properly
 	auth_update.updateee()
+
+	#Set id number for auth contest  
 	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
+	
+	#Set up multicast listener
 	address = settings.MULT_ADDR
 	port = settings.MULT_PORT 
 	tup = ('', port)
@@ -103,25 +138,17 @@ def start():
 	group = socket.inet_aton(address)
 	mreq = struct.pack('4sL', group, socket.INADDR_ANY)
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+	
+	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)
+	
+	#Officialy start the server
 	while 1 == 1:
+		#grab data and sender from the ,ulticast address
 		data, address = s.recvfrom(4096)
-		data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-		data = str(data, 'ascii').split(":")
-		if data[0] == "auth":
-			threading.Thread(target=add_secret, args=[data[1:]]).start()
-		elif data[0] == "who?":
-			threading.Thread(target = contest, args = [my_number, address[0]]).start()
-		elif data[0] == "you!":
-			if int(data[1]) == my_number:
-				if data[2] == "imup":
-					threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
-				elif data[2] == "woke":
-					threading.Thread(target=auth_update.updater, args=[address[0]]).start()
-
-		else:
-			continue
+		#start response handler
+		threading.Thread(target=handle_response, args=[data, address]).Start()
 
 
 

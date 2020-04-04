@@ -92,10 +92,9 @@ def updateee():
             temp = cli.recv(4096)
         data += temp
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-        data = str(data, 'ascii').split(":::")
-        if time.time() - float(data[0]) > 15:
+        if data == -2 or data == -1:
             return -1
-        data = data[1:]
+        data = str(data, 'ascii').split(":::")
         for i in range(len(data)):
             data[i] = data[i].split("::")
         updates = {}
@@ -136,7 +135,7 @@ def updater(address):
                 d[i] = d[i]["id"] + "|" + d[i]["name"] + "|" + d[i]["secret"] + "|" + str(d[i]['timestamp'])
             print (d)
             data += "::".join(d)
-            data = str(time.time()) + ":::" + data
+            data = data
             print(data)
             s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data))
             print("sent")
