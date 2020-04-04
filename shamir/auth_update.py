@@ -17,8 +17,7 @@ def delete_all(id):
     return
 
 def fill_dbs(updates):
-    print(updates)
-    for i in updates:
+     for i in updates:
         conn = sqlite3.connect(i+"db")
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -33,6 +32,8 @@ def fill_dbs(updates):
         else:
             c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\")")
             for j in shares:
+                print(j)
+                print(shares)
                 share = j.split("|")
                 print (share)
                 c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
