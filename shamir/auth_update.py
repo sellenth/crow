@@ -17,7 +17,7 @@ def delete_all(id):
     return
 
 def fill_dbs(updates):
-     for i in updates:
+    for i in updates:
         conn = sqlite3.connect(i+"db")
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
