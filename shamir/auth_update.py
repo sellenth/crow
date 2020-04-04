@@ -22,6 +22,7 @@ def fill_dbs(updates):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         shares = updates[i]
+        print(i)
         if i == 'secrets':
             c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
             for j in shares:
