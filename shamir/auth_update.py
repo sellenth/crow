@@ -85,11 +85,10 @@ def updateee():
             temp = cli.recv(4096)
         data += temp
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-        print(data)
         data = str(data, 'ascii').split(":::")
         if time.time() - float(data[0]) > 15:
             return -1
-
+        data = data[1:]
         for i in range(len(data)):
             data[i] = data[i].split("::")
         updates = {}
