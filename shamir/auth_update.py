@@ -14,6 +14,11 @@ class Host():
         self.port = settings.MULT_PORT
 
 def delete_all(id):
+    for i in settings.DBS:
+        conn = sqlite3.connect(i+".db")
+        conn.cursor().execute("REMOVE FROM shares WHERE id = ?", [id])
+        conn.commit()
+        conn.close()
     return
 
 def fill_dbs(updates):
