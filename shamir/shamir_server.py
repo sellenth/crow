@@ -59,35 +59,56 @@ def add_secret(d):
 	auth_user(share, conn)
 	shamir_auth.auth_user(share['id'], conn)
 
+#this registers and updates a node at address
 def register_node(data, address, keys, dbkeys):
-	print(data)
+	#Determine if the public key sent by the node is in the system
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
-			print(address)
+			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 				s.connect((address[0], 44432))
+				
+				#pick 2 numbers, one for the db key, and one for the decvice key
 				sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
 				sum2 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
-				pay = aes_crypt.aes_enc(i.key,sum1)
-				pay2 = aes_crypt.aes_enc(dbkeys[data[1]].key,sum2)
-				s.send(pay + b'::'+ pay2)
-				return_sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii').split(":")
 				sum1 = int(sum1)
 				sum2 = int(sum2)
-				y = int(return_sums[0])
-				z = int(return_sums[1])
 
-				if (sum1+1) == y and (sum2+1) == z:
+				#encrypt the first number with device public key and the second with db public key
+				pay = aes_crypt.aes_enc(i.key,sum1)
+				pay2 = aes_crypt.aes_enc(dbkeys[data[1]].key,sum2)
+				
+				#send the two payloads
+				s.send(pay + b'::'+ pay2)
+
+				#recieve and check that valid data was recieved
+				return_sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii').split(":")
+				if return_sums == -2 or return_sums == -1:
+					return
+				
+				#convert the response to integer
+				check1 = int(return_sums[0])
+				check2 = int(return_sums[1])
+
+				#validate that the node was able to read the data and modify it predictably
+				if (sum1+1) == check1 and (sum2+1) == check2:
+					#log that the node was registered and add its IP address and database to its associated key object
 					i.ip = address[0]
 					i.db = data[1]
-					print("Node Registered")
-					timestamp = float(str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii'))
+					
+					#grab timestamp from node
+					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
+					#validate data and convert timstamp to float
+					if timestamp == -1 or timestamp == -2:
+						return
+					
+					timestamp = float(timestamp)
+					
+					#start node database update
 					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
-	return
 
-def register_auth(data, address):
-	return 
 
+#this sends the servers associated number to the address specified
 def contest(my_number, address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
@@ -114,8 +135,10 @@ def handle_response(data, address)
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
 		if int(data[1]) == my_number:
+			#respond to startup update for client node
 			if data[2] == "imup":
 				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+			#respond to startup update for auth node
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
