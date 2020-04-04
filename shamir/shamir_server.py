@@ -89,7 +89,6 @@ def register_auth(data, address):
 	return 
 
 def contest(my_number, address):
-	print("here")
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
 
