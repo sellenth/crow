@@ -13,6 +13,27 @@ class Host():
         self.host = settings.MULT_ADDR
         self.port = settings.MULT_PORT
 
+def delete_all(id):
+    return
+
+def fill_dbs(updates):
+    for i in updates:
+        conn = sqlite3.connect(i+"db")
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        shares = updates[i].split("::")
+        if i == 'secrets':
+            for j in shares:
+                share = j.split("|")
+                if(share[2] == "DEL"):
+                    delete_all(share[0])
+                c.execute("REPLACE INTO secrets VALUES (?, ?, ?, ?)", share)
+        else:
+            for j in shares:
+                share = j.split("|")
+                c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
+    return
+
 def grab_timestamp():
     conn = sqlite3.connect("secrets.db") 
     conn.row_factory = sqlite3.Row
@@ -69,6 +90,8 @@ def updateee():
         for i in range(len(settings.DBS)):
             updates[settings.DBS[i]] = data[i]
         updates['secrets'] = data[-1]
+        fill_dbs(updates)
+    return
 
 def updater(address):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
