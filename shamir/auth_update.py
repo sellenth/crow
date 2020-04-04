@@ -86,7 +86,7 @@ def updateee():
             return -1
 
         for i in range(len(data)):
-            data[i] = data[i].split
+            data[i] = data[i].split("::")
         updates = {}
         for i in range(len(settings.DBS)):
             updates[settings.DBS[i]] = data[i]
