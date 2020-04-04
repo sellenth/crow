@@ -88,8 +88,8 @@ def updater(address):
                 c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)])
                 d = c.fetchall()
                 for i in range(len(d)):
-                    d[i] = d[i].join("|")
-                d = d.join("::")
+                    d[i] = d[i]["id"] + "|" + d[i]["share"] + "|" + str(d[i]["timestamp"])
+                d = "::".join(d)
                 data += (d + ":::")
                 conn.close()
             conn = sqlite3.connect("secrets.db")
@@ -97,12 +97,13 @@ def updater(address):
             c = conn.cursor()
             c.execute("SELECT * FROM secrets WHERE timestamp > ?", [float(timestamp)])
             d = c.fetchall()
-            ret = ""
             for i in range(len(d)):
-                d[i] = d[i].join("|")
-            data += d.join("::")
+                d[i] = d[i]["id"] + "|" + d[i]["name"] + "|" + d[i]["secret"] + "|" + str(d[i]['timestamp'])
+            print (d)
+            data += "::".join(d)
             data = str(time.time()) + ":::" + data
             print(data)
-            s.send(data)
+            s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data))
+            print("sent")
     return
 
