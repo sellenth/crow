@@ -33,8 +33,8 @@ def fill_dbs(updates):
         else:
             c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\")")
             for j in shares:
-                print (share)
                 share = j.split("|")
+                print (share)
                 c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
     return
 
