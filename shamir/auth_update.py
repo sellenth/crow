@@ -22,7 +22,7 @@ def fill_dbs(updates):
         conn = sqlite3.connect(i+"db")
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        shares = updates[i].split("::")
+        shares = updates[i]
         if i == 'secrets':
             for j in shares:
                 share = j.split("|")
