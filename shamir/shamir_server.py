@@ -124,10 +124,9 @@ def register_node(data, address):
 #this sends the servers associated number to the address specified
 def contest(address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		for i in keys:
-			if i.ip == address:
-				s.sendto(aes_crypt.aes_enc(i.key, str(my_number)), (address, 44443))
-				return
+		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_priv_key_auth(), str(my_number)), (address, 44443))
+
+		
 
 #Handler for any multicast message that is recieved
 def handle_response(data, address):
@@ -151,6 +150,7 @@ def handle_response(data, address):
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
+		print(data[1])
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
