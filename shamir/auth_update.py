@@ -107,7 +107,7 @@ def updateee():
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         if data == -2 or data == -1:
             return -1
-        if data == "::::::::::::":
+        if data == b"::::::::::::":
             return
         print (data)
         data = str(data, 'ascii').split(":::")
