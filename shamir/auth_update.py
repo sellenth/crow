@@ -59,26 +59,32 @@ def grab_timestamp():
     conn.close()
     return str(timestamp)
 
+def challenge(payload):
+    host = Host()
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
+        s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
+        data = ""
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
+            us.bind(('0.0.0.0', 44443))
+            data, address = us.recvfrom(4096)
+        data = data.split(b":")
+        if not (base64.b64encode(hashlib.sha256(data[0] + data[1]).digest()) == data[2]):
+            return -1
+        if not (time.time() - float(str(data[1], 'ascii'))) < 10:
+            return -2
+        
+        print(data)
+        data = str(data[0], 'ascii')
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))    
+
 def updateee():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(('0.0.0.0', 44441))
         s.listen(1)
         host = Host()
         payload = "woke:"
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s2:
-            s2.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-            s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
-            data = b""
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
-                try:  
-                    us.bind(('0.0.0.0', 44443))
-                    us.settimeout(.5)
-                    data, address = us.recvfrom(128)
-                except socket.timeout:
-                    us.close()
-                    return
-            s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
-        
+        challenge(payload)        
         (cli, addr) = s.accept()
         data = cli.recv(1024)
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
@@ -102,6 +108,7 @@ def updateee():
             updates[settings.DBS[i]] = data[i]
         updates['secrets'] = data[-1]
         fill_dbs(updates)
+    print("registered")
     return
 
 def updater(address):

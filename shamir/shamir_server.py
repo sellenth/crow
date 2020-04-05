@@ -72,7 +72,7 @@ def add_secret(d):
 def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
 	for i in keys:
-		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
+		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data[0]:
 			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 				s.connect((address[0], 44432))
@@ -80,12 +80,13 @@ def register_node(data, address, keys, dbkeys):
 				#pick 2 numbers, one for the db key, and one for the decvice key
 				sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
 				sum2 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
-				sum1 = int(sum1)
-				sum2 = int(sum2)
 
 				#encrypt the first number with device public key and the second with db public key
 				pay = aes_crypt.aes_enc(i.key,sum1)
 				pay2 = aes_crypt.aes_enc(dbkeys[data[1]].key,sum2)
+				
+				sum1 = int(sum1)
+				sum2 = int(sum2)
 				
 				#send the two payloads
 				s.send(pay + b'::'+ pay2)
