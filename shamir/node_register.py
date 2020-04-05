@@ -26,13 +26,14 @@ def register(host, s):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             us.bind(('0.0.0.0', 44443))
             data, address = us.recvfrom(4096)
-        data = str(data,'ascii').split(":")
+        data = data.split(b":")
         if not (base64.b64encode(hashlib.sha256(data[0] + data[1]).digest()) == data[2]):
             return -1
-        if not (time.time() - float(data[1])) < 10:
+        if not (time.time() - float(str(data[1]), 'ascii') < 10:
             return -2
-
+        
         print(data)
+        data = str(data[0], 'ascii')
         s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
     
     (cli, addr) = s.accept()
