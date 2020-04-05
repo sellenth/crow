@@ -66,6 +66,7 @@ def challenge(payload):
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
         data = ""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
+            us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
             data, address = us.recvfrom(4096)
         data = data.split(b":")
@@ -85,7 +86,10 @@ def updateee():
         host = Host()
 
         payload = "woke:"
-        challenge(payload)     
+        try:    
+            challenge(payload)     
+        except:
+            return
         (cli, addr) = s.accept()
 
         data = cli.recv(1024)
@@ -103,6 +107,8 @@ def updateee():
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         if data == -2 or data == -1:
             return -1
+        if data == "":
+            return
         data = str(data, 'ascii').split(":::")
         for i in range(len(data)):
             data[i] = data[i].split("::")
@@ -148,6 +154,5 @@ def updater(address):
             data = data
             print(data)
             s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data))
-            print("sent")
     return
 
