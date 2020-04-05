@@ -22,7 +22,7 @@ def challenge(payload):
     host = Host()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key()).digest()), 'ascii'), ((host.host, host.port)))
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key()).digest()), 'ascii')), ((host.host, host.port)))
         data = ""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             us.bind(('0.0.0.0', 44443))

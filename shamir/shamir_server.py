@@ -104,7 +104,7 @@ def register_node(data, address, keys, dbkeys):
 				if (sum1+1) == check1 and (sum2+1) == check2:
 					#log that the node was registered and add its IP address and database to its associated key object
 					i.ip = address[0]
-					i.db = data[1]
+					i.db = data[1]    
 					
 					#grab timestamp from node
 					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
