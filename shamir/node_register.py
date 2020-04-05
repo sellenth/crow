@@ -9,6 +9,7 @@ import settings
 import threading
 import sqlite3
 import shamir_updater
+import time
 import shamir_client
 
 class Host():
@@ -25,7 +26,12 @@ def register(host, s):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             us.bind(('0.0.0.0', 44443))
             data, address = us.recvfrom(4096)
-        data = aes_crypt.aes_dec(rsa_encrypt.get_pub_key_auth(), data)
+        data = str(data,'ascii').split("")
+        if not (base64.b64encode(hashlib.sha256(data[0] + data[1]).digest()) == data[2]):
+            return -1
+        if not (time.time() - float(data[1])) < 10:
+            return -2
+
         print(data)
         s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
     

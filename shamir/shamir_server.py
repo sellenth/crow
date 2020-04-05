@@ -124,7 +124,9 @@ def register_node(data, address):
 #this sends the servers associated number to the address specified
 def contest(address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_priv_key_auth(), str(my_number)), (address, 44443))
+		t = str(time.time())
+		data = str(my_number) + ":" + t + ":" + str(base64.b64encode(hashlib.sha256(str(my_number) + t).digest()), 'ascii')
+		s.sendto( bytes(data, ascii), (address, 44443))
 
 		
 
