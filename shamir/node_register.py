@@ -11,7 +11,7 @@ import sqlite3
 import shamir_updater
 import time
 import shamir_client
-
+xxx
 class Host():
     def __init__(self):
         self.host = settings.MULT_ADDR
