@@ -116,7 +116,7 @@ def register_node(data, address, keys, dbkeys):
 					
 					#start node database update
 					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
-
+   
 
 #this sends the servers associated number to the address specified
 def contest(address, my_number, pub):
