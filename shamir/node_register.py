@@ -24,7 +24,7 @@ def register(host, s):
         data = ""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             us.bind(('0.0.0.0', 44443))
-            data, address = us.recvfrom(2048)
+            data, address = us.recvfrom(4096)
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), data)
         print(data)
         s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
