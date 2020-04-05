@@ -54,7 +54,7 @@ def auth_user(incoming, conn):
 		if share["x"+str(j+1)] == incoming["x"]:
 			return
 	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timeout = ? WHERE id = ?"
-	c.execute(upd, [incoming['x'], incoming[y], i, str(int(time.time())), username])
+	c.execute(upd, [incoming['x'], incoming['y'], i, str(int(time.time())), username])
 	conn.commit()
 
 def add_secret(d):
@@ -122,7 +122,7 @@ def contest(address, my_number):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		t = str(time.time())
 		data = str(my_number) + ":" + t + ":" + str(base64.b64encode(hashlib.sha256(bytes(str(my_number) + t, 'ascii')).digest()), 'ascii')
-		s.sendto( bytes(data, ascii), (address, 44443))
+		s.sendto( bytes(data, 'ascii'), (address, 44443))
 
 		
 
