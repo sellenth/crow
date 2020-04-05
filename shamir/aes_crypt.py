@@ -11,7 +11,8 @@ import hashlib
 def aes_enc(rsa_key, message):
     k = os.urandom(32)
     iv = os.urandom(16)
-    message = str(time.time) + "|||" + message
+    message = str(time.time()) + "|||" + message
+    print(message)
     message = message + "\x00" * (16 - (len(message) % 16))
     Cip =AES.new(k, AES.MODE_CBC, iv)    
     x = Cip.encrypt(message)
