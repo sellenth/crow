@@ -3,12 +3,14 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 import base64
 import os
+import hashlib
 
 class key_holder():
     def __init__(self, key):
         self.key = key
         self.ip = "0"
         self.db = ""
+        self.hash = ""
 
 
 def get_keys(dbs):
@@ -19,6 +21,7 @@ def get_keys(dbs):
             k = key.read()   
             keyholder[i] = key_holder(RSA.importKey(k))
             keyholder[i].db = i
+            keyholder[i].hash = str(base64.b64encode(hashlib.sha256(keyholder[i].key).digest()),'ascii')
     return keyholder
 
 def generate_db_keys(dbs):
