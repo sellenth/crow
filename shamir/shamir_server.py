@@ -154,7 +154,6 @@ def handle_response(data, address, my_number, keys, dbkeys):
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
-				print("reggie")
 				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
@@ -164,8 +163,9 @@ def handle_response(data, address, my_number, keys, dbkeys):
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
 def start():
+	#set unique number -- not actually unicue but 1- (N* (1/2^16*8)) chance of being unique 
 	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
-	print(my_number)
+	
 	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)

@@ -83,9 +83,9 @@ def updateee():
         s.bind(('0.0.0.0', 44441))
         s.listen(1)
         host = Host()
-        
+
         payload = "woke:"
-        challenge(payload)        
+        challenge(payload)     
         (cli, addr) = s.accept()
 
         data = cli.recv(1024)
