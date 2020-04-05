@@ -13,11 +13,13 @@ import shamir_update_client
 import auth_update
 from Crypto import Random
 
+#insert a blank user into the database to use as a baseline
 def add_line(username, conn):
 	c = conn.cursor()
 	c.execute("INSERT INTO shares VALUES(\""+ username +"\",0,0,0,0,0,0,0,0)")
 	conn.commit()
 
+#authenticate a user based on a given id and share
 def auth_user(incoming, conn):
 	print(str(incoming))
 	username = incoming["id"]
@@ -25,6 +27,7 @@ def auth_user(incoming, conn):
 
 	c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
 	share = c.fetchall()
+
 	if not len(share) == 1: 
 		add_line(username, conn)
 		c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
@@ -37,15 +40,14 @@ def auth_user(incoming, conn):
 		share = c.fetchall()
 	share = share[0]
 	
-	
 	if share["num_shares"] >= 3:
 		return
 	i = share["num_shares"] +1
 	for j in range(i):
 		if share["x"+str(j+1)] == incoming["x"]:
 			return
-	upd = "UPDATE shares SET x" + str(i)+" = \"" +incoming["x"]+ "\", y" + str(i) + " = \"" + incoming["y"] + "\", num_shares = " + str(i) +", timeout = " + str(int(time.time())) + " WHERE id = \"" + username + "\""
-	c.execute(upd)
+	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timeout = ? WHERE id = ?"
+	c.execute(upd, [incoming['x'], incoming[y], i, str(int(time.time())), incoming['id']])
 	conn.commit()
 
 def add_secret(d):
