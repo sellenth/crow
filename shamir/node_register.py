@@ -29,7 +29,7 @@ def register(host, s):
         data = data.split(b":")
         if not (base64.b64encode(hashlib.sha256(data[0] + data[1]).digest()) == data[2]):
             return -1
-        if not (time.time() - float(str(data[1]), 'ascii') < 10:
+        if not (time.time() - float(str(data[1]), 'ascii')) < 10:
             return -2
         
         print(data)
