@@ -131,7 +131,7 @@ def contest(address, my_number):
 def handle_response(data, address, my_number, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-	
+	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
@@ -145,10 +145,12 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
+		print("here")
 		threading.Thread(target = contest, args = [address[0], my_number]).start()
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
+		print("her2e")
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":

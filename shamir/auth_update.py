@@ -83,13 +83,16 @@ def updateee():
         s.bind(('0.0.0.0', 44441))
         s.listen(1)
         host = Host()
+        
         payload = "woke:"
         challenge(payload)        
         (cli, addr) = s.accept()
+
         data = cli.recv(1024)
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         data = str(data, 'ascii')
         data = str(int(data) + 1)
+
         cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamp()))
         data = b""
         temp = cli.recv(4096)
