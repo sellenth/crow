@@ -148,10 +148,10 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
-		print(data[1])
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
+				print("reggie")
 				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
