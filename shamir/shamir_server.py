@@ -121,7 +121,7 @@ def register_node(data, address, keys, dbkeys):
 def contest(address, my_number):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		t = str(time.time())
-		data = str(my_number) + ":" + t + ":" + str(base64.b64encode(hashlib.sha256(bytes(str(my_number) + t, 'ascii').digest()), 'ascii')
+		data = str(my_number) + ":" + t + ":" + str(base64.b64encode(hashlib.sha256(bytes(str(my_number) + t, 'ascii')).digest()), 'ascii')
 		s.sendto( bytes(data, ascii), (address, 44443))
 
 		
