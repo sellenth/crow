@@ -34,7 +34,7 @@ def register(host, s):
         
         print(data)
         data = str(data[0], 'ascii')
-        s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + str(data, 'ascii') + ":" + payload), ((host.host, host.port)))
+        s2.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))
     
     (cli, addr) = s.accept()
     
