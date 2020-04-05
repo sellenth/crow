@@ -14,11 +14,7 @@ import auth_update
 from Crypto import Random
 
 
-my_number = int.from_bytes(Random.get_random_bytes(16), "big")
-print(my_number)
-#Grab database keys and device keys
-keys = rsa_encrypt.get_keys_nodes()
-dbkeys = rsa_encrypt.get_keys(settings.DBS)
+
 
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
@@ -73,7 +69,7 @@ def add_secret(d):
 	shamir_auth.auth_user(share['id'], conn)
 
 #this registers and updates a node at address
-def register_node(data, address):
+def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
@@ -122,7 +118,7 @@ def register_node(data, address):
 
 
 #this sends the servers associated number to the address specified
-def contest(address):
+def contest(address, my_number):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		t = str(time.time())
 		data = str(my_number) + ":" + t + ":" + str(base64.b64encode(hashlib.sha256(str(my_number) + t).digest()), 'ascii')
@@ -131,7 +127,7 @@ def contest(address):
 		
 
 #Handler for any multicast message that is recieved
-def handle_response(data, address):
+def handle_response(data, address, my_number, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 	
@@ -148,7 +144,7 @@ def handle_response(data, address):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
-		threading.Thread(target = contest, args = [address[0]]).start()
+		threading.Thread(target = contest, args = [address[0], my_number]).start()
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
@@ -156,7 +152,7 @@ def handle_response(data, address):
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
-				threading.Thread(target=register_node, args=[data[3:], address]).start()
+				threading.Thread(target=register_node, args=[data[3:], address], keys, dbkeys).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
@@ -165,6 +161,11 @@ def handle_response(data, address):
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
 def start():
+	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
+	print(my_number)
+	#Grab database keys and device keys
+	keys = rsa_encrypt.get_keys_nodes()
+	dbkeys = rsa_encrypt.get_keys(settings.DBS)
 	#Run the auth node update process which is required for the server to start properly
 	auth_update.updateee()
 
@@ -185,7 +186,7 @@ def start():
 		#grab data and sender from the ,ulticast address
 		data, address = s.recvfrom(4096)
 		#start response handler
-		threading.Thread(target=handle_response, args=[data, address]).start()
+		threading.Thread(target=handle_response, args=[data, address, my_number, keys, dbkeys]).start()
 
 
 
