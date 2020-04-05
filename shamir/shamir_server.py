@@ -127,13 +127,14 @@ def contest(address):
 				s.sendto(aes_crypt.aes_enc(i.key, str(my_number)), (address, 44443))
 				return
 
-def handle_response(data, address)
+#Handler for any multicast message that is recieved
+def handle_response(data, address):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 	
 	#invalid data is ignored
 	if data == -1 or data == -2:
-		continue
+		return
 
 	#split the message and determine how to respond to it
 	data = str(data, 'ascii').split(":")
