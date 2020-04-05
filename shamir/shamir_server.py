@@ -13,6 +13,11 @@ import shamir_update_client
 import auth_update
 from Crypto import Random
 
+my_number = int.from_bytes(Random.get_random_bytes(16), "big")
+#Grab database keys and device keys
+keys = rsa_encrypt.get_keys_nodes()
+dbkeys = rsa_encrypt.get_keys(settings.DBS)
+
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
 	c = conn.cursor()
@@ -66,7 +71,7 @@ def add_secret(d):
 	shamir_auth.auth_user(share['id'], conn)
 
 #this registers and updates a node at address
-def register_node(data, address, keys, dbkeys):
+def register_node(data, address):
 	#Determine if the public key sent by the node is in the system
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data [0]:
@@ -115,9 +120,12 @@ def register_node(data, address, keys, dbkeys):
 
 
 #this sends the servers associated number to the address specified
-def contest(my_number, address):
+def contest(address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		s.sendto(bytes(str(my_number), 'ascii'), (address, 44443))
+		for i in keys:
+			if i.ip == address:
+				s.sendto(aes_crypt.aes_enc(i.key, str(my_number)), (address, 44443))
+				return
 
 def handle_response(data, address)
 	#Decrypt message and validate
@@ -143,7 +151,7 @@ def handle_response(data, address)
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
-				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+				threading.Thread(target=register_node, args=[data[3:], address]).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
@@ -156,7 +164,6 @@ def start():
 	auth_update.updateee()
 
 	#Set id number for auth contest  
-	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 	
 	#Set up multicast listener
 	address = settings.MULT_ADDR
@@ -167,10 +174,6 @@ def start():
 	group = socket.inet_aton(address)
 	mreq = struct.pack('4sL', group, socket.INADDR_ANY)
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-	
-	#Grab database keys and device keys
-	keys = rsa_encrypt.get_keys_nodes()
-	dbkeys = rsa_encrypt.get_keys(settings.DBS)
 	
 	#Officialy start the server
 	while 1 == 1:
