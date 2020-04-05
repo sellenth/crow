@@ -21,14 +21,18 @@ def add_line(username, conn):
 
 #authenticate a user based on a given id and share
 def auth_user(incoming, conn):
-	print(str(incoming))
+	
+	#grab username and start db cursor
 	username = incoming["id"]
 	c = conn.cursor()
 
+	#Grab already submitted shares
 	c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
 	share = c.fetchall()
 
-	if not len(share) == 1: 
+	#if there are no
+	if not len(share) == 1:
+		print("hello") 
 		add_line(username, conn)
 		c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
 		share = c.fetchall()
@@ -47,7 +51,7 @@ def auth_user(incoming, conn):
 		if share["x"+str(j+1)] == incoming["x"]:
 			return
 	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timeout = ? WHERE id = ?"
-	c.execute(upd, [incoming['x'], incoming[y], i, str(int(time.time())), incoming['id']])
+	c.execute(upd, [incoming['x'], incoming[y], i, str(int(time.time())), username])
 	conn.commit()
 
 def add_secret(d):
