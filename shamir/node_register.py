@@ -40,7 +40,7 @@ def challenge(payload):
 def register(host, s):
     payload = "imup:" + str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()), 'ascii') + ":" + settings.ID
     challenge(payload)
-    
+      
     (cli, addr) = s.accept()
     
     arr = cli.recv(2048).split(b"::")
