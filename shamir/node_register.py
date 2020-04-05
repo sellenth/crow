@@ -26,7 +26,7 @@ def register(host, s):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             us.bind(('0.0.0.0', 44443))
             data, address = us.recvfrom(4096)
-        data = str(data,'ascii').split("")
+        data = str(data,'ascii').split(":")
         if not (base64.b64encode(hashlib.sha256(data[0] + data[1]).digest()) == data[2]):
             return -1
         if not (time.time() - float(data[1])) < 10:
