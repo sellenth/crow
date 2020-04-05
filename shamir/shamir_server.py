@@ -13,7 +13,9 @@ import shamir_update_client
 import auth_update
 from Crypto import Random
 
+
 my_number = int.from_bytes(Random.get_random_bytes(16), "big")
+print(my_number)
 #Grab database keys and device keys
 keys = rsa_encrypt.get_keys_nodes()
 dbkeys = rsa_encrypt.get_keys(settings.DBS)
@@ -145,7 +147,7 @@ def handle_response(data, address):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
-		threading.Thread(target = contest, args = [my_number, address[0]]).start()
+		threading.Thread(target = contest, args = [address[0]]).start()
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
