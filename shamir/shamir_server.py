@@ -125,9 +125,8 @@ def contest(address, my_number, pub, keys):
 	for i in keys:
 		print(i.hash)
 		if i.hash == pub:
-			print("yes")
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-				aes_crypt.aes_enc(i.key, str(my_number)) 
+				data = aes_crypt.aes_enc(i.key, str(my_number)) 
 				s.sendto(data, (address, 44443))
 
 		
