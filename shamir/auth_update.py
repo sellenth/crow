@@ -102,9 +102,9 @@ def updateee():
         if data == -2 or data == -1:
             return -1
         if data == b"::::::::::::":
+            print("registered: 0 updates")
             return
         data = str(data, 'ascii').split(":::")
-        print(data)
         for i in range(len(data)):
             data[i] = data[i].split("::")
         updates = {}
@@ -112,7 +112,7 @@ def updateee():
             updates[settings.DBS[i]] = data[i]
         updates['secrets'] = data[-1]
         fill_dbs(updates)
-    print("registered")
+        print("registered: " + str(len(updates['secrets'])) + " updates")
     return
 
 def updater(address):
