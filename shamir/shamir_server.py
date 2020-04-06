@@ -95,6 +95,9 @@ def register_node(data, address, keys, dbkeys):
 				
 				#convert the response to integer
 				return_sum = int(return_sum)
+				
+				print(sum1)
+				print(return_sum)
 
 				#validate that the node was able to read the data and modify it predictably
 				if (sum1+1) == return_sum:
@@ -116,10 +119,7 @@ def register_node(data, address, keys, dbkeys):
 
 #this sends the servers associated number to the address specified
 def contest(address, my_number, pub, keys):
-	print(keys)
-	print(pub)
 	for i in keys:
-		print(i.hash)
 		if i.hash == pub:
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 				data = aes_crypt.aes_enc(i.key, str(my_number)) 
