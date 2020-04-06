@@ -66,7 +66,7 @@ def get_keys_nodes():
     for i in os.listdir("./assets/hosts"):
         with open("./assets/hosts/" + i) as f:
             k = key_holder(RSA.importKey(f.read()))
-            k.hash = str(base64.b64encode(hashlib.sha256(keyholder[i].key.exportKey("PEM")).digest()),'ascii')
+            k.hash = str(base64.b64encode(hashlib.sha256(k.key.exportKey("PEM")).digest()),'ascii')
 
             keys.append(k)
     return keys
