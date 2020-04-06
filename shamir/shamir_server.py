@@ -121,6 +121,7 @@ def register_node(data, address, keys, dbkeys):
 #this sends the servers associated number to the address specified
 def contest(address, my_number, pub, keys):
 	for i in keys:
+		print(i.hash)
 		if i.hash == pub:
 			print("yes")
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
