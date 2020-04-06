@@ -27,7 +27,6 @@ def fill_dbs(updates):
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         shares = updates[i]
-        print(i)
         if i == 'secrets':
             c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
             for j in shares:
@@ -38,10 +37,7 @@ def fill_dbs(updates):
         else:
             c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\")")
             for j in shares:
-                print(j)
-                print(shares)
                 share = j.split("|")
-                print (share)
                 c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
         conn.commit()
         conn.close()
@@ -82,7 +78,6 @@ def updateee():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(('0.0.0.0', 44441))
         s.listen(1)
-        host = Host()
 
         try:    
             challenge("woke:")     
@@ -149,10 +144,8 @@ def updater(address):
             d = c.fetchall()
             for i in range(len(d)):
                 d[i] = d[i]["id"] + "|" + d[i]["name"] + "|" + d[i]["secret"] + "|" + str(d[i]['timestamp'])
-            print (d)
             data += "::".join(d)
             data = data
-            print(data)
             s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data))
     return
 
