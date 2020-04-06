@@ -127,7 +127,11 @@ def contest(address, my_number, pub, keys):
 				data = aes_crypt.aes_enc(i.key, str(my_number)) 
 				s.sendto(data, (address, 44443))
 
-		
+#this sends the servers associated number to the address specified
+def contest_auth(address, my_number):
+	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
+		s.sendto(data, (address, 44443))
 
 #Handler for any multicast message that is recieved
 def handle_response(data, address, my_number, keys, dbkeys):
@@ -148,6 +152,10 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	elif data[0] == "who?":
 		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
+	#Node needs an auth node, so the auth contest is started
+	elif data[0] == "regA":
+		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
+
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
 		if int(data[1]) == my_number:

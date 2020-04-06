@@ -69,14 +69,13 @@ def challenge(payload):
             us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
             data, address = us.recvfrom(4096)
-        data = data.split(b":")
-        if not (base64.b64encode(hashlib.sha256(data[0] + data[1]).digest()) == data[2]):
-            return -1
-        if not (time.time() - float(str(data[1], 'ascii'))) < 10:
-            return -2
         
-        print(data)
+        data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
+        if data == -1 or data == -2:
+            return 1
+        
         data = str(data[0], 'ascii')
+        
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))    
 
 def updateee():
