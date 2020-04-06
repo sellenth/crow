@@ -19,6 +19,7 @@ class Host():
 
 
 def challenge(payload):
+    print("challenging")
     host = Host()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)

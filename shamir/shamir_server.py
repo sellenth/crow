@@ -148,7 +148,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
 		print("here")
-		threading.Thread(target = contest, args = [address[0], my_number]).start()
+		threading.Thread(target = contest, args = [address[0], my_number, data[1]]).start()
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
@@ -189,6 +189,7 @@ def start():
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the ,ulticast address
+		print("Waiting")
 		data, address = s.recvfrom(4096)
 		#start response handler
 		threading.Thread(target=handle_response, args=[data, address, my_number, keys, dbkeys]).start()
