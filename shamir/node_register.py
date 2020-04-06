@@ -41,7 +41,7 @@ def register(host, s):
       
     (cli, addr) = s.accept()
     
-    sums = cli.recv(2048).split("::")
+    sums = cli.recv(2048).split(b"::")
     sums[0] = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), sums[0])
     sums[1] = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), sums[1])
 
