@@ -62,9 +62,9 @@ def register(host, s):
     if timestamp == None:
         timestamp = 0
     cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(timestamp)))
-    shamir_updater.update(rsa_encrypt.get_priv_key(), settings.ID)
+    num_updates = shamir_updater.update(rsa_encrypt.get_priv_key(), settings.ID)
     cli.close()
-    print("Registered")
+    print("Registered: " + str(num_updates) + " updates")
     return
 
 def update(cli, address):

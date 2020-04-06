@@ -45,3 +45,4 @@ def update(key, db):
         temp = rsa_encrypt.get_priv_key_db(db).decrypt((base64.b64decode(d[0]),)) + b':' + bytes(d[1], 'ascii')
         update_db(temp, conn)
     conn.close()
+    return(len(data))
