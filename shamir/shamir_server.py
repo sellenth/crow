@@ -70,48 +70,52 @@ def add_secret(d):
 
 #this registers and updates a node at address
 def register_node(data, address, keys, dbkeys):
-#open connection to node for challenge-response authentication
-	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-		s.connect((address[0], 44432))
-		
-		#pick a number for the db key
-		sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
+	#Determine if the public key sent by the node is in the system
+	for i in keys:
+		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data[0]:
+			#open connection to node for challenge-response authentication
+			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+				s.connect((address[0], 44432))
+				
+				#pick 2 numbers, one for the db key, and one for the decvice key
+				sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
+				sum2 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
 
-		#encrypt the number with the db public key
-		pay1 = aes_crypt.aes_enc(dbkeys[data].key,sum1)
-		
-		sum1 = int(sum1)
-		
-		#send the payloads
-		s.send(pay1)
+				#encrypt the first number with device public key and the second with db public key
+				pay = aes_crypt.aes_enc(i.key,sum1)
+				pay2 = aes_crypt.aes_enc(dbkeys[data[1]].key,sum2)
+				
+				sum1 = int(sum1)
+				sum2 = int(sum2)
+				
+				#send the two payloads
+				s.send(pay + b'::'+ pay2)
 
-		#recieve and check that valid data was recieved
-		return_sum = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii')
-		if return_sum == -2 or return_sum == -1:
-			return
-		
-		#convert the response to integer
-		return_sum = int(return_sum)
-		
-		print(sum1)
-		print(return_sum)
+				#recieve and check that valid data was recieved
+				return_sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii').split(":")
+				if return_sums == -2 or return_sums == -1:
+					return
+				
+				#convert the response to integer
+				check1 = int(return_sums[0])
+				check2 = int(return_sums[1])
 
-		#validate that the node was able to read the data and modify it predictably
-		if (sum1+1) == return_sum:
-			#log that the node was registered and add its IP address and database to its associated key object
-			i.ip = address[0]
-			i.db = data[1]    
-			
-			#grab timestamp from node
-			timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
-			#validate data and convert timstamp to float
-			if timestamp == -1 or timestamp == -2:
-				return
-			
-			timestamp = float(timestamp)
-			
-			#start node database update
-			shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
+				#validate that the node was able to read the data and modify it predictably
+				if (sum1+1) == check1 and (sum2+1) == check2:
+					#log that the node was registered and add its IP address and database to its associated key object
+					i.ip = address[0]
+					i.db = data[1]    
+					
+					#grab timestamp from node
+					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
+					#validate data and convert timstamp to float
+					if timestamp == -1 or timestamp == -2:
+						return
+					
+					timestamp = float(timestamp)
+					
+					#start node database update
+					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
    
 
 #this sends the servers associated number to the address specified
@@ -141,6 +145,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
+		print("here")
 		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
 	#A node has picked an auth node to use, check if it is this server
@@ -148,7 +153,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
-				threading.Thread(target=register_node, args=[data[3], address, keys, dbkeys]).start()
+				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
