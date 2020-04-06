@@ -143,7 +143,6 @@ def handle_response(data, address, my_number, keys, dbkeys):
 
 	#split the message and determine how to respond to it
 	data = str(data, 'ascii').split(":")
-	print(data)
 	#Node is sending share for authentication
 	if data[0] == "auth":
 		threading.Thread(target=add_secret, args=[data[1:]]).start()
@@ -154,7 +153,6 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "regA":
-		print("here")
 		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
 
 	#A node has picked an auth node to use, check if it is this server
