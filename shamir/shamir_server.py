@@ -116,6 +116,7 @@ def register_node(data, address, keys, dbkeys):
 					
 					#start node database update
 					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
+					print("Node registered:   " + data[1])
    
 
 #this sends the servers associated number to the address specified
@@ -145,7 +146,6 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
-		print("here")
 		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
 	#A node has picked an auth node to use, check if it is this server

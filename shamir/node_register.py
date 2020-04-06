@@ -19,10 +19,8 @@ class Host():
 
 
 def challenge(payload):
-    print("challenging")
     host = Host()
     k = str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()), 'ascii')
-    print(k)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + k), ((host.host, host.port)))
@@ -79,7 +77,6 @@ def timer_update_start():
     return
 
 def start():
-    print("started")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('0.0.0.0', 44432))
     s.listen(5)
