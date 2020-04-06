@@ -43,9 +43,10 @@ def register(host, s):
     
     check = cli.recv(2048)
     
-    sum1 = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), check), 'ascii')
-    sum1 = str(int(sum1) + 1)
-    payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), sum1)
+    sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), check), 'ascii')
+    sum1 = str(int(sums[0]) + 1)
+    sum2 = str(int(sums[1]) + 1)
+    payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), sum1 + ":" + sum2)
     cli.send(payload)
     
     conn = sqlite3.connect(settings.ID + ".db")
