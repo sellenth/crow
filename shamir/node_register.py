@@ -41,8 +41,12 @@ def register(host, s):
       
     (cli, addr) = s.accept()
     
-    check = cli.recv(2048)
-    
+     
+    check = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), cli.recv(2048))
+    if check == -1 or check == -2:
+        print(check)
+        return 1
+
     sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), check), 'ascii')
     sum1 = str(int(sums[0]) + 1)
     sum2 = str(int(sums[1]) + 1)
