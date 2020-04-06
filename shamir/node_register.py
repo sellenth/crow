@@ -18,8 +18,10 @@ class Host():
         self.port = settings.MULT_PORT
 
 
-def challenge(payload):
+def challenge():
     host = Host()
+    keyhash = str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()),'ascii')
+    payload = "imup:" + keyhash + ":" + settings.ID
     k = str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()), 'ascii')
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
@@ -33,9 +35,8 @@ def challenge(payload):
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))
 
 def register(host, s):
-    keyhash = str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()),'ascii')
-    payload = "imup:" + keyhash + ":" + settings.ID
-    challenge(payload)
+    
+    challenge()
       
     (cli, addr) = s.accept()
     

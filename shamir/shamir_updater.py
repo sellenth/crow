@@ -41,7 +41,6 @@ def update(key, db):
     if data == ['']:
         return 
     for i in data:
-        print(i)
         d = i.split("|")
         temp = rsa_encrypt.get_priv_key_db(db).decrypt((base64.b64decode(d[0]),)) + b':' + bytes(d[1], 'ascii')
         update_db(temp, conn)
