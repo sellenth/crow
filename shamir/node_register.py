@@ -41,15 +41,16 @@ def register(host, s):
       
     (cli, addr) = s.accept()
     
-     
-    check = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), cli.recv(2048))
-    if check == -1 or check == -2:
-        print(check)
+    sums = cli.recv(2048).split("::")
+    sums[0] = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), sums[0])
+    sums[1] = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), sums[1])
+
+    if sums[0] == -1 or sums[0] == -2 or sums[1] == -1 or sums[1] == -2:
         return 1
 
-    sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_db(settings.ID), check), 'ascii')
     sum1 = str(int(sums[0]) + 1)
     sum2 = str(int(sums[1]) + 1)
+    
     payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), sum1 + ":" + sum2)
     cli.send(payload)
     
