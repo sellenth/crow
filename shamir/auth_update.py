@@ -63,7 +63,7 @@ def challenge(payload):
     host = Host()
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:"), ((host.host, host.port)))
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"), ((host.host, host.port)))
         data = ""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             us.settimeout(1)
@@ -75,7 +75,7 @@ def challenge(payload):
             return 1
         
         data = str(data[0], 'ascii')
-        
+
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))    
 
 def updateee():
