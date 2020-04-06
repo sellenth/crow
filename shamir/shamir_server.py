@@ -77,31 +77,27 @@ def register_node(data, address, keys, dbkeys):
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 				s.connect((address[0], 44432))
 				
-				#pick 2 numbers, one for the db key, and one for the decvice key
+				#pick a number for the db key
 				sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
-				sum2 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
 
-				#encrypt the first number with device public key and the second with db public key
-				pay = aes_crypt.aes_enc(i.key,sum1)
-				pay2 = aes_crypt.aes_enc(dbkeys[data[1]].key,sum2)
+				#encrypt the number with the db public key
+				pay1 = aes_crypt.aes_enc(dbkeys[data].key,sum1)
 				
 				sum1 = int(sum1)
-				sum2 = int(sum2)
 				
-				#send the two payloads
-				s.send(pay + b'::'+ pay2)
+				#send the payloads
+				s.send(pay1)
 
 				#recieve and check that valid data was recieved
-				return_sums = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii').split(":")
-				if return_sums == -2 or return_sums == -1:
+				return_sum = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii')
+				if return_sum == -2 or return_sum == -1:
 					return
 				
 				#convert the response to integer
-				check1 = int(return_sums[0])
-				check2 = int(return_sums[1])
+				return_sum = int(return_sum)
 
 				#validate that the node was able to read the data and modify it predictably
-				if (sum1+1) == check1 and (sum2+1) == check2:
+				if (sum1+1) == return_sum:
 					#log that the node was registered and add its IP address and database to its associated key object
 					i.ip = address[0]
 					i.db = data[1]    
