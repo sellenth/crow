@@ -154,6 +154,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "regA":
+		print("here")
 		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
 
 	#A node has picked an auth node to use, check if it is this server
