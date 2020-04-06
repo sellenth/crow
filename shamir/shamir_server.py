@@ -151,8 +151,10 @@ def handle_response(data, address, my_number, keys, dbkeys):
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			print(data)
+			print(data[2])
+			print(data[2] == "imup")
 			if data[2] == "imup":
-				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+				threading.Thread(target=register_node, args=[data[3], address, keys, dbkeys]).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
