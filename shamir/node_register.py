@@ -35,7 +35,7 @@ def challenge(payload):
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))
 
 def register(host, s):
-    payload = "imup:" + ":" + settings.ID
+    payload = "imup:" + settings.ID
     challenge(payload)
       
     (cli, addr) = s.accept()
