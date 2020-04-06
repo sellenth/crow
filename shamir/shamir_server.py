@@ -120,8 +120,10 @@ def register_node(data, address, keys, dbkeys):
 
 #this sends the servers associated number to the address specified
 def contest(address, my_number, pub, keys):
+	print(keys)
+	print(pub)
 	for i in keys:
-		print(i.hash)
+		print(keys[i].hash)
 		if i.hash == pub:
 			print("yes")
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -134,7 +136,6 @@ def contest(address, my_number, pub, keys):
 def handle_response(data, address, my_number, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
