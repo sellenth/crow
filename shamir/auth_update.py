@@ -125,7 +125,6 @@ def updater(address):
 
         if (challenge + 1) == int(response[0], 0):
             timestamp = response[1]
-            print(float(timestamp))
             data = ""
             for i in settings.DBS:
                 conn = sqlite3.connect(i + ".db")
