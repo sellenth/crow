@@ -74,7 +74,7 @@ def challenge(payload):
         if data == -1 or data == -2:
             return 1
         
-        data = str(data[0], 'ascii')
+        data = str(data, 'ascii')
 
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))    
 
