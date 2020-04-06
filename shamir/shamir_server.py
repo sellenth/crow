@@ -119,7 +119,7 @@ def register_node(data, address, keys, dbkeys):
    
 
 #this sends the servers associated number to the address specified
-def contest(address, my_number, pub):
+def contest(address, my_number, pub, keys):
 	for i in keys:
 		if i.hash == pub:
 			print("yes")
@@ -148,7 +148,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	#Node needs an auth node, so the auth contest is started
 	elif data[0] == "who?":
 		print("here")
-		threading.Thread(target = contest, args = [address[0], my_number, data[1]]).start()
+		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
