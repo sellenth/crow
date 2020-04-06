@@ -104,6 +104,7 @@ def updateee():
         if data == b"::::::::::::":
             return
         data = str(data, 'ascii').split(":::")
+        print(data)
         for i in range(len(data)):
             data[i] = data[i].split("::")
         updates = {}
