@@ -21,7 +21,6 @@ def get_keys(dbs):
             k = key.read()   
             keyholder[i] = key_holder(RSA.importKey(k))
             keyholder[i].db = i
-            keyholder[i].hash = str(base64.b64encode(hashlib.sha256(keyholder[i].key.exportKey("PEM")).digest()),'ascii')
     return keyholder
 
 def generate_db_keys(dbs):
@@ -67,6 +66,8 @@ def get_keys_nodes():
     for i in os.listdir("./assets/hosts"):
         with open("./assets/hosts/" + i) as f:
             k = key_holder(RSA.importKey(f.read()))
+            k.hash = str(base64.b64encode(hashlib.sha256(keyholder[i].key.exportKey("PEM")).digest()),'ascii')
+
             keys.append(k)
     return keys
 
