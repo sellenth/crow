@@ -189,7 +189,9 @@ def start():
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the ,ulticast address
+		print("waiting")
 		data, address = s.recvfrom(4096)
+		print("got data")
 		#start response handler
 		threading.Thread(target=handle_response, args=[data, address, my_number, keys, dbkeys]).start()
 
