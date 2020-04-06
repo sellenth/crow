@@ -122,7 +122,7 @@ def register_node(data, address, keys, dbkeys):
 def contest(address, my_number, pub):
 	for i in keys:
 		if i.hash == pub:
-			print(yes)
+			print("yes")
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 				aes_crypt.aes_enc(i.key, str(my_number)) 
 				s.sendto(data, (address, 44443))
@@ -189,7 +189,6 @@ def start():
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the ,ulticast address
-		print("Waiting")
 		data, address = s.recvfrom(4096)
 		#start response handler
 		threading.Thread(target=handle_response, args=[data, address, my_number, keys, dbkeys]).start()
