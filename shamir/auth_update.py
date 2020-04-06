@@ -84,11 +84,11 @@ def updateee():
         s.listen(1)
         host = Host()
 
-        payload = "woke:"
         try:    
-            challenge(payload)     
+            challenge("woke:")     
         except:
             return
+
         (cli, addr) = s.accept()
 
         data = cli.recv(1024)

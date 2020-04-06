@@ -143,7 +143,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 
 	#split the message and determine how to respond to it
 	data = str(data, 'ascii').split(":")
-
+	print(data)
 	#Node is sending share for authentication
 	if data[0] == "auth":
 		threading.Thread(target=add_secret, args=[data[1:]]).start()
