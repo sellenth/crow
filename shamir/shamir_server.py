@@ -23,6 +23,7 @@ def add_line(username, conn):
 	conn.commit()
 
 #authenticate a user based on a given id and share
+#shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
 def auth_user(incoming, conn):
 	
 	#grab username and start db cursor
@@ -31,41 +32,57 @@ def auth_user(incoming, conn):
 
 	#Grab already submitted shares
 	c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
-	share = c.fetchall()
+	share = c.fetchone()
 
-	#if there are no
-	if not len(share) == 1:
-		print("hello") 
-		add_line(username, conn)
-		c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
-		share = c.fetchall()
-
+	#if the current time differs from the timestamp appended to the most recently added share (and conviently if no entry is present as timestamp will be 0)
 	if time.time() - int(share[0]["timeout"]) > 60:
+		
+		#delete user entry
 		c.execute("DELETE FROM shares WHERE id = \"" + username +"\"")
+		
+		#create blank user entry
 		add_line(username, conn)
+
+		#grab the share associated with the user
 		c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
-		share = c.fetchall()
-	share = share[0]
-	
+		share = c.fetchone()
+
+	#exit if 3 shares exist in the db (will be emptied after 60 seconds, prevents login spamming)	
 	if share["num_shares"] >= 3:
 		return
+
+	#increment share counter
 	i = share["num_shares"] +1
+	
+	#make sure we dont store duplicate shares
 	for j in range(i):
 		if share["x"+str(j+1)] == incoming["x"]:
 			return
+	
+	#update the db with the new share, current time, and revised share count
 	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timeout = ? WHERE id = ?"
 	c.execute(upd, [incoming['x'], incoming['y'], i, str(int(time.time())), username])
 	conn.commit()
 
+
 def add_secret(d):
+	#open connection to shares database and set row generator and cursor
 	conn = sqlite3.connect("shares.db")
 	conn.row_factory = sqlite3.Row
+
+	#make sure that shares table exists
 	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id, x1, y1, x2, y2, x3, y3, num_shares, timeout)")
+	
+	#create share object from provided data "d"
 	share = {}
 	share['id'] = d[0]
 	share['x'] = d[1]
 	share['y'] = d[2]
+
+	#Add the share to the database if appropriate
 	auth_user(share, conn)
+
+	#pass execution to the authenticcator, which checks if the provided shares are valid
 	shamir_auth.auth_user(share['id'], conn)
 
 #this registers and updates a node at address
@@ -114,7 +131,7 @@ def register_node(data, address, keys, dbkeys):
 					
 					timestamp = float(timestamp)
 					
-					#start node database update
+					#start node database update and print results when finished
 					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
 					print("Node registered:   " + data[1])
    
