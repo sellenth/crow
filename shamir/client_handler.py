@@ -155,8 +155,10 @@ def start():
     #Register node
     register()
     
+    #Start thread to send user shares to the auth node
+    threading.Thread(timer_update_start()).start()
+
     #Start periodic registration thread
     threading.Thread(shamir_client.start()).start()
     
-    #Start thread to send user shares to the auth node
-    threading.Thread(timer_update_start()).start()
+   
