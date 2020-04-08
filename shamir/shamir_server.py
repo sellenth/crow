@@ -59,7 +59,7 @@ def auth_user(incoming, conn):
 			return
 	
 	#update the db with the new share, current time, and revised share count
-	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timeout = ? WHERE id = ?"
+	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timestamp = ? WHERE id = ?"
 	c.execute(upd, [incoming['x'], incoming['y'], i, str(int(time.time())), username])
 	conn.commit()
 
