@@ -8,6 +8,12 @@ import sqlite3
 from Crypto import Random
 import time
 
+#DB String Diagram 
+# DB
+#share||share||share|||DB|||DB
+#val1|val2|val3||share||share
+
+
 #defines a host to send multicast messages to, based on the settings.py file
 class Host():
     def __init__(self):
@@ -313,4 +319,3 @@ def updater(address):
             #send the databases to the client and exit
             s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data))
     return 0
-
