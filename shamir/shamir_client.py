@@ -52,6 +52,9 @@ def auth_user(user, db,key):
     
     #Make sure that the given key matches the key in the database 
     #and that the key is not null
+    print(key)
+    print(share["key"])
+    print(key == share["key"])
     if key == share["key"] and not key == "":
         
         #Send the share if the key is valid
