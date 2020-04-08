@@ -199,4 +199,4 @@ def get_priv_key_auth():
 def encrypt_str(key, message):
 
     #return an encrypted string encoded with base64
-    return str(base64.b64encode(key.key.publickey().encrypt(bytes(message, 'ascii'), len(message))[0]),'ascii')
+    return str(base64.b64encode(key.key.encrypt(bytes(message, 'ascii'), len(message))[0]),'ascii')
