@@ -190,6 +190,32 @@ def handle_response(data, address, my_number, keys, dbkeys):
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
 
+#Broadcasta a given user's shares adn secret to the auth nodes, 
+#encrypted by the auth public key. It also sends a hash of the auth private key as identification
+def broadcast(uid):
+	shares = []
+	
+	for i in settings.DBS:
+		conn = sqlite3.connect(i + ".db")
+		conn.row_factory = sqlite3.Row
+		c = conn.cursor
+
+		c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
+		shares.append(c.fetchone())
+	
+	conn = sqlite3.connect("secrets.db")
+	conn.row_factory = sqlite3.Row
+	c = conn.cursor
+	
+	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
+	shares.append(c.fetchone())
+
+	for i in shares:
+		#inish
+		pass
+
+	return
+
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
 def start():

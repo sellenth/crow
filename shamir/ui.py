@@ -30,6 +30,7 @@ while 1 == 1:
             keys.append(temp)
 
         shamir_gen.add_user(uid, name, keys)
+        shamir_server.broadcast(uid)
         
     if int(choice) == 2:
         exit(2)
