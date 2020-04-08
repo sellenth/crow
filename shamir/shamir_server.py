@@ -14,13 +14,12 @@ import auth_update
 from Crypto import Random
 
 
-
-
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
 	c = conn.cursor()
 	c.execute("INSERT INTO shares VALUES(\""+ username +"\",0,0,0,0,0,0,0,0)")
 	conn.commit()
+
 
 #authenticate a user based on a given id and share
 #shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
@@ -85,6 +84,7 @@ def add_secret(d):
 	#pass execution to the authenticcator, which checks if the provided shares are valid
 	shamir_auth.auth_user(share['id'], conn)
 
+
 #this registers and updates a node at address
 def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
@@ -144,11 +144,13 @@ def contest(address, my_number, pub, keys):
 				data = aes_crypt.aes_enc(i.key, str(my_number)) 
 				s.sendto(data, (address, 44443))
 
+
 #this sends the servers associated number to the address specified
 def contest_auth(address, my_number):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
 		s.sendto(data, (address, 44443))
+
 
 #Handler for any multicast message that is recieved
 def handle_response(data, address, my_number, keys, dbkeys):
@@ -164,11 +166,11 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	if data[0] == "auth":
 		threading.Thread(target=add_secret, args=[data[1:]]).start()
 	
-	#Node needs an auth node, so the auth contest is started
+	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
 		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
-	#Node needs an auth node, so the auth contest is started
+	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
 		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
 
@@ -193,9 +195,7 @@ def start():
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)
 	#Run the auth node update process which is required for the server to start properly
-	auth_update.updateee()
-
-	#Set id number for auth contest  
+	auth_update.updateee() 
 	
 	#Set up multicast listener
 	address = settings.MULT_ADDR

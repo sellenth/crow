@@ -49,6 +49,7 @@ def aes_enc(rsa_key, message):
     #return the MAC prepended to the payload
     return hmac + b':' + payload
 
+
 #Decrypts a message by recovering a AES key, and message hash dependant on an RSA private key
 #Validates the message hash, then the timestamp contained within the message to make sure that it was sent recently
 #Takes as input a key and bytes (meant to be the output of recv(), returns bytes as well
