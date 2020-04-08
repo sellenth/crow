@@ -41,7 +41,7 @@ def challenge():
         data = ""
         addr = 0
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
-            us.settimeout(100)
+            us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
             #Recv a number from the auth node to connect to
             data, addr = us.recvfrom(4096)
@@ -75,15 +75,15 @@ def register():
             while address == -1:
                 address = challenge()
 
-        #if the socket times out try again in 15 seconds
+        #if the socket times out try again in 60 seconds
         except socket.timeout:
-            time.sleep(15)
+            time.sleep(60)
             register()
 
         #Create a connection with the auth node, if it is not the 
         #expected address than continue waiting
         cli, addr = s.accept()
-        while not addr == address:
+        while not addr[0] == address[0]:
             cli, addr = s.accept()
         
         #Recieve two sums for challenge response authentication

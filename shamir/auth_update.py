@@ -172,7 +172,7 @@ def updateee():
 
         #accept connection from the node that shares will be pulled from
         cli, addr = s.accept()
-        while not addr == address:
+        while not addr[0] == address[0]:
             cli, addr = s.accept()
         #Challenge response authentication, the node recieves a number from the auth node responsible for the update
         #and sends the number + 1 to the other node
