@@ -6,6 +6,7 @@ import base64
 import settings
 
 
+#Class to hold the database 
 class db:
     name = ""
     key = ""
@@ -13,58 +14,95 @@ class db:
         self.name = ""
         self.key = ""
 
-def add_secret(username, name, secret, currtime):
-    conn = sqlite3.connect("secrets.db")
 
+#add user secret to the secrets database
+def add_secret(username, name, secret, currtime):
+    
+    #initiate database connection
+    conn = sqlite3.connect("secrets.db")
     c = conn.cursor()
 
+    #make sure table exists
     c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
-    c.execute("INSERT INTO secrets VALUES (?,?,?,?)", [username, name, str(secret), currtime])
+    
+    #INSERT OR REPLACE into secrets the secret and user info
+    c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [username, name, str(secret), currtime])
+    
+    #commit and close connection
     conn.commit()
     conn.close()
 
-def add_shares(username, dbs, shares, keys, currtime):
-    if((not len(shares) == len(dbs))):
-        #shares must be equal to dbs to prevent loss or oversharing
+
+#Encrypt shares with db_keys and store them into their respective databases
+def add_shares(username, shares, keys, currtime):
+    
+    #Grab database keys
+    db_keys = rsa_encrypt.get_keys(settings.DBS)
+    
+    #shares must be equal to dbs to prevent loss or oversharing
+    if((not len(shares) == len(settings.DBS))):
         return -1
-    for i in range(len(dbs)):
-        conn = sqlite3.connect(dbs[i].name + ".db")
+
+    #For each database
+    for i in range(len(settings.DBS)):
+        
+        #initiate database connection
+        conn = sqlite3.connect(settings.DBS[i] + ".db")
         c = conn.cursor()
+
+        #make sure the shares table exists
         create = "CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\")"
         c.execute(create)
-        key = "NULL"
-        if not dbs[i].key == "":
-            key = dbs[i].key
-        payload = username + ":" + str(shares[i][0])  + ":" + str(shares[i][1]) + ":" + str(key)
-        k = ""
-        for j in keys:
-            print(keys[j].db)
-            print(dbs[i].name)
-            if keys[j].db == dbs[i].name:
-                k = keys[j]
-        print (k)
-        payload = str(base64.b64encode(k.key.encrypt(bytes(payload, "ascii"), len(payload))[0]), "ascii")
+        
+        #Convert share data to a string
+        payload = username + ":" + str(shares[i][0])  + ":" + str(shares[i][1]) + ":" + str(keys[i])
+        
+        #Grab the database key for the current database
+        k = db_keys[settings.DBS[i]].key
+        
+        #encrypt the share string with the database public key
+        payload = rsa_encrypt.encrypt_str(k, payload)
+
+        #insert the encrypted share, the username, and a timestamp into the database
         c.execute("INSERT INTO enc_shares VALUES(?, ?, ?)", [username, payload, currtime])
+        
+        #commit the action and close the database
         conn.commit()
         conn.close()
 
-def gen_secrets(username, name, dbs, keys):
-    if(len(dbs) < settings.TOTAL):
-        exit(1)
-    secret, shares = shamir.make_random_shares(settings.THRESH, len(dbs))
-    currtime = time.time()
-    add_secret(username, name, secret, currtime)
-    add_shares(username, dbs, shares, keys, currtime)
 
-def add_user(username, name, keys_list):
-    keys = rsa_encrypt.get_keys(settings.DBS)
-    dbs = []
-    for i in range(len(settings.DBS)):
-        dbs.append(db())
-        dbs[i].name = settings.DBS[i]
-        dbs[i].key = keys_list[i]
+#Generate the secrets for the sharing scheme to use
+def gen_secrets(username, name, keys):
+
+    #Validate that there are enough databases
+    if(len(settings.DBS) < settings.TOTAL) or len(keys) < settings.TOTAL:
+        return -1
     
-    gen_secrets(username, name, dbs, keys)
+    #Generate the secret and shares
+    secret, shares = shamir.make_random_shares(settings.THRESH, settings.TOTAL)
+    
+    #Grab a timestamp
+    currtime = time.time()
 
-add_user("r3k", "Ryan Kennedy", ["","","",""])
-add_user("tt", "Tom Tom",  ["","","",""])
+    #add the secret to the secrets database
+    add_secret(username, name, secret, currtime)
+
+    #add encrypted shares to the shares db
+    add_shares(username, shares, keys, currtime)
+
+
+#add a user to the system given a username, name, and key list
+def add_user(username, name, keys_list):
+     
+    #make sure that all keys are non-null
+    for i in keys_list: 
+        if i == "":
+            return -1
+    
+    #generate the user
+    gen_secrets(username, name, keys_list)
+
+if __name__ == "__main__":
+    #Add test users
+    add_user("r3k", "Ryan Kennedy", ["111","111","111","111"])
+    add_user("tt", "Tom Tom",  ["AAA","AAA","AAA","AAA"])
