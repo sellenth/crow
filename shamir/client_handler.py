@@ -120,6 +120,7 @@ def register():
         
         #clean up and exit
         cli.close()
+    return
 
 
 #Returns the newest timestamp from the device db
