@@ -30,8 +30,9 @@ def auth_user(incoming, conn):
 	c = conn.cursor()
 
 	#Grab already submitted shares
-	c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
+	c.execute("SELECT * FROM shares WHERE id = ?", [username])
 	share = c.fetchone()
+	print(share)
 
 	#if the current time differs from the timestamp appended to the most recently added share (and conviently if no entry is present as timestamp will be 0)
 	if time.time() - int(share["timestamp"]) > 60:
