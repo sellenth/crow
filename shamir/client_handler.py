@@ -41,10 +41,21 @@ def challenge():
         data = ""
         addr = 0
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
+            
+            #set a timeout for if there is no auth node ready
             us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
+            
             #Recv a number from the auth node to connect to
-            data, addr = us.recvfrom(4096)
+            
+            try:
+                data, addr = us.recvfrom(4096)
+
+            except socket.timeout:
+
+                us.close()
+                time.sleep(30)
+                challenge()
 
         #Decrypt the recieved message
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), data)
@@ -67,18 +78,11 @@ def register():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("0.0.0.0", 44432))
         s.listen(5)
-
-        #Challenge an auth node to communicate with
-        try:
-            #make sure that challenge executes correctly
+        
+        #make sure that challenge executes correctly
+        address = challenge()
+        while address == -1:
             address = challenge()
-            while address == -1:
-                address = challenge()
-
-        #if the socket times out try again in 60 seconds
-        except socket.timeout:
-            time.sleep(60)
-            register()
 
         #Create a connection with the auth node, if it is not the 
         #expected address than continue waiting
