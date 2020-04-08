@@ -34,7 +34,7 @@ def auth_user(incoming, conn):
 	share = c.fetchone()
 
 	#if the current time differs from the timestamp appended to the most recently added share (and conviently if no entry is present as timestamp will be 0)
-	if time.time() - int(share[0]["timeout"]) > 60:
+	if time.time() - int(share["timestamp"]) > 60:
 		
 		#delete user entry
 		c.execute("DELETE FROM shares WHERE id = \"" + username +"\"")
