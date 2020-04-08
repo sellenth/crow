@@ -168,6 +168,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
+		print("who")
 		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
