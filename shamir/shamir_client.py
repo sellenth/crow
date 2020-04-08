@@ -52,10 +52,6 @@ def auth_user(user, db,key):
     
     #Make sure that the given key matches the key in the database 
     #and that the key is not null
-    print(share['id'])
-    print(key)
-    print(share["key"])
-    print(key == share["key"])
     if key == share["key"] and not key == "":
         
         #Send the share if the key is valid
@@ -82,7 +78,7 @@ def start():
             cli.close()
 
             #Split the data and send it to the validator
-            data = data.split(":")
+            data = data.strip("\x0a").split(":")
             auth_user(data[0], settings.ID, data[1])
 
             
