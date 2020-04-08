@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import shamir
 import sqlite3
 import rsa_encrypt
@@ -63,8 +65,8 @@ def add_shares(username, shares, keys, currtime):
         #encrypt the share string with the database public key
         payload = rsa_encrypt.encrypt_str(k, payload)
 
-        #insert the encrypted share, the username, and a timestamp into the database
-        c.execute("INSERT INTO enc_shares VALUES(?, ?, ?)", [username, payload, currtime])
+        #insert or replace the encrypted share, the username, and a timestamp into the database
+        c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", [username, payload, currtime])
         
         #commit the action and close the database
         conn.commit()
