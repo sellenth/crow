@@ -2,33 +2,23 @@ const express = require('express')
 const app = express()
 const http = require('http')
 const path = require('path')
+const net = require('net')
+const client = new net.Socket();
+const cookieParser = require('cookie-parser')
 const fs = require('fs')
 const port = 3000
 
 app.use(express.static('public'))
+app.use(cookieParser())
 
 app.post('/auth:pw', (req, res) => {
-  let username = req.headers.cookie;
+  let username = req.cookies.username
   let pw = req.params.pw;
-  console.log(pw);
-  var spawn = require("child_process").spawn;
-  var process = spawn('python3',["./shamir_client.py",
-    "r3k",
-    "web",
-    pw]);
 
-    //req.query.firstname,
-    //req.query.lastname] );
-
-  process.stdout.on('data', function(data) {
-    console.log(data.toString());
-        res.send(data.toString());
-  } )
-
-  process.stdout.on('data', function(data) {
-    console.log(data.toString());
-        res.send(data.toString());
-  } )
+  client.connect(55556, '127.0.0.1', () => {
+    client.write(username + ':' + pw);
+  });
+  res.status(200).send();
 })
 
 app.get('/', (req, res) => {
@@ -36,6 +26,6 @@ app.get('/', (req, res) => {
 })
 
 const server = http.createServer(app)
-  .listen(port, () => {
-    console.log('server running at ' + port)
-  })
+    .listen(port, () => {
+        console.log('server running at ' + port)
+    })
