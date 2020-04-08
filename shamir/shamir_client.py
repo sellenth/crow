@@ -52,6 +52,7 @@ def auth_user(user, db,key):
     
     #Make sure that the given key matches the key in the database 
     #and that the key is not null
+    print(share['id'])
     print(key)
     print(share["key"])
     print(key == share["key"])
