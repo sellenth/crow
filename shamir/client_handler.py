@@ -142,11 +142,8 @@ def grab_timestamp():
 
 #Runs node registration every 3.5 minutes 
 def timer_update_start():
-    print("here")
     while 1 == 1:
-        print("updating loop")
-        time.sleep(26)
-        print("Updating")
+        time.sleep(60 * 3.5)
         register()
 
 #Handles the registration of the node and its subsequent actions
@@ -156,9 +153,9 @@ def start():
     register()
     
     #Start thread to send user shares to the auth node
-    threading.Thread(timer_update_start()).start()
+    threading.Thread(target = timer_update_start()).start()
 
     #Start periodic registration thread
-    threading.Thread(shamir_client.start()).start()
+    threading.Thread(target = shamir_client.start()).start()
     
    
