@@ -49,7 +49,7 @@ def validate(share, share_conn):
     if res["secret"] == str(secret):
 
         #delete shares information so that users cannot auth twoce for free
-        share_conn.cursor.execute("DELETE FROM shares WHERE id = ?", [share['id']])
+        share_conn.cursor().execute("DELETE FROM shares WHERE id = ?", [share['id']])
         share_conn.commit()
         #authorize the user (this is where the "door open", or "ssh successful" code would be in the real world)
         print(res["name"] + " is Authorized!")
