@@ -36,7 +36,7 @@ def grab(user):
     c = conn.cursor()
 
     #Get the share associated to the provided user
-    c.execute("SELECT * FROM shares WHERE id = \""+ user +"\"")
+    c.execute("SELECT * FROM shares WHERE id = ?", [user])
     inc = c.fetchone()
     
     #Close the connection and return the share
