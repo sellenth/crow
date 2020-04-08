@@ -142,8 +142,11 @@ def grab_timestamp():
 
 #Runs node registration every 3.5 minutes 
 def timer_update_start():
+    print("here")
     while 1 == 1:
-        time.sleep(60 * 3.5)
+        print("updating loop")
+        time.sleep(26)
+        print("Updating")
         register()
 
 #Handles the registration of the node and its subsequent actions
