@@ -47,15 +47,13 @@ def challenge():
             us.bind(('0.0.0.0', 44443))
             
             #Recv a number from the auth node to connect to
-            
             try:
                 data, addr = us.recvfrom(4096)
 
+            #if it fails return an error
             except socket.timeout:
-
                 us.close()
-                time.sleep(30)
-                challenge()
+                return -1
 
         #Decrypt the recieved message
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), data)
@@ -79,10 +77,10 @@ def register():
         s.bind(("0.0.0.0", 44432))
         s.listen(5)
         
-        #make sure that challenge executes correctly
+        #make sure that challenge executes correctly, else return error
         address = challenge()
-        while address == -1:
-            address = challenge()
+        if address == -1:
+            return -1
 
         #Create a connection with the auth node, if it is not the 
         #expected address than continue waiting
@@ -154,7 +152,8 @@ def timer_update_start():
 def start():
     
     #Register node
-    register()
+    while register() == -1:
+        time.sleep(30)
     
     #Start thread to send user shares to the auth node
     threading.Thread(target = timer_update_start).start()
