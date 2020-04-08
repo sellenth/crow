@@ -120,6 +120,7 @@ def register():
         
         #clean up and exit
         cli.close()
+        s.shutdown(socket.SHUT_RDWR)
     return
 
 
