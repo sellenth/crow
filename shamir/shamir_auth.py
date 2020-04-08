@@ -18,7 +18,7 @@ def auth_user(username, conn):
 def validate(share, share_conn):
 
     #quit if the user is attempting to authorize more than 5 seconds after submitting their third share
-    if time.time() - int(share["timeout"]) > 5:
+    if time.time() - int(share["timestamp"]) > 5:
         print("No auth for you, timeout!")
         return
     
