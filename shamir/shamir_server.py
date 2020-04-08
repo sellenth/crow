@@ -132,7 +132,7 @@ def register_node(data, address, keys, dbkeys):
 					timestamp = float(timestamp)
 					
 					#start node database update and print results when finished
-					shamir_update_client.update(i.key, timestamp, shamir_update_client.Host(address[0]), i.db)
+					shamir_update_client.update(i, timestamp, s)
 					print("Node registered:   " + data[1])
    
 
@@ -168,7 +168,6 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
-		print("who")
 		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key

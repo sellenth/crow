@@ -4,23 +4,13 @@ import sys
 import aes_crypt
 import rsa_encrypt
 
-#Host object holding the node address to connect to
-class Host():
-    def __init__(self, ip):
-        self.host = ip
-        self.port = 55588
-
 
 #Sends a string containing all relevant shares to the listening node
-def send_share(key, shares, host):
-
-    #opens a socket and connects to the node
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((host.host, host.port))   
-
-        #Joins the list of shares, encrypts them with the given public key, and sends them to the listening node 
-        payload = aes_crypt.aes_enc(key, ':'.join(shares))
-        s.send(payload)
+def send_share(key, shares, s):
+  
+    #Joins the list of shares, encrypts them with the given public key, and sends them to the listening node 
+    payload = aes_crypt.aes_enc(key, ':'.join(shares))
+    s.send(payload)
 
 #grabs all shares for the provided database created after time t
 def grab(t, db): 
@@ -45,10 +35,10 @@ def grab(t, db):
 
 
 #Grabs shares created after time t and sends them to a given host
-def update(key, t, host, db):
+def update(key_holder, t, s):
 
     #Grabs shares
-    shares = grab(t, db)
+    shares = grab(t, key_holder.db)
     
     #sends them to the waiting node
-    send_share(key, shares, host)
+    send_share(key_holder.key, shares, s)
