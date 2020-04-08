@@ -41,8 +41,8 @@ def challenge():
         data = ""
         addr = 0
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
-            us.bind(('0.0.0.0', 44443))
             us.settimeout(1)
+            us.bind(('0.0.0.0', 44443))
             #Recv a number from the auth node to connect to
             data, addr = us.recvfrom(4096)
 
