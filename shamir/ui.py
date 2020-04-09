@@ -3,6 +3,7 @@ import settings
 import shamir_gen
 import socket
 import sqlite3
+import time
 
 
 #Delete all entries refering to a specefic id
@@ -16,6 +17,7 @@ def delete_all(id):
         conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [id])
         conn.commit()
         conn.close()
+
 
 #Tell the auth server to send the designated user's share to the other auth nodes
 def broadcast(uid):
@@ -44,10 +46,10 @@ def main():
         if int(choice) == 1:
             
             #register user
-            #cli_register()
+            cli_register()
 
-
-            net_register()
+            #Register user via client software
+            #net_register()
 
         #To delete user
         if int(choice) == 2:
@@ -143,7 +145,7 @@ def net_register():
             cli, addr = s.accept()
 
             #Get password
-            temp = str(cli.recv(128)).strip("\n")
+            temp = str(cli.recv(128), 'ascii').strip("\n")
             
             #Close connection
             cli.close()
@@ -184,7 +186,7 @@ def delete():
         return
     
     #Mark the user as deleted
-    c.execute("UPDATE secrets SET secret = \"DEL\" WHERE id = ?", [uid])
+    c.execute("UPDATE secrets SET secret = \"DEL\", \"timestamp\" = ? WHERE id = ?", [time.time(), uid])
 
     #commit deletion
     conn.commit()
