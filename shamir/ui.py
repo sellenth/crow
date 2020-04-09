@@ -4,8 +4,6 @@ import shamir_gen
 import shamir_server
 
 
-def broadcast()
-
 def main():
 while 1 == 1:
     menu = "Register Or Update User\t(1)\n\nDelete User\t\t(2)\n\nExit\t\t\t(3)\n"
@@ -35,7 +33,7 @@ while 1 == 1:
 
         shamir_gen.add_user(uid, name, keys)
 
-        broadcast(uid)
+        shamir_server.broadcast(uid)
 
 
     if int(choice) == 2:
