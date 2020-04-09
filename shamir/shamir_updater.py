@@ -75,7 +75,6 @@ def update(cli):
         d = i.split("|")
 
         if d[0] == "DEL":
-            print("DELETING" + d[1])
             conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
             conn.commit()
             continue
