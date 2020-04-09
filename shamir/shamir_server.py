@@ -198,16 +198,17 @@ def recv_update(data):
 	if data[0] == rsa_encrypt.get_auth_hash():
 		data = data[1:]
 		for i in range(len(data)-1):
-			conn = sqlite3.connect(i + ".db")
-			conn.row_factory = sqlite3.Row
-			c = conn.cursor()
+			if data[i] != '':
+				conn = sqlite3.connect(i + ".db")
+				conn.row_factory = sqlite3.Row
+				c = conn.cursor()
 
-			share = data[i].split("|")
+				share = data[i].split("|")
 
-			c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
+				c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
 
-			conn.commit()
-			conn.close()
+				conn.commit()
+				conn.close()
 
 
 		conn = sqlite3.connect("secrets.db")
@@ -215,6 +216,9 @@ def recv_update(data):
 		c = conn.cursor()
 
 		secret = data[-1].split("|")	
+
+		if secret[2] == "DEL":
+			auth_update.delete_all(secret[0])
 
 		c.execute("REPLACE INTO enc_shares VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
 
