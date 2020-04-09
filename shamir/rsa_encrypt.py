@@ -222,7 +222,7 @@ def encrypt_str(key, message):
 
 if __name__ == "__main__":
     print ("Gen_device_key (1):\n\n Gen_DB_Keys (2):\n\nGen_auth_keys (3):\n")
-    choice = input()
+    choice = int(input())
     if choice == 1:
         generate_device_key()
     if choice == 2:
