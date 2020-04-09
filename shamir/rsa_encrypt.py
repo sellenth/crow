@@ -220,12 +220,24 @@ def encrypt_str(key, message):
     return str(base64.b64encode(key.publickey().encrypt(bytes(message, 'ascii'), len(message))[0]),'ascii')
 
 
+#Tool to create keys
 if __name__ == "__main__":
-    print ("Gen_device_key (1):\n\n Gen_DB_Keys (2):\n\nGen_auth_keys (3):\n")
-    choice = int(input())
-    if choice == 1:
-        generate_device_key()
-    if choice == 2:
-        generate_db_keys(settings.DBS)
-    if choice == 3:
-        generate_auth_keys()
+    
+    #handle for user error
+    try:
+        #print menu and direct user to the action they need
+        print ("Gen_device_key\t(1):\n\nGen_DB_Keys\t(2):\n\nGen_auth_keys\t(3):\n")
+        choice = int(input())
+        if choice == 1:
+            generate_device_key()
+        if choice == 2:
+            generate_db_keys(settings.DBS)
+        if choice == 3:
+            generate_auth_keys()
+
+        #let user know task is done, db_key generation can take a few seconds
+        print("Done!, thanks")
+    
+    #be nice to user
+    except:
+        print("There was an error, maybe you pressed the wrong button")        

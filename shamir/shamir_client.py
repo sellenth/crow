@@ -94,5 +94,3 @@ def start():
 
             #Validate
             auth_user(data[0], settings.ID, data[1])
-
-            

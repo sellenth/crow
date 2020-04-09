@@ -40,30 +40,36 @@ def main():
     #Forever
     while 1 == 1:
 
-        #Print the menu
-        print("Register Or Update User\t(1)\n\nDelete User\t\t(2)\n\nExit\t\t\t(3)\n")
+        #in case user presses letter instead of number
+        try:
+            #Print the menu
+            print("Register Or Update User\t(1)\n\nDelete User\t\t(2)\n\nExit\t\t\t(3)\n")
 
-        #Grab the user's input
-        choice = input()
+            #Grab the user's input
+            choice = input()
 
-        #To register a user
-        if int(choice) == 1:
-            
-            #register user
-            #cli_register()
+            #To register a user
+            if int(choice) == 1:
+                
+                #register user
+                #cli_register()
 
-            #Register user via client software
-            net_register()
+                #Register user via client software
+                net_register()
 
-        #To delete user
-        if int(choice) == 2:
-            
-            #delete user 
-            delete()
+            #To delete user
+            if int(choice) == 2:
+                
+                #delete user 
+                delete()
 
-        #Exit
-        if int(choice) == 3:
-            exit(0)
+            #Exit
+            if int(choice) == 3:
+                exit(0)
+
+        #print error message and move on        
+        except:
+            print("oops, looks like there was an issue")
 
 
 #Register a new user via cli
