@@ -132,7 +132,7 @@ def grab_timestamp():
     c = conn.cursor()
     
     #initialize table if nonexistent
-    c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp FLOAT)")
+    c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
     
     #Grab newest timestamp setting it to zero if there is none
     c.execute("SELECT MAX(timestamp) from shares")
