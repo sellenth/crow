@@ -74,9 +74,10 @@ def update(cli):
         #Split the share into its content and timestamp
         d = i.split("|")
 
-        print(d)
         if d[0] == "DEL":
+            print("DELETING" + d[1])
             conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
+            conn.commit()
             continue
 
         #decrypt the share and concatenate it with the timestamp
