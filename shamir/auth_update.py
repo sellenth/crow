@@ -71,7 +71,6 @@ def fill_dbs(updates):
         #For all non-secrets database
         else:
             
-            print(shares)
             #skip if db has no associated shares
             if shares == [''] or shares == None:
                 conn.commit()

@@ -29,7 +29,23 @@ def grab(t, db):
     for i in temp:
         shares.append(i['share'] + "|" + str(i['timestamp']))
 
-    #close the databse and return the shares
+    #close the databse
+    conn.close()
+
+    #connect to the secrets db
+    conn = sqlite3.connect("secrets.db")
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    #Grab all of the users to be deleted 
+    c.execute("SELECT * FROM secrets WHERE timestamp > ? AND secret = ?", [float(t), "DEL"])
+    users = c.fetchall()
+
+    #Add the users to be deleted to the list
+    for i in users:
+        shares.append("DEL" + "|" + str(i[id]))
+
+    #Close the connection and return
     conn.close()
     return shares
 

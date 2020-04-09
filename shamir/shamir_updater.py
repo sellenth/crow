@@ -30,11 +30,10 @@ def update_db(data, conn):
     #commit changes
     conn.commit()
 
-
 #update share database based on connecton to auth node
 def update(cli):
 
-    #open connectino to local database
+    #open connection to local database
     conn = sqlite3.connect(settings.ID + ".db")
     conn.row_factory = sqlite3.Row
     conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
@@ -74,6 +73,10 @@ def update(cli):
 
         #Split the share into its content and timestamp
         d = i.split("|")
+
+        if d[0] == "DEL":
+            conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
+            continue
 
         #decrypt the share and concatenate it with the timestamp
         temp = rsa_encrypt.get_priv_key_db(settings.ID).decrypt((base64.b64decode(d[0]),)) + b':' + bytes(d[1], 'ascii')
