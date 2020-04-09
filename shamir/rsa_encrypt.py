@@ -202,7 +202,7 @@ def get_auth_hash():
     f = open("./assets/auth", "r")
 
     #Grab hash of the file
-    h = base64.b64encode(hashlib.sha256(f.read()).digest())
+    h = base64.b64encode(hashlib.sha256(bytes(f.read(), 'ascii')).digest())
 
     #close file
     f.close()
