@@ -74,7 +74,10 @@ def update(cli):
         #Split the share into its content and timestamp
         d = i.split("|")
 
+        #If user is marked for deletion
         if d[0] == "DEL":
+
+            #Delete the share and commit the action
             conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
             conn.commit()
             continue
