@@ -25,7 +25,7 @@ def add_secret(username, name, secret, currtime):
     c = conn.cursor()
 
     #make sure table exists
-    c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" DOUBLE)")
+    c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" D)")
     
     #INSERT OR REPLACE into secrets the secret and user info
     c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [username, name, str(secret), currtime])
@@ -53,7 +53,7 @@ def add_shares(username, shares, keys, currtime):
         c = conn.cursor()
 
         #make sure the shares table exists
-        create = "CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" DOUBLE)"
+        create = "CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" D)"
         c.execute(create)
         
         #Convert share data to a string

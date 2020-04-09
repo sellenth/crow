@@ -35,9 +35,12 @@ def auth_user(incoming, conn):
 	c.execute("SELECT * FROM shares WHERE id = ?", [username])
 	share = c.fetchone()
 	
+	#If there is no share than insert a line into the db to work with
 	if share == None:
 		add_line(username, conn)
 		c.execute("SELECT * FROM shares WHERE id = ?", [username])
+
+		#grab the inserted line
 		share = c.fetchone()
 
 	#if the current time differs from the timestamp appended to the most recently added share (and conviently if no entry is present as timestamp will be 0)
@@ -145,22 +148,34 @@ def register_node(data, address, keys, dbkeys):
 
 #this sends the servers associated number to the address specified
 def contest(address, pub, keys):
+	
+	#For each key
 	for i in keys:
+
+		#if the provided hash equals the key's hash 
 		if i.hash == pub:
+
+			#send the node's number to the provided address, encrypted with their public key
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 				data = aes_crypt.aes_enc(i.key, str(my_number)) 
 				s.sendto(data, (address, 44443))
 
 
 #this sends the servers associated number to the address specified
+#the number is encrypted with the auth public key
 def contest_auth(address):
+	
+	#open a socket to the reciever
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+		
+		#send the number
 		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
 		s.sendto(data, (address, 44443))
 
 
 #Handler for any multicast message that is recieved
 def handle_response(data, address, keys, dbkeys):
+	
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 	#invalid data is ignored
@@ -181,7 +196,7 @@ def handle_response(data, address, keys, dbkeys):
 	elif data[0] == "regA":
 		threading.Thread(target = contest_auth, args = [address[0]]).start()
 
-	#Recieve an update when a user is registered or deleted
+	#Recieve an update when a user is registered or deleted, unless it comes from this node
 	elif data[0] == "here":
 		if not int(data[1]) == my_number:
 			threading.Thread(target = recv_update, args = [data[2]]).start()
@@ -196,99 +211,155 @@ def handle_response(data, address, keys, dbkeys):
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
+
+#Handles the reception of inserts and delets inserted on other nodes during execution
+#Takes one user's information at a time in the form db1_share||db2_share||... || secret
 def recv_update(data):
 
-
+	#Split the data into its databases
 	data = data.split("||")
+
+	#Authenticate that the sender has access to the auth private key
+	#and is therefore an auth node
 	if data[0] == rsa_encrypt.get_auth_hash():
 
-		print(data)
+		#Throw away the hash
 		data = data[1:]
-		print(data)
+
+		#For each database
 		for i in range(len(data)-1):
-			if data[i] != '':
+
+			#If the share exists
+			#It will not if a delete is sent
+			if not data[i] == '':
+
+				#connect to the database
 				conn = sqlite3.connect(settings.DBS[i] + ".db")
 				conn.row_factory = sqlite3.Row
 				c = conn.cursor()
+
+				#Create the enc_shares table if it doesnt exist
 				c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
+				
+				#Split the share
 				share = data[i].split("|")
 
+				#Insert the share into the database
 				c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
 
+				#commit the changes and close
 				conn.commit()
 				conn.close()
 
-
+		#Connect to the secrets database
 		conn = sqlite3.connect("secrets.db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
+
+		#Create the secrets table if it doesnt exist
 		c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
+		
+		#Split the secrets entry
 		secret = data[-1].split("|")	
 
+		#If the secret is marked for deletion then delete it from all databases
 		if secret[2] == "DEL":
 			auth_update.delete_all(secret[0])
 
+		#insert the secret into the database
 		c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
 
+		#Commit the transaction and exit, logging the share's addition
 		conn.commit()
 		conn.close()
 		print("Got share")
 
-#Broadcasts a given user's shares adn secret to the auth nodes, 
+
+#Broadcasts a given user's shares and secret to the auth nodes, 
 #encrypted by the auth public key. It also sends a hash of the auth private key as identification
 def broadcast(uid):
+	
+	#instantiate a shares list
 	shares = []
 	
+	#For each database
 	for i in settings.DBS:
+
+		#Open a connection to the db
 		conn = sqlite3.connect(i + ".db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
 
+		#Grab the provided user's share from this database
 		c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
+
+		#append the share to the list and close the connection
 		shares.append(c.fetchone())
 		conn.close()
 	
+	#Connect to the secrets database
 	conn = sqlite3.connect("secrets.db")
 	conn.row_factory = sqlite3.Row
 	c = conn.cursor()
 	
+	#Grab the user's secret entry
 	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
+	
+	#append the secret to the list and close the connection
 	shares.append(c.fetchone())
-
 	conn.close()
 
+	#Create an empty string to hold the data
 	data = ""
+
+	#For each share
 	for i in range(len(shares) -1):
+		#Append the share as a string to the data using the seperator ||
 		data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + "|" + str(shares[i]['timestamp'])) + "||")
 	
+	#Append the secrets entry to the data string
 	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
+	
+	#Prepend a hash of the auth private key to the data
 	data = (rsa_encrypt.get_auth_hash() + "||" + data)
 
+	#Open a socket to the multicast address
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+		
+		#Set the data header
 		data = "here:" + str(my_number) + ":" + data
-		print(len(data))
-		print(data)
 
+		#Encrypt the data and send it to the auth nodes
 		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
-		print(len(payload))
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
 
-def broadcast_recv():
+
+#Send broadcasts to other auth nodes
+#This function is used to make sure all network actions are
+#handeled by the server code and to prevent 
+#This node from responding to its own message
+def broadcast_sender():
+
+	#Create a local socket
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.bind(('127.0.0.1', 55557))
 		s.listen(5)
 
+		#For the remainder of execution
 		while 1 == 1:
+
+			#Recieve a username and pass it to the broadcast function
 			cli, addr = s.accept()
 			user = str(cli.recv(256), 'ascii')
 			broadcast(user)
+			
+			#close the client connection
 			cli.close()
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
 def start():
-	
 	
 	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
@@ -307,7 +378,7 @@ def start():
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 	
 	#Start the listener for local inserts and deletes
-	threading.Thread(target=broadcast_recv).start()
+	threading.Thread(target=broadcast_sender).start()
 	
 	#Officialy start the server
 	while 1 == 1:
