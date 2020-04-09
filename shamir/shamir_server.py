@@ -229,7 +229,7 @@ def recv_update(data):
 		conn.close()
 		print("Got share")
 
-#Broadcasta a given user's shares adn secret to the auth nodes, 
+#Broadcasts a given user's shares adn secret to the auth nodes, 
 #encrypted by the auth public key. It also sends a hash of the auth private key as identification
 def broadcast(uid):
 	shares = []
@@ -241,21 +241,27 @@ def broadcast(uid):
 
 		c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
 		shares.append(c.fetchone())
+		conn.close()
 	
 	conn = sqlite3.connect("secrets.db")
 	conn.row_factory = sqlite3.Row
-	c = conn.cursor()
+	c = conn.cursor
 	
 	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
 	shares.append(c.fetchone())
 
+	conn.close()
+
 	data = ""
+	print(data)
 	for i in range(len(shares) -1):
 		data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + str(shares[i]['timestamp'])) + "|||")
-
+		print(data)
+	
 	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
-
+	print(data)
 	data = (rsa_encrypt.get_auth_hash() + "|||" + data)
+	print(data)
 	
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
