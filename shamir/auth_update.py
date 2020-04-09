@@ -52,7 +52,7 @@ def fill_dbs(updates):
         if i == 'secrets':
 
             #make sure that the proper table exists
-            c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
+            c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" FLOAT)")
             
             #for each share
             for j in shares:
@@ -72,7 +72,7 @@ def fill_dbs(updates):
         else:
 
             #make sure that the proper table exists
-            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\")")
+            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" FLOAT)")
             
             #For each share in this update set
             for j in shares:
@@ -97,7 +97,7 @@ def grab_timestamp():
     c = conn.cursor()
     
     #make sure secrets table exists
-    c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\")")
+    c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" FLOAT)")
     
     #Grab timestamp
     c.execute("SELECT MAX(timestamp) FROM secrets")

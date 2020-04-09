@@ -37,7 +37,7 @@ def update(cli):
     #open connectino to local database
     conn = sqlite3.connect(settings.ID + ".db")
     conn.row_factory = sqlite3.Row
-    conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp)")
+    conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp FLOAT)")
     conn.commit()
     #Create empty data strings
     data = b""
