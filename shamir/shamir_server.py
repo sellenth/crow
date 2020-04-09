@@ -181,6 +181,7 @@ def handle_response(data, address, my_number, keys, dbkeys):
 
 	#Recieve an update when a user is registered or deleted
 	elif data[0] == "here":
+		print(data)
 		threading.Thread(target = recv_update, args = [data[1]]).start()
 
 	#A node has picked an auth node to use, check if it is this server
