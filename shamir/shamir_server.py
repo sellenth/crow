@@ -212,7 +212,7 @@ def broadcast(uid):
 	
 	conn = sqlite3.connect("secrets.db")
 	conn.row_factory = sqlite3.Row
-	c = conn.cursor
+	c = conn.cursor()
 	
 	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
 	shares.append(c.fetchone())
