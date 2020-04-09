@@ -57,7 +57,7 @@ def auth_user(incoming, conn):
 		share = c.fetchone()
 
 	#exit if 3 shares exist in the db (will be emptied after 60 seconds, prevents login spamming)	
-	if share["num_shares"] >= 3:
+	if share["num_shares"] >= settings.THRESH:
 		return
 
 	#increment share counter
@@ -81,7 +81,7 @@ def add_secret(d):
 
 	shares = ""
 	for i in range(settings.THRESH):
-		shares += "x" + str(i) +", y" + str(i) + ", "
+		shares += "x" + str(i+1) +", y" + str(i+1) + ", "
 
 	#make sure that shares table exists
 	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY," + shares + "num_shares, timestamp FLOAT)")
