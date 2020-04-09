@@ -29,7 +29,7 @@ def delete_all(id):
 
         #connect to that database, remove all shares with id == provided_id and commit the action
         conn = sqlite3.connect(i+".db")
-        conn.cursor().execute("DELETE FROM shares WHERE id = ?", [id])
+        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [id])
         conn.commit()
         conn.close()
 
