@@ -102,7 +102,7 @@ def grab_timestamp():
     #Grab timestamp
     c.execute("SELECT MAX(timestamp) FROM secrets")
     timestamp = c.fetchone()[0]
-    print(timestamp)
+
     #If timestamp should be zero change it to zero
     if timestamp == None:
         timestamp = 0
@@ -268,7 +268,7 @@ def updater(address):
            
             #grab timestamp
             timestamp = response[1]
-            
+            print(timestamp)
             #create holder for share information
             data = ""
 
