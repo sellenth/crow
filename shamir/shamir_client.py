@@ -39,6 +39,10 @@ def grab(user):
     c.execute("SELECT * FROM shares WHERE id = ?", [user])
     inc = c.fetchone()
     
+    #if no matching share then exit
+    if inc == None:
+        return -1
+
     #Close the connection and return the share
     conn.close()
     return inc
@@ -50,6 +54,10 @@ def auth_user(user, db,key):
     #Grab the user's share
     share = grab(user)
     
+    #Return if error
+    if share == -1:
+        return
+
     #Make sure that the given key matches the key in the database 
     #and that the key is not null
     if key == share["key"] and not key == "":
