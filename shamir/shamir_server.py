@@ -205,7 +205,7 @@ def broadcast(uid):
 	for i in settings.DBS:
 		conn = sqlite3.connect(i + ".db")
 		conn.row_factory = sqlite3.Row
-		c = conn.cursor
+		c = conn.cursor()
 
 		c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
 		shares.append(c.fetchone())
