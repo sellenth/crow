@@ -196,7 +196,9 @@ def handle_response(data, address, my_number, keys, dbkeys):
 def recv_update(data):
 	data = data.split("|||")
 	if data[0] == rsa_encrypt.get_auth_hash():
+		print(data)
 		data = data[1:]
+		print(data)
 		for i in range(len(data)-1):
 			if data[i] != '':
 				conn = sqlite3.connect(i + ".db")
