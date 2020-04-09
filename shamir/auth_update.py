@@ -73,7 +73,7 @@ def fill_dbs(updates):
             
             print(shares)
             #skip if db has no associated shares
-            if shares == '' or shares == None:
+            if shares == [''] or shares == None:
                 conn.commit()
                 conn.close()
                 continue
@@ -83,8 +83,6 @@ def fill_dbs(updates):
             
             #For each share in this update set
             for j in shares:
-
-                
 
                 #Convert str to list
                 share = j.split("|")
