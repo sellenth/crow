@@ -1,3 +1,5 @@
+#Global settings cariables for easy management
+
 DBS = ["face", "qr", "voice", "web"]
 ID = 'auth'
 TOTAL = 4

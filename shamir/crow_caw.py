@@ -1,11 +1,12 @@
 #!/usr/bin/python3 
 
 import shamir_server
-import node_register
+import client_handler
 import settings
 
-
+#If the node is listed as an auth node then start the auth server
+#Otherwise start the client node program
 if settings.ID == 'auth':
-    shamir_server.start()
+    shamir_server.run()
 else:
-    node_register.start()
+    client_handler.run()
