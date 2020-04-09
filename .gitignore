@@ -3,3 +3,4 @@ shamir/assets/
 shamir/assets/hosts/
 *.pyc
 shamir/__pycache__/
+face-detection/results/*
