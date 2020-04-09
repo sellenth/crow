@@ -228,7 +228,7 @@ def broadcast(uid):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
 		
-		payload =  + aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "here:" + data)
+		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "here:" + data)
 
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
 	
