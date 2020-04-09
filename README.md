@@ -21,7 +21,7 @@ ID = 'auth'
 TOTAL = 4
 
 #The number of shares that need to be sent to authenticate a user successfully
-#Changeing this number will break an active system. After changing you must regenerate shares for all users.
+#Changing this number will break an active system. After changing you must regenerate shares for all users.
 THRESH = 3
 
 #The multicast address and port to use for this system. Do not change unless you need to
@@ -29,7 +29,7 @@ MULT_ADDR = '224.3.29.1'
 MULT_PORT = 13337
 ```
 
-2: Create dataabase and auth keys. Run the rsa_encrypt.py program and select the generate_db_keys option, then run it again and select the auth_key option.
+2: Create database and auth keys. Run the rsa_encrypt.py program and select the generate_db_keys option, then run it again and select the auth_key option.
 
 3: Copy the database and all keys to a flash drive from the 'assets' directory, leave only the .pub keys and the 'auth' file, this is the auth private key. If you plan to convert your auth node to a database node later also create a local key with rsa_encrypt.
 
