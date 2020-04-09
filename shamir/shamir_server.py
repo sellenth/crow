@@ -365,7 +365,7 @@ def broadcast_sender():
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
-def start():
+def run():
 	
 	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
@@ -392,3 +392,14 @@ def start():
 		data, address = s.recvfrom(4096)
 		#start response handler
 		threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
+
+
+#Wrapper for the server to keep it running in case of an unexpected error
+def start():
+	while 1 == 1:
+		try: 
+			run()
+		except:
+			print("Error, Restarting")
+			time.sleep(30)
+			start()

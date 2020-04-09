@@ -23,12 +23,16 @@ def delete_all(id):
 def broadcast(uid):
 
     #Open a socket to the server
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('127.0.0.1', 55557))
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect(('127.0.0.1', 55557))
 
-        #send the username
-        s.send(bytes(uid, 'ascii'))
-
+            #send the username
+            s.send(bytes(uid, 'ascii'))
+    
+    #Dont die if there is no auth server running
+    except:
+        return
 
 #Recieves infomation from the user in order to add a user to the system or to delete one
 def main():
@@ -46,10 +50,10 @@ def main():
         if int(choice) == 1:
             
             #register user
-            cli_register()
+            #cli_register()
 
             #Register user via client software
-            #net_register()
+            net_register()
 
         #To delete user
         if int(choice) == 2:
