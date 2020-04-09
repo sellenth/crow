@@ -1,1 +1,5 @@
 *.db
+shamir/assets/
+shamir/assets/hosts/
+*.pyc
+shamir/__pycache__/
