@@ -79,14 +79,20 @@ def start():
         while 1 == 1:
             cli, addr = s.accept()
             
-            #Recieve user:key 
+            #Recieve user:key  
             data = str(cli.recv(1024), 'ascii')
             
             #close the connection
             cli.close()
 
-            #Split the data and send it to the validator
+            #Split the data
             data = data.strip("\x0a").split(":")
+            
+            #make sure it is correct
+            if not len(data) == 2:
+                continue
+
+            #Validate
             auth_user(data[0], settings.ID, data[1])
 
             
