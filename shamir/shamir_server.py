@@ -161,6 +161,7 @@ def contest_auth(address, my_number):
 def handle_response(data, address, my_number, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
+	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
@@ -181,7 +182,6 @@ def handle_response(data, address, my_number, keys, dbkeys):
 
 	#Recieve an update when a user is registered or deleted
 	elif data[0] == "here":
-		print(data)
 		threading.Thread(target = recv_update, args = [data[1]]).start()
 
 	#A node has picked an auth node to use, check if it is this server
