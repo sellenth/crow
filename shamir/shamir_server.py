@@ -254,17 +254,19 @@ def broadcast(uid):
 
 	data = ""
 	for i in range(len(shares) -1):
-		data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + str(shares[i]['timestamp'])) + "|||")
+		data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + "|" + str(shares[i]['timestamp'])) + "|||")
 	
 	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
 	data = (rsa_encrypt.get_auth_hash() + "|||" + data)
-	print(len(data))
-	print(data)
+
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+		data = "here:" + data
+		print(len(data))
 		print(data)
-		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "here:" + data)
 
+		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "here:" + data)
+		print(len(payload))
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
 	
 
