@@ -19,7 +19,7 @@ my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
 	c = conn.cursor()
-	c.execute("INSERT INTO shares VALUES(\""+ username +"\",0,0,0,0,0,0,0,0)")
+	c.execute("INSERT INTO shares VALUES(\""+ username +"\"" + ",0"*settings.THRESH*2 + ",0,0)")
 	conn.commit()
 
 
