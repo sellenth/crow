@@ -245,7 +245,7 @@ def broadcast(uid):
 	
 	conn = sqlite3.connect("secrets.db")
 	conn.row_factory = sqlite3.Row
-	c = conn.cursor
+	c = conn.cursor()
 	
 	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
 	shares.append(c.fetchone())
@@ -262,7 +262,7 @@ def broadcast(uid):
 	print(data)
 	data = (rsa_encrypt.get_auth_hash() + "|||" + data)
 	print(data)
-	
+
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
 		
