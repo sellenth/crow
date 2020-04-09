@@ -163,16 +163,3 @@ def run():
 
     #Start periodic registration thread
     threading.Thread(target = shamir_client.start).start()
-
-
-#Wrapper for the server to keep it running in case of an unexpected error
-def start():
-	while 1 == 1:
-		try: 
-			run()
-		except:
-			print("Error, Restarting")
-			time.sleep(30)
-			start()
-    
-   
