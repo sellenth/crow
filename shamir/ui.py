@@ -107,12 +107,14 @@ def main():
 
             c.execute("UPDATE secrets SET secret = \"DEL\" WHERE id = ?", [uid])
 
+            conn.commit()
+            conn.close()
+
             delete_all(uid)
 
             broadcast(uid)
 
-            conn.commit()
-            conn.close()
+            
 
         #Exit
         if int(choice) == 3:
