@@ -4,6 +4,7 @@ from Crypto import Random
 import base64
 import os
 import hashlib
+import settings
 
 
 #Class to hold key information
@@ -215,3 +216,14 @@ def encrypt_str(key, message):
 
     #return an encrypted string encoded with base64
     return str(base64.b64encode(key.publickey().encrypt(bytes(message, 'ascii'), len(message))[0]),'ascii')
+
+
+if __name__ == "__main__":
+    print ("Gen_device_key (1):\n\n Gen_DB_Keys (2):\n\nGen_auth_keys (3):\n")
+    choice = input()
+    if choice == 1:
+        generate_device_key()
+    if choice == 2:
+        generate_db_keys(settings.DBS)
+    if choice == 3:
+        generate_auth_keys()
