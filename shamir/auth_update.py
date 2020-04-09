@@ -268,7 +268,6 @@ def updater(address):
            
             #grab timestamp
             timestamp = response[1]
-            print(timestamp)
             #create holder for share information
             data = ""
 
