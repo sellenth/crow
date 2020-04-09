@@ -208,7 +208,7 @@ def recv_update(data):
 				conn = sqlite3.connect(settings.DBS[i] + ".db")
 				conn.row_factory = sqlite3.Row
 				c = conn.cursor()
-				c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" DOUBLE)")
+				c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 				share = data[i].split("|")
 
 				c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
@@ -220,7 +220,7 @@ def recv_update(data):
 		conn = sqlite3.connect("secrets.db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
-		c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" DOUBLE)")
+		c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
 		secret = data[-1].split("|")	
 
 		if secret[2] == "DEL":
