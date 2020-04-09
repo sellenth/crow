@@ -179,6 +179,9 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	elif data[0] == "regA":
 		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
 
+	elif data[0] == "here":
+		threading.Thread(target = recv_update, args = [data[1:]].start())
+
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
 		if int(data[1]) == my_number:
@@ -188,6 +191,10 @@ def handle_response(data, address, my_number, keys, dbkeys):
 			#respond to startup update for auth node
 			elif data[2] == "woke":
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
+
+def recv_update(data):
+	print(data)
+	return
 
 
 #Broadcasta a given user's shares adn secret to the auth nodes, 
@@ -210,11 +217,21 @@ def broadcast(uid):
 	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
 	shares.append(c.fetchone())
 
-	for i in shares:
-		#inish
-		pass
+	data = ""
+	for i in range(len(shares) -1):
+		data += str(shares[i]['id']) + ":" + str(shares[i]['share'] + str(shares[i]['timestamp'])) + ":::"
 
-	return
+	data += str(shares[-1]['id']) + ":" + str(shares[-1]['name']) + ":" + str(shares[-1]['secret']) + ":" + str(shares[-1]['timestamp'])
+
+	data = rsa_encrypt.get_auth_hash() + ":::" + data
+	
+	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
+		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+		
+		payload = "here:" + aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
+
+		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
+	
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads

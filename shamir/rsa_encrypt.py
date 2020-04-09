@@ -195,6 +195,21 @@ def get_priv_key_auth():
     f.close()
     return x
 
+#Grabs a hash of the auth private key
+def get_auth_hash():
+
+    #Open auth private key file
+    f = open("./assets/auth", "r")
+
+    #Grab hash of the file
+    h = base64.b64encode(hashlib.sha256(f.read).digest())
+
+    #close file
+    f.close()
+
+    #return the hash as a string
+    return str(h, 'ascii')
+
 #encrypt a string using an rsa private key given the key and a string
 def encrypt_str(key, message):
 
