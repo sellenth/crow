@@ -195,8 +195,11 @@ def handle_response(data, address, my_number, keys, dbkeys):
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
 def recv_update(data):
+
+
 	data = data.split("||")
 	if data[0] == rsa_encrypt.get_auth_hash():
+
 		print(data)
 		data = data[1:]
 		print(data)
@@ -205,7 +208,7 @@ def recv_update(data):
 				conn = sqlite3.connect(settings.DBS[i] + ".db")
 				conn.row_factory = sqlite3.Row
 				c = conn.cursor()
-
+				c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" DOUBLE)")
 				share = data[i].split("|")
 
 				c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
@@ -217,13 +220,13 @@ def recv_update(data):
 		conn = sqlite3.connect("secrets.db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
-
+		c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" DOUBLE)")
 		secret = data[-1].split("|")	
 
 		if secret[2] == "DEL":
 			auth_update.delete_all(secret[0])
 
-		c.execute("REPLACE INTO enc_shares VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
+		c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
 
 		conn.commit()
 		conn.close()
