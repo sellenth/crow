@@ -196,9 +196,31 @@ def handle_response(data, address, my_number, keys, dbkeys):
 def recv_update(data):
 	data = data.split("|||")
 	if data[0] == rsa_encrypt.get_auth_hash():
-		print("yes")
-	return
+		data = data[1:]
+		for i in range(len(data)-1):
+			conn = sqlite3.connect(i + ".db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
 
+			share = data[i].split("|")
+
+			c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
+
+			conn.commit()
+			conn.close()
+
+
+		conn = sqlite3.connect("secrets.db")
+		conn.row_factory = sqlite3.Row
+		c = conn.cursor()
+
+		secret = data[-1].split("|")	
+
+		c.execute("REPLACE INTO enc_shares VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
+
+		conn.commit()
+		conn.close()
+		print("Got share")
 
 #Broadcasta a given user's shares adn secret to the auth nodes, 
 #encrypted by the auth public key. It also sends a hash of the auth private key as identification
