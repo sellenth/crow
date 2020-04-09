@@ -68,14 +68,22 @@ def fill_dbs(updates):
                 #insert or replace the share into the secrets table (REPLACE is better represented as INSERT OR REPLACE)
                 c.execute("REPLACE INTO secrets VALUES (?, ?, ?, ?)", share)
         
-        #For all non-secretes database
+        #For all non-secrets database
         else:
+            
+            #skip if db has no associated shares
+            if shares == '' or share == None:
+                conn.commit()
+                conn.close()
+                continue
 
             #make sure that the proper table exists
             c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" DOUBLE)")
             
             #For each share in this update set
             for j in shares:
+
+                
 
                 #Convert str to list
                 share = j.split("|")
