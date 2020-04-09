@@ -4,7 +4,6 @@ import shamir_gen
 import shamir_server
 
 
-def main():
 while 1 == 1:
     menu = "Register Or Update User\t(1)\n\nDelete User\t\t(2)\n\nExit\t\t\t(3)\n"
     print(menu)
