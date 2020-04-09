@@ -72,7 +72,7 @@ def fill_dbs(updates):
         else:
             
             #skip if db has no associated shares
-            if shares == '' or share == None:
+            if shares == '' or shares == None:
                 conn.commit()
                 conn.close()
                 continue
