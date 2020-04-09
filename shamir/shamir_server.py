@@ -79,8 +79,12 @@ def add_secret(d):
 	conn = sqlite3.connect("shares.db")
 	conn.row_factory = sqlite3.Row
 
+	shares = ""
+	for i in range(settings.THRESH):
+		shares += "x" + str(i) +", y" + str(i) + ", "
+
 	#make sure that shares table exists
-	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x1, y1, x2, y2, x3, y3, num_shares, timestamp FLOAT)")
+	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY," + shares + "num_shares, timestamp FLOAT)")
 	
 	#create share object from provided data "d"
 	share = {}

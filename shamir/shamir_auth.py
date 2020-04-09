@@ -33,9 +33,8 @@ def validate(share, share_conn):
     
     #create object holding the shares within tuples (nessecary for shamir library)
     s = []
-    s.append((int(share["x1"]), int(share["y1"])))
-    s.append((int(share["x2"]), int(share["y2"])))
-    s.append((int(share["x3"]), int(share["y3"])))
+    for i in range(settings.THRESH):
+        s.append((int(share["x" + str(i)]), int(share["y" + str(i)])))
 
     #recover the secret from the shares list
     secret = shamir.recover_secret(s)
