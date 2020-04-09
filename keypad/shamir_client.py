@@ -26,14 +26,12 @@ def grab(user, n):
 def auth_user(user, db,key):
     #UNCOMMENT LINES TO IMPLEMENT KEY CHECKING
     share = grab(user, db)
-    '''
     if key == share["key"] and not key == "":
         send_share(share, host)
         return 1
     return 0 
-    '''   
     send_share(share, host)
     return 1
 
 host = Host()
-auth_user(str(sys.argv[1]), str(sys.argv[2]), "0000")
+auth_user(str(sys.argv[1]), str(sys.argv[2]), str(sys.argv[3]))

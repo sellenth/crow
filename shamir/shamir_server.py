@@ -29,12 +29,10 @@ def auth_user(incoming, conn):
     
     
     if share["num_shares"] >= 3:
-        conn.close()
         return
     i = share["num_shares"] +1
     for j in range(i):
         if share["x"+str(j+1)] == incoming["x"]:
-            conn.close()
             return
     upd = "UPDATE shares SET x" + str(i)+" = \"" +incoming["x"]+ "\", y" + str(i) + " = \"" + incoming["y"] + "\", num_shares = " + str(i) +", timeout = " + str(int(time.time())) + " WHERE id = \"" + username + "\""
     c.execute(upd)
