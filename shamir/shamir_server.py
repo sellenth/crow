@@ -231,7 +231,7 @@ def recv_update(data):
 
 			#If the share exists
 			#It will not if a delete is sent
-			if not data[i] == '':
+			if not data[i] == 'NONE':
 
 				#connect to the database
 				conn = sqlite3.connect(settings.DBS[i] + ".db")
@@ -317,7 +317,7 @@ def broadcast(uid):
 		
 		#Add no data if this is a delete message
 		if shares[i] == None:
-			data += "||"
+			data += "NONE||"
 		
 		else:
 			#Append the share as a string to the data using the seperator ||
