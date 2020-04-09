@@ -42,83 +42,160 @@ def main():
 
         #To register a user
         if int(choice) == 1:
-
-            #Ask for and recieve uid
-            print("Enter user id: ")
-            uid = input().strip("\n")
             
-            #Make sure the uid is less than 16 characters
-            while len(uid) > 16:
-                print("lets keep it under 16 chars")
-                uid = input().strip("\n")
+            #register user
+            #cli_register()
 
-            #Ask for the user's name 
-            print("Enter user's name: ")
-            name = input().strip("\n")
 
-            #Keep the name shorter than 16 characters
-            while len(name) > 16:
-                print("lets keep it under 16 chars")
-                name = input().strip("\n")
-
-            #Holder for user keys
-            keys = []
-
-            #For each db
-            for i in settings.DBS:
-
-                #Prompt for password
-                print("Enter the user's password for the " + i + " database: ")
-                temp = input().strip("\n")
-                
-                #Make sure the password isnt longer than a sha256 hash
-                while len(temp) > 66:
-                    print("lets keep it under 66 chars")
-                    name = input().strip("\n")
-                
-                #append the key to the list
-                keys.append(temp)
-
-            #Send the gathered information to be entered into the proper databases
-            shamir_gen.add_user(uid, name, keys)
-
-            #Ask the auth server to share the new user
-            broadcast(uid)
+            net_register()
 
         #To delete user
         if int(choice) == 2:
             
-            #Ask for and recieve uid
-            print("Enter user id: ")
-            uid = input().strip("\n")
-
-            #Connect to decrets databsae
-            conn = sqlite3.connect("secrets.db")
-            conn.row_factory = sqlite3.Row
-            c = conn.cursor()
-
-            #Check if user exists
-            c.execute("SELECT * FROM secrets where id = ?", [uid])
-            s = c.fetchone()
-
-            if s == None:
-                conn.close()
-                continue
-
-            c.execute("UPDATE secrets SET secret = \"DEL\" WHERE id = ?", [uid])
-
-            conn.commit()
-            conn.close()
-
-            delete_all(uid)
-
-            broadcast(uid)
-
-            
+            #delete user 
+            delete()
 
         #Exit
         if int(choice) == 3:
             exit(0)
+
+
+#Register a new user via cli
+def cli_register():
+    #Ask for and recieve uid
+    print("Enter user id: ")
+    uid = input().strip("\n")
+
+    #Make sure the uid is less than 16 characters
+    while len(uid) > 16:
+        print("lets keep it under 16 chars")
+        uid = input().strip("\n")
+
+    #Ask for the user's name 
+    print("Enter user's name: ")
+    name = input().strip("\n")
+
+    #Keep the name shorter than 16 characters
+    while len(name) > 16:
+        print("lets keep it under 16 chars")
+        name = input().strip("\n")
+
+    #Holder for user keys
+    keys = []
+
+    #For each db
+    for i in settings.DBS:
+
+        #Prompt for password
+        print("Enter the user's password for the " + i + " database: ")
+        temp = input().strip("\n")
+        
+        #Make sure the password isnt longer than a sha256 hash
+        while len(temp) > 66:
+            print("lets keep it under 66 chars")
+            name = input().strip("\n")
+        
+        #append the key to the list
+        keys.append(temp)
+
+    #Send the gathered information to be entered into the proper databases
+    shamir_gen.add_user(uid, name, keys)
+
+    #Ask the auth server to share the new user
+    broadcast(uid)
+
+
+#Register a new user via network
+def net_register():
+    #Ask for and recieve uid
+    print("Enter user id: ")
+    uid = input().strip("\n")
+
+    #Make sure the uid is less than 16 characters
+    while len(uid) > 16:
+        print("lets keep it under 16 chars")
+        uid = input().strip("\n")
+
+    #Ask for the user's name 
+    print("Enter user's name: ")
+    name = input().strip("\n")
+
+    #Keep the name shorter than 16 characters
+    while len(name) > 16:
+        print("lets keep it under 16 chars")
+        name = input().strip("\n")
+
+    #Holder for user keys
+    keys = []
+
+    #Create a socket to get user passwords
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('127.0.0.1', 55556))
+        s.listen(5)
+
+        #For each db
+        for i in settings.DBS:
+
+            #Prompt for password
+            print("Send the user's password for the " + i + " database: ")
+            
+            #accept connection
+            cli, addr = s.accept()
+
+            #Get password
+            temp = str(cli.recv(128)).strip("\n")
+            
+            #Close connection
+            cli.close()
+
+            #Make sure the password isnt longer than a sha256 hash
+            if len(temp) > 66:
+                print("ERROR recieving pass, needs to be under 66 chars")
+                return
+            
+            #append the key to the list
+            keys.append(temp)
+
+    #Send the gathered information to be entered into the proper databases
+    shamir_gen.add_user(uid, name, keys)
+
+    #Ask the auth server to share the new user
+    broadcast(uid)
+
+
+#Delete a user
+def delete():
+    #Ask for and recieve uid
+    print("Enter user id: ")
+    uid = input().strip("\n")
+
+    #Connect to decrets databsae
+    conn = sqlite3.connect("secrets.db")
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    #Check if user exists
+    c.execute("SELECT * FROM secrets where id = ?", [uid])
+    s = c.fetchone()
+
+    #If user doesnt exist than quit
+    if s == None:
+        conn.close()
+        return
+    
+    #Mark the user as deleted
+    c.execute("UPDATE secrets SET secret = \"DEL\" WHERE id = ?", [uid])
+
+    #commit deletion
+    conn.commit()
+    conn.close()
+
+    #Delete the remaining shares from the share databases
+    delete_all(uid)
+
+    #Broadcast the deletion
+    broadcast(uid)
+
 
 if __name__ == '__main__':
     main()
