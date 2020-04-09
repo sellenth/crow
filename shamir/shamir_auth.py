@@ -11,6 +11,10 @@ def auth_user(username, conn):
     c.execute("SELECT * FROM shares WHERE id = \""+ username +"\"")
     share = c.fetchone()
     
+    #if no share then return
+    if share == None:
+        return
+
     #pass to validator
     validate(share, conn)
 
