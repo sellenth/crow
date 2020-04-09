@@ -251,11 +251,11 @@ def broadcast(uid):
 
 	data = ""
 	for i in range(len(shares) -1):
-		data += str(shares[i]['id']) + "|" + str(shares[i]['share'] + str(shares[i]['timestamp'])) + "|||"
+		data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + str(shares[i]['timestamp'])) + "|||")
 
-	data += str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp'])
+	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
 
-	data = rsa_encrypt.get_auth_hash() + "|||" + data
+	data = (rsa_encrypt.get_auth_hash() + "|||" + data)
 	
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
