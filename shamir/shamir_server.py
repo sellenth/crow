@@ -13,6 +13,8 @@ import shamir_update_client
 import auth_update
 from Crypto import Random
 
+#set unique number -- not actually unicue but 1- (N* (1/2^16*8)) chance of being unique 
+my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
@@ -142,7 +144,7 @@ def register_node(data, address, keys, dbkeys):
    
 
 #this sends the servers associated number to the address specified
-def contest(address, my_number, pub, keys):
+def contest(address, pub, keys):
 	for i in keys:
 		if i.hash == pub:
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -151,16 +153,17 @@ def contest(address, my_number, pub, keys):
 
 
 #this sends the servers associated number to the address specified
-def contest_auth(address, my_number):
+def contest_auth(address):
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
 		s.sendto(data, (address, 44443))
 
 
 #Handler for any multicast message that is recieved
-def handle_response(data, address, my_number, keys, dbkeys):
+def handle_response(data, address, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
+	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
@@ -173,11 +176,11 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
-		threading.Thread(target = contest, args = [address[0], my_number, data[1], keys]).start()
+		threading.Thread(target = contest, args = [address[0], data[1], keys]).start()
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
-		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
+		threading.Thread(target = contest_auth, args = [address[0]]).start()
 
 	#Recieve an update when a user is registered or deleted
 	elif data[0] == "here":
@@ -263,30 +266,18 @@ def broadcast(uid):
 
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-		data = "here:" + data
+		data = "here:" + str(my_number) + ":" + data
 		print(len(data))
 		print(data)
 
 		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
 		print(len(payload))
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
-
-def broadcast_listener():
-	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-		s.bind(("127.0.0.1", 55557))
-		s.listen(5)
-		while 1 == 1:
-			cli, addr = s.accept()
-			user = str(cli.recv(256), 'ascii')
-			broadcast(user)
-			cli.close()
-
-
+	
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
 def start():
-	#set unique number -- not actually unicue but 1- (N* (1/2^16*8)) chance of being unique 
-	my_number = int.from_bytes(Random.get_random_bytes(16), "big")
+	
 	
 	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
@@ -303,13 +294,14 @@ def start():
 	group = socket.inet_aton(address)
 	mreq = struct.pack('4sL', group, socket.INADDR_ANY)
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-	threading.Thread(target=broadcast_listener).start()
+	
+	print(s.getsockname())
 	#Officialy start the server
 	while 1 == 1:
-		#grab data and sender from the ,ulticast address
+		#grab data and sender from the multicast address
 		data, address = s.recvfrom(4096)
 		#start response handler
-		threading.Thread(target=handle_response, args=[data, address, my_number, keys, dbkeys]).start()
+		threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
 
 
 
