@@ -161,7 +161,6 @@ def contest_auth(address, my_number):
 def handle_response(data, address, my_number, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
@@ -271,7 +270,17 @@ def broadcast(uid):
 		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
 		print(len(payload))
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
-	
+
+def broadcast_listener():
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		s.bind("127.0.0.1", 55557)
+		s.listen(5)
+		while 1 == 1:
+			cli, addr = s.accept()
+			user = str(cli.recv(), 'ascii')
+			broadcast(user)
+			cli.close()
+
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
@@ -294,7 +303,7 @@ def start():
 	group = socket.inet_aton(address)
 	mreq = struct.pack('4sL', group, socket.INADDR_ANY)
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-	
+	threading.Thread(target=broadcast_listener).start()
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the ,ulticast address
