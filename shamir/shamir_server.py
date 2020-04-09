@@ -314,8 +314,14 @@ def broadcast(uid):
 
 	#For each share
 	for i in range(len(shares) -1):
-		#Append the share as a string to the data using the seperator ||
-		data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + "|" + str(shares[i]['timestamp'])) + "||")
+		
+		#Add no data if this is a delete message
+		if shares[i] == None:
+			data += "||"
+		
+		else:
+			#Append the share as a string to the data using the seperator ||
+			data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + "|" + str(shares[i]['timestamp'])) + "||")
 	
 	#Append the secrets entry to the data string
 	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
