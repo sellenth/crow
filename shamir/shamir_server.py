@@ -273,7 +273,18 @@ def broadcast(uid):
 		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
 		print(len(payload))
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
-	
+
+def broadcast_recv():
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		s.bind(('127.0.0.1', 55557))
+		s.listen(5)
+
+		while 1 == 1:
+			cli, addr = s.accept()
+			user = str(cli.recv(256), 'ascii')
+			broadcast(user)
+			cli.close()
+
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
 def start():
