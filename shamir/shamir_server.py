@@ -179,8 +179,9 @@ def handle_response(data, address, my_number, keys, dbkeys):
 	elif data[0] == "regA":
 		threading.Thread(target = contest_auth, args = [address[0], my_number]).start()
 
+	#Recieve an update when a user is registered or deleted
 	elif data[0] == "here":
-		threading.Thread(target = recv_update, args = [data[1:]].start())
+		threading.Thread(target = recv_update, args = [data[1:]]).start())
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
