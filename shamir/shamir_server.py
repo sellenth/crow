@@ -202,7 +202,7 @@ def recv_update(data):
 		print(data)
 		for i in range(len(data)-1):
 			if data[i] != '':
-				conn = sqlite3.connect(i + ".db")
+				conn = sqlite3.connect(settings.DBS[i] + ".db")
 				conn.row_factory = sqlite3.Row
 				c = conn.cursor()
 
