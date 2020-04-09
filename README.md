@@ -1,6 +1,6 @@
 # crow
 
-# Shamir
+# Shamir Setup
 
 To use the shamir software some set up is required. It is a bit lengthy and manual, but this is to prevent private keys being leaked, and unauthorized public keys from being added to the node list.
 
@@ -42,6 +42,22 @@ MULT_PORT = 13337
 
 5: For each auth node copy the folder with the local public keys into the directory assets/hosts
 
-6: Done! You cannow run ./crow_caw to start the server on each device. Feel free to set this up as a recurring job. To add test users use ./shamir_gen.py and to add real users use ./ui.py I will explain how to do this below
+6: Done! You cannow run ./crow_caw to start the server on each device. Feel free to set this up as a recurring job. To add test users use ./shamir_gen.py and to add and delete real users use ./ui.py I will explain how to do this below
 
-## Creating Users
+# Creating Users
+
+Creating users can only be done on an auth node
+
+To create users using the ./ui.py program you can use the cli to enter data and you can use the node software or the cli to input passwords. 
+
+To use node software simply set up your program to read user data, if this produces data longer then 66 characters. Or it is in a non-string format, or should be obfuscated then sumbit a base64 encoded sha256 hash.
+
+To submit a password open a TCP socket to ('127.0.0.1', 55556) and s.send() the password
+
+To register a user you will need to do this with the software you are using for each database. In the default cast this means registering the user's face, qr code, voice command, and pin.
+
+After submitting the information the user's information will be registered and broadcast to all active auth nodes. Within the next 3.5 minutes (the client node update interval) the user will be able to log in succesfully.
+
+# Authenticating users
+
+To authenticate a user from a client node simply open a tcp socket to ('127.0.0.1', 55556) and send the user's information in the format user:password. The client node will handle the rest and sent the user's share to the auth nodes if the information presented is correct.
