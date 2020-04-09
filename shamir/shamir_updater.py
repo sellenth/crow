@@ -74,6 +74,7 @@ def update(cli):
         #Split the share into its content and timestamp
         d = i.split("|")
 
+        print(d)
         if d[0] == "DEL":
             conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
             continue
