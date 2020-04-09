@@ -6,7 +6,7 @@ import socket
 
 def broadcast(uid):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect("127.0.0.1, 55557")
+        s.connect(("127.0.0.1", 55557))
         s.send(bytes(uid, 'ascii'))
 
 def main():

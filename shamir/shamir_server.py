@@ -273,7 +273,7 @@ def broadcast(uid):
 
 def broadcast_listener():
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-		s.bind("127.0.0.1", 55557)
+		s.bind(("127.0.0.1", 55557))
 		s.listen(5)
 		while 1 == 1:
 			cli, addr = s.accept()
