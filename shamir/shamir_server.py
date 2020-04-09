@@ -306,6 +306,9 @@ def start():
 	mreq = struct.pack('4sL', group, socket.INADDR_ANY)
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 	
+	#Start the listener for local inserts and deletes
+	threading.Thread(target=broadcast_recv).start()
+	
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the multicast address
