@@ -265,7 +265,7 @@ def broadcast(uid):
 		print(len(data))
 		print(data)
 
-		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "here:" + data)
+		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
 		print(len(payload))
 		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
 	
