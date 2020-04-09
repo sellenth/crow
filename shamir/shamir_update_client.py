@@ -43,7 +43,7 @@ def grab(t, db):
 
     #Add the users to be deleted to the list
     for i in users:
-        shares.append("DEL" + "|" + str(i[id]))
+        shares.append("DEL" + "|" + str(i['id']))
 
     #Close the connection and return
     conn.close()
