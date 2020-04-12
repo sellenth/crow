@@ -1,5 +1,7 @@
 *.db
-shamir/assets/
+shamir/assets/*
 shamir/assets/hosts/
 *.pyc
 shamir/__pycache__/
+shamir/DBs
+shamir/userlist.txt
