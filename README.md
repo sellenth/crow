@@ -1,5 +1,11 @@
 # crow
 
+# Demonstration
+
+A demonstration of two systems is included in the Demo directory. This demonstration shows a 2 out of 5 authentication scheme and a 3 out of 4 authentication scheme. Instructions on how to start and interact with the demo are within the Demo folder.
+
+The demo runs using docker-compose so please install Docker and Docker-compose if you intend on  running the demo. The docker containers represnet the small systems this software was designed to run on, and allow easy deployment of many nodes. 
+
 # Shamir Setup
 
 To use the shamir software some set up is required. It is a bit lengthy and manual, but this is to prevent private keys being leaked, and unauthorized public keys from being added to the node list.
@@ -54,10 +60,10 @@ To use node software simply set up your program to read user data, if this produ
 
 To submit a password open a TCP socket to ('127.0.0.1', 55556) and s.send() the password
 
-To register a user you will need to do this with the software you are using for each database. In the default cast this means registering the user's face, qr code, voice command, and pin.
+To register a user you will need to do this with the software you are using for each database. In the default case this means registering the user's face, qr code, voice command, and pin.
 
 After submitting the information the user's information will be registered and broadcast to all active auth nodes. Within the next 3.5 minutes (the client node update interval) the user will be able to log in succesfully.
 
 # Authenticating users
 
-To authenticate a user from a client node simply open a tcp socket to ('127.0.0.1', 55556) and send the user's information in the format user:password. The client node will handle the rest and sent the user's share to the auth nodes if the information presented is correct.
+To authenticate a user from a client node simply open a tcp socket to ('127.0.0.1', 55556) and send the user's information in the format user:password, or you can run the "submit.py" script. The client node will handle the rest and sent the user's share to the auth nodes if the information presented is correct.
