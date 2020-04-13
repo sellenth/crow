@@ -191,6 +191,8 @@ def handle_response(data, address, keys, dbkeys):
 	
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
+
+	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
