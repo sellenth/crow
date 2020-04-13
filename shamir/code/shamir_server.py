@@ -125,6 +125,7 @@ def register_node(data, address, keys, dbkeys):
 
 				#recieve and check that valid data was recieved
 				#return if error in recv
+				return_sums =""
 				try:
 					return_sums = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048))
 				except:
@@ -149,6 +150,7 @@ def register_node(data, address, keys, dbkeys):
 					
 					#grab timestamp from node
 					#return if error in recv
+					timestamp = ""
 					try:
 						timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
 					except:
@@ -381,6 +383,7 @@ def broadcast_sender():
 			cli, addr = s.accept()
 			
 			#recover if error in recv
+			user = ""
 			try:
 				user = str(cli.recv(256), 'ascii')
 			except:
