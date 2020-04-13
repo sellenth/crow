@@ -43,6 +43,7 @@ def update(cli):
     data = b""
     temp =""
 
+
     #Recieve data until the sender is done
     temp = cli.recv(4096)
 
@@ -53,7 +54,9 @@ def update(cli):
     
     #Add the last data string
     data += temp
-        
+    
+    print(data)
+    
     #close the socket
     cli.close()
     
