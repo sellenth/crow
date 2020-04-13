@@ -276,6 +276,7 @@ def updater(address):
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(challenge)))
         
         #Get the number back, along with the most recent timestamp that the recieving server has
+        response = ""
         try:
             response = s.recv(2048)
         except: #Error in recv
