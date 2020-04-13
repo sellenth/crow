@@ -61,7 +61,7 @@ def auth_user(incoming, conn):
 
 	#exit if 3 shares exist in the db (will be emptied after 60 seconds, prevents login spamming)	
 	if share["num_shares"] >= settings.THRESH:
-		return
+		return 1
 
 	#increment share counter
 	i = share["num_shares"] +1
@@ -69,7 +69,7 @@ def auth_user(incoming, conn):
 	#make sure we dont store duplicate shares
 	for j in range(i):
 		if share["x"+str(j+1)] == incoming["x"]:
-			return
+			return 1
 	
 	#update the db with the new share, current time, and revised share count
 	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timestamp = ? WHERE id = ?"
@@ -96,10 +96,10 @@ def add_secret(d):
 	share['y'] = d[2]
 
 	#Add the share to the database if appropriate
-	auth_user(share, conn)
+	if not auth_user(share, conn) == 1:
 
-	#pass execution to the authenticcator, which checks if the provided shares are valid
-	shamir_auth.auth_user(share['id'], conn)
+		#pass execution to the authenticcator, which checks if the provided shares are valid
+		shamir_auth.auth_user(share['id'], conn)
 
 
 #this registers and updates a node at address
