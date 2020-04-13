@@ -178,7 +178,7 @@ def updateee():
         
         #If socket times out then return, this is likely the first auth node to be activated
         except socket.timeout:
-            print("timeout")
+            print("No Auth Nodes Found")
             return
 
         #accept connection from the node that shares will be pulled from
