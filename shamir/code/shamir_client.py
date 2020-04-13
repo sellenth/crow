@@ -72,7 +72,6 @@ def auth_user(user, db,key):
 def recieve_creds(cli):
     
     #Recieve user:key
-    data = ""
     try:
         #Grab key
         data = str(cli.recv(1024), 'ascii')

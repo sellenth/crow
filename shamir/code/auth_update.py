@@ -54,7 +54,7 @@ def fill_dbs(updates):
         if i == 'secrets':
 
             #make sure that the proper table exists
-            c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" DOUBLE)")
+            c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
             
             #for each share
             for j in shares:
@@ -79,7 +79,7 @@ def fill_dbs(updates):
                 continue
 
             #make sure that the proper table exists
-            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" DOUBLE)")
+            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
             
             #For each share in this update set
             for j in shares:
@@ -130,15 +130,15 @@ def challenge():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         
-        #Sends a messafe to the other auth nodes to start a contest
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"), ((host.host, host.port)))
-        
         #Creates a socket to recieve a unique number from the first auth node to respond to the contest
         data = ""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             #sets a small timeout in case this is the first auth node in the system or the response is delayed
             us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
+
+            #Sends a messafe to the other auth nodes to start a contest
+            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"), ((host.host, host.port)))
 
             #Recieves encrypted number from auth node
             data, address = us.recvfrom(4096)
@@ -178,6 +178,7 @@ def updateee():
         
         #If socket times out then return, this is likely the first auth node to be activated
         except socket.timeout:
+            print("No Auth Nodes Found")
             return
 
         #accept connection from the node that shares will be pulled from
@@ -187,11 +188,8 @@ def updateee():
         
         #Challenge response authentication, the node recieves a number from the auth node responsible for the update
         #and sends the number + 1 to the other node
-        try:
-            data = cli.recv(1024)
-        except: #error in recv
-            cli.close()
-            return -1
+            
+        data = cli.recv(1024)
 
         #decrypt number and increment it by one
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
@@ -205,23 +203,12 @@ def updateee():
         #Recv data until the sender is done
         data = b""
 
-        #start reception 
-        try:
+        while 1==1:
             temp = cli.recv(4096)
-        except: #Error in recv
-            cli.close()
-            return -1
-
-        #if temp is less than the buffer length than quit the loop
-        #otherwise add the recieved bytes to data 
-        while not len(temp) < 4096:
-            data += temp
-            
-            try:
-                temp = cli.recv(4096)
-            except: #Error in recv
-                cli.close()
-                return -1
+            if temp:
+                data += temp
+            else:
+                break
 
         #add the remaining bytes to temp
         data += temp
@@ -276,12 +263,9 @@ def updater(address):
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(challenge)))
         
         #Get the number back, along with the most recent timestamp that the recieving server has
-        try:
-            response = s.recv(2048)
-        except: #Error in recv
-            s.close()
-            return -1
+        response = s.recv(2048)
         
+        #decrypt response
         response = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response)
         
         #return error if data is corrupted
@@ -308,6 +292,9 @@ def updater(address):
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
 
+                #Make sure table exists
+                c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
+
                 #Grab all shares from the current database with timestamp greater than the client's timestamp
                 c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)])
                 d = c.fetchall()
@@ -331,6 +318,9 @@ def updater(address):
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             
+            #make sure table exists
+            c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
+
             #Grab all shares past the client timestamp 
             c.execute("SELECT * FROM secrets WHERE timestamp > ?", [float(timestamp)])
             d = c.fetchall()

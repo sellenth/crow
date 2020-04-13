@@ -21,6 +21,9 @@ def grab(t, db):
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
+    #Make sure table exists
+    c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
+
     #grab all shares created after time t
     c.execute("SELECT share, timestamp FROM enc_shares WHERE timestamp > ?", [float(t)])
     temp = c.fetchall()
@@ -37,6 +40,9 @@ def grab(t, db):
     conn = sqlite3.connect(settings.DBdir + "secrets.db")
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
+
+    #Make sure table exists
+    c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
 
     #Grab all of the users to be deleted 
     c.execute("SELECT * FROM secrets WHERE timestamp > ? AND secret = ?", [float(t), "DEL"])

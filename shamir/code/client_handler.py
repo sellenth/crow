@@ -33,9 +33,6 @@ def challenge():
     #create a socket to communicate with the auth nodes
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-
-        #send the challenge tag to the auth nodes along with a public key to encrypt their return message with
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + keyhash), ((host.host, host.port)))
         
         #Create an empty data and address variable and a socket to recieve the data
         data = ""
@@ -45,11 +42,13 @@ def challenge():
             #set a timeout for if there is no auth node ready
             us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
+
+            #send the challenge tag to the auth nodes along with a public key to encrypt their return message with
+            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + keyhash), ((host.host, host.port)))
             
             #Recv a number from the auth node to connect to
             try:
                 data, addr = us.recvfrom(4096)
-
             #if it fails return an error
             except socket.timeout:
                 us.close()
@@ -74,20 +73,28 @@ def register():
 
     #Create socket to recieve updates from
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(5)
         s.bind(("0.0.0.0", 44432))
         s.listen(5)
         
         #make sure that challenge executes correctly, else return error
+        print("Looking for Auth Node")
         address = challenge()
         if address == -1:
             return -1
 
         #Create a connection with the auth node, if it is not the 
         #expected address than continue waiting
-        cli, addr = s.accept()
-        while not addr[0] == address[0]:
+        try:
             cli, addr = s.accept()
-        
+            while not addr[0] == address[0]:
+                cli, addr = s.accept()
+        except socket.timeout:
+            return -1
+
+        #Report
+        print("Recieving Updates Now")
+
         #Recieve two sums for challenge response authentication
         #One for the database and one for the public key
         sums = cli.recv(2048).split(b"::")
@@ -106,16 +113,23 @@ def register():
         
         #send the incremented sums back to proove node identity
         payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), sum1 + ":" + sum2)
-        cli.send(payload)
-        
+        #Fill recv buffer
+        cli.send(payload + b"\x00" * (4096-len(payload)))
+
         #Grab the latest timestamp
         timestamp = grab_timestamp()
 
         #Send the timestamp encrypted with the auth public key
         cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(timestamp)))
 
-        #Run the update process and report the number of shares updated
+        #Run the update process
         num_updates = shamir_updater.update(cli)
+        
+        #make number presentable
+        if num_updates == None:
+            num_updates = 0
+        
+        #Report shares
         print("Registered: " + str(num_updates) + " updates")
         
         #clean up and exit
@@ -138,7 +152,7 @@ def grab_timestamp():
     c.execute("SELECT MAX(timestamp) from shares")
     timestamp = c.fetchone()[0]
     if timestamp == None:
-        timestamp = 0
+        timestamp = 0.0
 
     #return the timestamp
     return timestamp
@@ -148,8 +162,8 @@ def grab_timestamp():
 def timer_update_start():
     while 1 == 1:
         time.sleep(60 * 3.5)
-        register()
-
+        t = threading.Thread(target = register)
+        t.start()
 
 #Handles the registration of the node and its subsequent actions
 def run():
