@@ -200,21 +200,21 @@ def handle_response(data, address, keys, dbkeys):
 	data = str(data, 'ascii').split(":")
 	#Node is sending share for authentication
 	if data[0] == "auth":
-		threading.Thread(target=add_secret, args=[data[1:]]).start()
+		add_secret(data[1:])
 	
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
-		threading.Thread(target = contest, args = [address[0], data[1], keys]).start()
+		contest(address[0], data[1], keys)
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
-		threading.Thread(target = contest_auth, args = [address[0]]).start()
+		contest_auth(address[0])
 
 	#Recieve an update when a user is registered or deleted, unless it comes from this node
 	elif data[0] == "here":
 		#dont recieve a share sent by self
 		if not int(data[1]) == my_number:
-			threading.Thread(target = recv_update, args = [data[2]]).start()
+			recv_update(data[2])
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
@@ -223,13 +223,13 @@ def handle_response(data, address, keys, dbkeys):
 			if data[2] == "imup":
 				
 				print("Sending Update to Client Node")
-				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+				register_node(data[3:], address, keys, dbkeys)
 			
 			#respond to startup update for auth node
 			elif data[2] == "woke":
 				
 				print("Sending Update to Auth Node")
-				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
+				auth_update.updater(address[0])
 
 
 #Handles the reception of inserts and delets inserted on other nodes during execution

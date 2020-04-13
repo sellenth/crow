@@ -150,7 +150,7 @@ def grab_timestamp():
     c.execute("SELECT MAX(timestamp) from shares")
     timestamp = c.fetchone()[0]
     if timestamp == None:
-        timestamp = 0
+        timestamp = 0.0
 
     #return the timestamp
     return timestamp
