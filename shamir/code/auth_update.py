@@ -54,7 +54,7 @@ def fill_dbs(updates):
         if i == 'secrets':
 
             #make sure that the proper table exists
-            c.execute("CREATE TABLE IF NOT EXISTS secrets(\"id\" PRIMARY KEY, \"name\", \"secret\", \"timestamp\" DOUBLE)")
+            c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
             
             #for each share
             for j in shares:
@@ -79,7 +79,7 @@ def fill_dbs(updates):
                 continue
 
             #make sure that the proper table exists
-            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(\"id\" PRIMARY KEY, \"share\", \"timestamp\" DOUBLE)")
+            c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
             
             #For each share in this update set
             for j in shares:
@@ -309,6 +309,9 @@ def updater(address):
                 conn.row_factory = sqlite3.Row
                 c = conn.cursor()
 
+                #Make sure table exists
+                c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
+
                 #Grab all shares from the current database with timestamp greater than the client's timestamp
                 c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)])
                 d = c.fetchall()
@@ -332,6 +335,9 @@ def updater(address):
             conn.row_factory = sqlite3.Row
             c = conn.cursor()
             
+            #make sure table exists
+            c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
+
             #Grab all shares past the client timestamp 
             c.execute("SELECT * FROM secrets WHERE timestamp > ?", [float(timestamp)])
             d = c.fetchall()
