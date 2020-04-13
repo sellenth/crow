@@ -47,7 +47,7 @@ def validate(share, share_conn):
     c = conn.cursor()
 
     #select user's secret by ID
-    c.execute("SELECT * FROM secrets WHERE id = \""+ share["id"] +"\"")
+    c.execute("SELECT * FROM secrets WHERE id = ?", [share["id"]])
     res = c.fetchone()
 
     #if the secret recovered from the shares db matches the stored secret the user is authenticated
