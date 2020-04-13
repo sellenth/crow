@@ -413,19 +413,18 @@ def run():
 	#Start the listener for local inserts and deletes
 	threading.Thread(target=broadcast_sender).start()
 	
-	print("here")
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the multicast address
 		#continue if error in recv
 		try:
 			data, address = s.recvfrom(4096)
+			print("here")
+
+			#start response handler
+			threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
 		
 		except KeyboardInterrupt:
 			return
-
-		except:
-			continue
 		
-		#start response handler
-		threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
+		
