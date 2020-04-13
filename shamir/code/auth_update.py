@@ -216,9 +216,6 @@ def updateee():
             print("registered: 0 updates")
             return
 
-        #add the remaining bytes to temp
-        data += temp
-
         #Decrypt the data with the auth private key
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         
