@@ -146,13 +146,13 @@ def register_node(data, address, keys, dbkeys):
 					i.db = data[1]    
 					
 					#grab timestamp from node
-					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii')
+					timestamp = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(4096)), 'ascii'
 
 					#validate data and convert timstamp to float
 					if timestamp == -1 or timestamp == -2:
 						return
 					
-					timestamp = float(timestamp)
+					timestamp = float(str(timestamp, "ascii"))
 					
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamp, s)
@@ -192,7 +192,6 @@ def handle_response(data, address, keys, dbkeys):
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 
-	print(data)
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return

@@ -57,8 +57,6 @@ def challenge():
         #Decrypt the recieved message
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), data)
 
-        print(data)
-
         #if message is bad return error
         if data == -1 or data == -2:
             return -1
@@ -114,7 +112,7 @@ def register():
         cli.send(payload)
         
         #dont send too fast and get caught in previous buffer
-        time.sleep(.1)
+        time.sleep(.3)
 
         #Grab the latest timestamp
         timestamp = grab_timestamp()

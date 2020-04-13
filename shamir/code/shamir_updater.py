@@ -39,21 +39,15 @@ def update(cli):
     conn.row_factory = sqlite3.Row
     conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
     conn.commit()
-    #Create empty data strings
+
+    #Create empty data string
     data = b""
-    temp =""
 
-
-    #Recieve data until the sender is done
-    temp = cli.recv(4096)
-
-    #repeat until done
-    while not temp == "" and not len(temp) < 4096:
-        data += temp
+    #Recieve until done
+    while 1==1:
         temp = cli.recv(4096)
-    
-    #Add the last data string
-    data += temp
+        if temp:
+            data += temp
         
     #close the socket
     cli.close()

@@ -203,15 +203,11 @@ def updateee():
         #Recv data until the sender is done
         data = b""
 
-        #start reception 
-        temp = cli.recv(4096)
-
-        #if temp is less than the buffer length than quit the loop
-        #otherwise add the recieved bytes to data 
-        while not len(temp) < 4096:
-            data += temp
+        while 1==1:
             temp = cli.recv(4096)
-           
+            if temp:
+                data += temp
+
         #add the remaining bytes to temp
         data += temp
 
