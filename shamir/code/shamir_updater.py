@@ -54,9 +54,7 @@ def update(cli):
     
     #Add the last data string
     data += temp
-    
-    print(data)
-    
+        
     #close the socket
     cli.close()
     

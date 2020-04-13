@@ -57,6 +57,8 @@ def challenge():
         #Decrypt the recieved message
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), data)
 
+        print(data)
+
         #if message is bad return error
         if data == -1 or data == -2:
             return -1
