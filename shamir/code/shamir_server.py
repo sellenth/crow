@@ -413,9 +413,7 @@ def run():
 	#Start the listener for local inserts and deletes
 	threading.Thread(target=broadcast_sender).start()
 	
-	#start response handler
-	threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
-	
+	print("here")
 	#Officialy start the server
 	while 1 == 1:
 		#grab data and sender from the multicast address
@@ -429,4 +427,5 @@ def run():
 		except:
 			continue
 		
-		
+		#start response handler
+		threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
