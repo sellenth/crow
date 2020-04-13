@@ -47,7 +47,6 @@ def challenge():
             s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + keyhash), ((host.host, host.port)))
             
             #Recv a number from the auth node to connect to
-            data, addr = ("","")
             try:
                 data, addr = us.recvfrom(4096)
 
