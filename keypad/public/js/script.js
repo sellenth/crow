@@ -38,16 +38,14 @@ function getCookie(cname) {
 }
 
 function check_complete() {
-  if (pw.length >= 6) {
-    console.log(pw);
+  if (pw.length >= 3) {
     var http = new XMLHttpRequest();
-    var url = '/auth' + pw;
+    var url = '/auth';
     http.open('POST', url, true);
 
     //Send the proper header information along with the request
-    http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-    http.send();
+    http.setRequestHeader('Content-type', 'application/json;charset=UTF-8');
+    http.send(JSON.stringify({"pw": pw}));
 
     pw = '';
     clr();

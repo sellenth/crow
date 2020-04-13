@@ -1,15 +1,25 @@
 const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
 const http = require('http')
 const path = require('path')
 const fs = require('fs')
-const port = 3000
+const net = require('net');
+const client = new net.Socket();
+const cookieParser = require('cookie-parser')
+const port = process.env.PORT || 3000
 
 app.use(express.static('public'))
+app.use(bodyParser.json())
+app.use(cookieParser())
 
-app.post('/auth:pw', (req, res) => {
-  let username = req.headers.cookie;
-  let pw = req.params.pw;
+app.post('/auth', (req, res) => {
+  let username = req.cookies.username;
+  let pw = req.body.pw;
+
+  client.connect(55556, 'localhost', function () {
+    client.write(username + ':' + pw);
+  })
 })
 
 app.get('/', (req, res) => {
@@ -18,5 +28,5 @@ app.get('/', (req, res) => {
 
 const server = http.createServer(app)
     .listen(port, () => {
-        console.log('server running at ' + port)
+        console.log('server running on port ' + port)
     })
