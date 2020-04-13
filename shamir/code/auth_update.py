@@ -188,7 +188,6 @@ def updateee():
         
         #Challenge response authentication, the node recieves a number from the auth node responsible for the update
         #and sends the number + 1 to the other node
-        data = ""
         try:
             data = cli.recv(1024)
         except: #error in recv
@@ -208,7 +207,6 @@ def updateee():
         data = b""
 
         #start reception 
-        temp = ""
         try:
             temp = cli.recv(4096)
         except: #Error in recv
@@ -279,15 +277,12 @@ def updater(address):
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(challenge)))
         
         #Get the number back, along with the most recent timestamp that the recieving server has
-        response = ""
         try:
             response = s.recv(2048)
         except: #Error in recv
             s.close()
             return -1
         
-        print("HERE")
-
         response = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response)
         
         #return error if data is corrupted

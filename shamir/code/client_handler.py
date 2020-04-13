@@ -49,7 +49,6 @@ def challenge():
             #Recv a number from the auth node to connect to
             try:
                 data, addr = us.recvfrom(4096)
-
             #if it fails return an error
             except socket.timeout:
                 us.close()
@@ -78,6 +77,7 @@ def register():
         s.listen(5)
         
         #make sure that challenge executes correctly, else return error
+        print("Looking for Auth Node")
         address = challenge()
         if address == -1:
             return -1
@@ -88,6 +88,9 @@ def register():
         while not addr[0] == address[0]:
             cli, addr = s.accept()
         
+        #Report
+        print("Recieving Updates Now")
+
         #Recieve two sums for challenge response authentication
         #One for the database and one for the public key
         sums = cli.recv(2048).split(b"::")
@@ -114,8 +117,14 @@ def register():
         #Send the timestamp encrypted with the auth public key
         cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(timestamp)))
 
-        #Run the update process and report the number of shares updated
+        #Run the update process
         num_updates = shamir_updater.update(cli)
+        
+        #make number presentable
+        if num_updates == None:
+            num_updates = 0
+        
+        #Report shares
         print("Registered: " + str(num_updates) + " updates")
         
         #clean up and exit

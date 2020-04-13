@@ -28,6 +28,8 @@ def add_line(username, conn):
 #shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
 def auth_user(incoming, conn):
 	
+	print("Recieved Share from Client Node")
+
 	#grab username and start db cursor
 	username = incoming["id"]
 	c = conn.cursor()
@@ -125,7 +127,6 @@ def register_node(data, address, keys, dbkeys):
 
 				#recieve and check that valid data was recieved
 				#return if error in recv
-				return_sums =""
 				try:
 					return_sums = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048))
 				except:
@@ -150,7 +151,6 @@ def register_node(data, address, keys, dbkeys):
 					
 					#grab timestamp from node
 					#return if error in recv
-					timestamp = ""
 					try:
 						timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
 					except:
@@ -225,14 +225,17 @@ def handle_response(data, address, keys, dbkeys):
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
-		print("YOU " + str(my_number) + "    " + str(data[1]))
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
+				
+				print("Sending Update to Client Node")
 				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+			
 			#respond to startup update for auth node
 			elif data[2] == "woke":
-				print("starting updater")
+				
+				print("Sending Update to Auth Node")
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
 
@@ -302,6 +305,8 @@ def recv_update(data):
 #Broadcasts a given user's shares and secret to the auth nodes, 
 #encrypted by the auth public key. It also sends a hash of the auth private key as identification
 def broadcast(uid):
+	
+	print("Sending New Share to other Auth Nodes") 
 	
 	#instantiate a shares list
 	shares = []
@@ -383,7 +388,6 @@ def broadcast_sender():
 			cli, addr = s.accept()
 			
 			#recover if error in recv
-			user = ""
 			try:
 				user = str(cli.recv(256), 'ascii')
 			except:
@@ -403,6 +407,8 @@ def run():
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)
 	#Run the auth node update process which is required for the server to start properly
+	
+	print("Looking for updates")
 	auth_update.updateee() 
 	
 	#Set up multicast listener
@@ -424,7 +430,6 @@ def run():
 		#continue if error in recv
 		try:
 			data, address = s.recvfrom(4096)
-			print("here")
 
 			#start response handler
 			threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
