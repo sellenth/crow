@@ -47,6 +47,7 @@ def challenge():
             us.bind(('0.0.0.0', 44443))
             
             #Recv a number from the auth node to connect to
+            data, addr = ("","")
             try:
                 data, addr = us.recvfrom(4096)
 
