@@ -414,7 +414,7 @@ def run():
 		#grab data and sender from the multicast address
 		#continue if error in recv
 		try:
-			data, address = s.recvfrom(4096)
+			data, address = s.recvfrom(8192)
 
 			#start response handler
 			threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()

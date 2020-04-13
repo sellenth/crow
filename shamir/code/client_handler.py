@@ -111,7 +111,7 @@ def register():
         payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), sum1 + ":" + sum2)
         cli.send(payload)
         
-        #dont send too fast
+        #dont send too fast and get caught in previous buffer
         time.sleep(.1)
 
         #Grab the latest timestamp
