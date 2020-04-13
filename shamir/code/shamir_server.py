@@ -184,6 +184,7 @@ def contest(address, pub, keys):
 #the number is encrypted with the auth public key
 def contest_auth(address):
 	
+	print(my_number)
 	#open a socket to the reciever
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		
@@ -223,6 +224,7 @@ def handle_response(data, address, keys, dbkeys):
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
+		print("YOU " + str(my_number) + "    " + str(data[1]))
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
