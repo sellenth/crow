@@ -207,6 +207,8 @@ def updateee():
             temp = cli.recv(4096)
             if temp:
                 data += temp
+            else:
+                break
 
         #add the remaining bytes to temp
         data += temp

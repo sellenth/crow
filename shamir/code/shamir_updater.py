@@ -48,6 +48,8 @@ def update(cli):
         temp = cli.recv(4096)
         if temp:
             data += temp
+        else:
+            break
         
     #close the socket
     cli.close()
