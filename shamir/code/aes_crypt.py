@@ -59,6 +59,7 @@ def aes_dec(rsa_key, ciphertext):
     
     #If invalid ciphertext than exit
     if not len(cip) == 2:
+        print("length:   " + cip)
         return -1
 
     #Grab MAC
@@ -101,4 +102,5 @@ def aes_dec(rsa_key, ciphertext):
    
     else:
         #return error for hash mismatch
+        print("Hash:  " ) + cip
         return -1
