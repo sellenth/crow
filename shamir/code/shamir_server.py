@@ -184,7 +184,6 @@ def contest(address, pub, keys):
 #the number is encrypted with the auth public key
 def contest_auth(address):
 	
-	print("AUTH_CONTEST")
 	#open a socket to the reciever
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		
@@ -230,6 +229,7 @@ def handle_response(data, address, keys, dbkeys):
 				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
 			#respond to startup update for auth node
 			elif data[2] == "woke":
+				print("starting updater")
 				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
 
 
