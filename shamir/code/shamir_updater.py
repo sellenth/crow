@@ -44,13 +44,19 @@ def update(cli):
     data = b""
 
     #Recieve until done
-    while 1==1:
-        temp = cli.recv(4096)
-        if temp:
-            data += temp
-        else:
-            break
-        
+    try:
+        while 1==1:
+            temp = cli.recv(4096)
+            if temp:
+                data += temp
+            else:
+                break
+    
+    #if the connection dies
+    except:
+        #Return no updates
+        return 0        
+    
     #close the socket
     cli.close()
     

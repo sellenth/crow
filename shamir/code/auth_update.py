@@ -203,12 +203,18 @@ def updateee():
         #Recv data until the sender is done
         data = b""
 
-        while 1==1:
-            temp = cli.recv(4096)
-            if temp:
-                data += temp
-            else:
-                break
+        try:
+            while 1==1:
+                temp = cli.recv(4096)
+                if temp:
+                    data += temp
+                else:
+                    break
+        
+        #if the sender loses the connection then quit
+        except:
+            print("registered: 0 updates")
+            return
 
         #add the remaining bytes to temp
         data += temp
