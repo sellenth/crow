@@ -130,15 +130,15 @@ def challenge():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
         
-        #Sends a messafe to the other auth nodes to start a contest
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"), ((host.host, host.port)))
-        
         #Creates a socket to recieve a unique number from the first auth node to respond to the contest
         data = ""
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             #sets a small timeout in case this is the first auth node in the system or the response is delayed
             us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
+
+            #Sends a messafe to the other auth nodes to start a contest
+            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"), ((host.host, host.port)))
 
             #Recieves encrypted number from auth node
             data, address = us.recvfrom(4096)

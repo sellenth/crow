@@ -186,7 +186,6 @@ def contest(address, pub, keys):
 #the number is encrypted with the auth public key
 def contest_auth(address):
 	
-	print(address)
 	#open a socket to the reciever
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		
