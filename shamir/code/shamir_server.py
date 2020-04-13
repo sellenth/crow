@@ -146,7 +146,7 @@ def register_node(data, address, keys, dbkeys):
 					i.db = data[1]    
 					
 					#grab timestamp from node
-					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
+					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048)), 'ascii')
 
 					#validate data and convert timstamp to float
 					if timestamp == -1 or timestamp == -2:
