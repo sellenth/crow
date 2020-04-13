@@ -224,7 +224,7 @@ def updateee():
             return -1
 
         #if no databases hold data then return
-        if data == b':::::::::::::::':
+        if data == b':::'*settings.TOTAL:
             print("registered: 0 updates")
             return
 
