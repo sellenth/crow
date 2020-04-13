@@ -188,6 +188,8 @@ def contest_auth(address):
 	#open a socket to the reciever
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 		
+		print(address)
+
 		#send the number
 		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
 		s.sendto(data, (address, 44443))
