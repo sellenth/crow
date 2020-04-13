@@ -178,6 +178,7 @@ def updateee():
         
         #If socket times out then return, this is likely the first auth node to be activated
         except socket.timeout:
+            print("timeout")
             return
 
         #accept connection from the node that shares will be pulled from
@@ -187,6 +188,7 @@ def updateee():
         
         #Challenge response authentication, the node recieves a number from the auth node responsible for the update
         #and sends the number + 1 to the other node
+        data = ""
         try:
             data = cli.recv(1024)
         except: #error in recv
