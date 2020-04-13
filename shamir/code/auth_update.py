@@ -219,7 +219,7 @@ def updateee():
         #Decrypt the data with the auth private key
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
         
-        print("data")
+        print(data)
 
         #if the data is invalid return error
         if data == -2 or data == -1:
