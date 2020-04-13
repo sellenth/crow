@@ -90,13 +90,7 @@ def register():
         
         #Recieve two sums for challenge response authentication
         #One for the database and one for the public key
-        try:        
-            sums = cli.recv(2048).split(b"::")
-
-        except:
-            #Error if error in recv
-            s.close()
-            return -1
+        sums = cli.recv(2048).split(b"::")
 
         #Decrypt the sums using the node and db public keys
         sums[0] = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), sums[0])
