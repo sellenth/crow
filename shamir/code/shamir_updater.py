@@ -44,21 +44,12 @@ def update(cli):
     temp =""
 
     #Recieve data until the sender is done
-    try:
-        temp = cli.recv(4096)
-    except: #Error in recv
-        cli.close()
-        return -1
+    temp = cli.recv(4096)
 
     #repeat until done
     while not temp == "" and not len(temp) < 4096:
         data += temp
-        
-        try:
-            temp = cli.recv(4096)
-        except: #Error in recv
-            cli.close()
-            return -1
+        temp = cli.recv(4096)
     
     #Add the last data string
     data += temp

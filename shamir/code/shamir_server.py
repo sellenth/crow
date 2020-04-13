@@ -126,11 +126,7 @@ def register_node(data, address, keys, dbkeys):
 				s.send(pay + b'::'+ pay2)
 
 				#recieve and check that valid data was recieved
-				#return if error in recv
-				try:
-					return_sums = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048))
-				except:
-					return
+				return_sums = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048))
 				
 				#Return error if trouble decrypting message
 				if return_sums == -2 or return_sums == -1:
@@ -150,11 +146,7 @@ def register_node(data, address, keys, dbkeys):
 					i.db = data[1]    
 					
 					#grab timestamp from node
-					#return if error in recv
-					try:
-						timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
-					except:
-						return
+					timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
 
 					#validate data and convert timstamp to float
 					if timestamp == -1 or timestamp == -2:
@@ -385,15 +377,8 @@ def broadcast_sender():
 		while 1 == 1:
 
 			#Recieve a username and pass it to the broadcast function
-			cli, addr = s.accept()
-			
-			#recover if error in recv
-			try:
-				user = str(cli.recv(256), 'ascii')
-			except:
-				cli.close()
-				continue
-			
+			cli, addr = s.accept()				
+			user = str(cli.recv(256), 'ascii')
 			broadcast(user)
 			
 			#close the client connection
