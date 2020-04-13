@@ -218,15 +218,14 @@ def updateee():
 
         #Decrypt the data with the auth private key
         data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
-        
-        print(data)
 
         #if the data is invalid return error
         if data == -2 or data == -1:
             return -1
 
         #if no databases hold data then return
-        if data == b"::::::::::::":
+
+        if data == b"::::::::::::::":
             print("registered: 0 updates")
             return
 
