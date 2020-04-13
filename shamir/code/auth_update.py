@@ -224,6 +224,7 @@ def updateee():
             return -1
 
         #if no databases hold data then return
+        print(data)
 
         if data == b"::::::::::::::":
             print("registered: 0 updates")
