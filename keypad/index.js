@@ -1,5 +1,4 @@
 const express = require('express')
-const bodyParser = require('body-parser')
 const app = express()
 const http = require('http')
 const path = require('path')
@@ -7,23 +6,33 @@ const fs = require('fs')
 const net = require('net');
 const client = new net.Socket();
 const cookieParser = require('cookie-parser')
-const port = process.env.PORT || 3000
+const port = 3001
 
+// Middlewares
+app.set("views", path.join(__dirname, "views"))
+// Might not end up using this app.set("view engine", "jade")
 app.use(express.static('public'))
-app.use(bodyParser.json())
+app.use(express.json())
 app.use(cookieParser())
 
 
+// Authentication route
 app.post('/auth', (req, res) => {
-  let username = req.cookies.username;
-  let pw = req.body.pw;
+  const username = req.cookies.username;
+  const pw = req.body.pw;
 
   client.connect(55556, 'localhost', function () {
     client.write(username + ':' + pw);
   })
+
+  client.on('error', function(err){
+    console.log("Error: "+err.message);
+})
+
   // TODO: send response to client
 })
 
+// Serve correct homescreen for node type
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/public/html/index.html'));
 })
@@ -59,8 +68,6 @@ function parseSettings(settingsFile){
 try {
   let settingsFile = fs.readFileSync('../shamir/code/settings.py', 'utf8').split('\n');
   var settings = parseSettings(settingsFile);
-  console.log(settings)
-
 } catch (err){
   console.log(err)
   console.log("\n\nFailed to read node settings, aborting");
