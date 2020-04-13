@@ -33,9 +33,6 @@ def challenge():
     #create a socket to communicate with the auth nodes
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-
-        #send the challenge tag to the auth nodes along with a public key to encrypt their return message with
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + keyhash), ((host.host, host.port)))
         
         #Create an empty data and address variable and a socket to recieve the data
         data = ""
@@ -45,6 +42,9 @@ def challenge():
             #set a timeout for if there is no auth node ready
             us.settimeout(1)
             us.bind(('0.0.0.0', 44443))
+
+            #send the challenge tag to the auth nodes along with a public key to encrypt their return message with
+            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + keyhash), ((host.host, host.port)))
             
             #Recv a number from the auth node to connect to
             data, addr = ("","")
