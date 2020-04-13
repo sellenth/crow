@@ -7,11 +7,12 @@ To initialize this demo do the following
     There are now 6 containers running on ports 
 
         auth1: 44444
+        auth2: 44445
         face: 44440
         web: 44441
         qr: 44442
         voice: 44443
-        other: 44445
+        
     
     Ssh into each of these containers and run "./demo_init.py"
 
@@ -25,6 +26,8 @@ To initialize this demo do the following
     To create more users run "./ui.py"
 
     You can now start the service on all machines by using tmux and/or "./crow_caw.py &"
+
+    Tmux is very helpful in this situation as you can run ./crow_caw.py in tmux then exit it (ctrl+b, d) and run "./ui.py" or "./submit.py"
 
     To enter a share on a client node run the "./submit.py" script while crow_caw is running which will prompt you for a username and password
 

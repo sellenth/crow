@@ -28,6 +28,8 @@ def add_line(username, conn):
 #shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
 def auth_user(incoming, conn):
 	
+	print("Recieved Share from Client Node")
+
 	#grab username and start db cursor
 	username = incoming["id"]
 	c = conn.cursor()
@@ -59,7 +61,7 @@ def auth_user(incoming, conn):
 
 	#exit if 3 shares exist in the db (will be emptied after 60 seconds, prevents login spamming)	
 	if share["num_shares"] >= settings.THRESH:
-		return
+		return 1
 
 	#increment share counter
 	i = share["num_shares"] +1
@@ -67,7 +69,7 @@ def auth_user(incoming, conn):
 	#make sure we dont store duplicate shares
 	for j in range(i):
 		if share["x"+str(j+1)] == incoming["x"]:
-			return
+			return 1
 	
 	#update the db with the new share, current time, and revised share count
 	upd = "UPDATE shares SET x" + str(i)+" = ?, y" + str(i) + " = ?, num_shares = ?, timestamp = ? WHERE id = ?"
@@ -94,10 +96,10 @@ def add_secret(d):
 	share['y'] = d[2]
 
 	#Add the share to the database if appropriate
-	auth_user(share, conn)
+	if not auth_user(share, conn) == 1:
 
-	#pass execution to the authenticcator, which checks if the provided shares are valid
-	shamir_auth.auth_user(share['id'], conn)
+		#pass execution to the authenticcator, which checks if the provided shares are valid
+		shamir_auth.auth_user(share['id'], conn)
 
 
 #this registers and updates a node at address
@@ -124,11 +126,7 @@ def register_node(data, address, keys, dbkeys):
 				s.send(pay + b'::'+ pay2)
 
 				#recieve and check that valid data was recieved
-				#return if error in recv
-				try:
-					return_sums = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(2048))
-				except:
-					return
+				return_sums = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(4096))
 				
 				#Return error if trouble decrypting message
 				if return_sums == -2 or return_sums == -1:
@@ -143,22 +141,17 @@ def register_node(data, address, keys, dbkeys):
 
 				#validate that the node was able to read the data and modify it predictably
 				if (sum1+1) == check1 and (sum2+1) == check2:
-					#log that the node was registered and add its IP address and database to its associated key object
-					i.ip = address[0]
+					#log that the node was registered
 					i.db = data[1]    
 					
 					#grab timestamp from node
-					#return if error in recv
-					try:
-						timestamp = str(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(1024)), 'ascii')
-					except:
-						return
+					timestamp = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(4096))
 
 					#validate data and convert timstamp to float
 					if timestamp == -1 or timestamp == -2:
 						return
 					
-					timestamp = float(timestamp)
+					timestamp = float(str(timestamp, "ascii"))
 					
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamp, s)
@@ -197,6 +190,7 @@ def handle_response(data, address, keys, dbkeys):
 	
 	#Decrypt message and validate
 	data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
+
 	#invalid data is ignored
 	if data == -1 or data == -2:
 		return
@@ -205,31 +199,36 @@ def handle_response(data, address, keys, dbkeys):
 	data = str(data, 'ascii').split(":")
 	#Node is sending share for authentication
 	if data[0] == "auth":
-		threading.Thread(target=add_secret, args=[data[1:]]).start()
+		add_secret(data[1:])
 	
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
-		threading.Thread(target = contest, args = [address[0], data[1], keys]).start()
+		contest(address[0], data[1], keys)
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
-		threading.Thread(target = contest_auth, args = [address[0]]).start()
+		contest_auth(address[0])
 
 	#Recieve an update when a user is registered or deleted, unless it comes from this node
 	elif data[0] == "here":
 		#dont recieve a share sent by self
 		if not int(data[1]) == my_number:
-			threading.Thread(target = recv_update, args = [data[2]]).start()
+			recv_update(data[2])
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
 		if int(data[1]) == my_number:
 			#respond to startup update for client node
 			if data[2] == "imup":
-				threading.Thread(target=register_node, args=[data[3:], address, keys, dbkeys]).start()
+				
+				print("Sending Update to Client Node")
+				register_node(data[3:], address, keys, dbkeys)
+			
 			#respond to startup update for auth node
 			elif data[2] == "woke":
-				threading.Thread(target=auth_update.updater, args=[address[0]]).start()
+				
+				print("Sending Update to Auth Node")
+				auth_update.updater(address[0])
 
 
 #Handles the reception of inserts and delets inserted on other nodes during execution
@@ -298,6 +297,8 @@ def recv_update(data):
 #Broadcasts a given user's shares and secret to the auth nodes, 
 #encrypted by the auth public key. It also sends a hash of the auth private key as identification
 def broadcast(uid):
+	
+	print("Sending New Share to other Auth Nodes") 
 	
 	#instantiate a shares list
 	shares = []
@@ -376,15 +377,8 @@ def broadcast_sender():
 		while 1 == 1:
 
 			#Recieve a username and pass it to the broadcast function
-			cli, addr = s.accept()
-			
-			#recover if error in recv
-			try:
-				user = str(cli.recv(256), 'ascii')
-			except:
-				cli.close()
-				continue
-			
+			cli, addr = s.accept()				
+			user = str(cli.recv(256), 'ascii')
 			broadcast(user)
 			
 			#close the client connection
@@ -398,6 +392,8 @@ def run():
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)
 	#Run the auth node update process which is required for the server to start properly
+	
+	print("Looking for updates")
 	auth_update.updateee() 
 	
 	#Set up multicast listener
@@ -418,8 +414,7 @@ def run():
 		#grab data and sender from the multicast address
 		#continue if error in recv
 		try:
-			data, address = s.recvfrom(4096)
-			print("here")
+			data, address = s.recvfrom(8192)
 
 			#start response handler
 			threading.Thread(target=handle_response, args=[data, address, keys, dbkeys]).start()
