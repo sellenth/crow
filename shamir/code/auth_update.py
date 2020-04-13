@@ -206,6 +206,7 @@ def updateee():
         data = b""
 
         #start reception 
+        temp = ""
         try:
             temp = cli.recv(4096)
         except: #Error in recv
@@ -283,6 +284,8 @@ def updater(address):
             s.close()
             return -1
         
+        print("HERE")
+
         response = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response)
         
         #return error if data is corrupted
