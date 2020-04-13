@@ -34,7 +34,9 @@ app.post('/auth', (req, res) => {
 
 // Serve correct homescreen for node type
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname + '/public/html/index.html'));
+  //res.sendFile(path.join(__dirname + '/public/html/index.html'));
+  console.log('touched');
+  res.json(settings);
 })
 
 function parseSettings(settingsFile){
