@@ -3,10 +3,14 @@ import './App.css';
 import Dashboard from './pages/Dashboard'
 import Keypad from './pages/Keypad'
 
-function Switch(props) {
-    const id = props.id;
-
-    switch(id){
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+  
+  Switch() {
+    switch(this.state["id"]){
       case 'auth':
         return <Dashboard />;
       case 'keypad':
@@ -16,11 +20,6 @@ function Switch(props) {
     }
   }
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
 
   callAPI() {
     fetch('http://localhost:3001/')
@@ -40,7 +39,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Switch id='keypad' /> {/*{this.state.id} />*/}
+        {this.Switch()}
       </div>
     );
   }

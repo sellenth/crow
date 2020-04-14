@@ -8,6 +8,7 @@ const net = require('net');
 const client = new net.Socket();
 const cookieParser = require('cookie-parser')
 const port = 3001
+const pathToSettings = '../shamir/code/settings.py';
 
 // Middlewares
 app.set("views", path.join(__dirname, "views"))
@@ -67,13 +68,20 @@ function parseSettings(settingsFile){
   return settings;
 }
 
-try {
-  let settingsFile = fs.readFileSync('../shamir/code/settings.py', 'utf8').split('\n');
-  var settings = parseSettings(settingsFile);
-} catch (err){
-  console.log(err)
-  console.log("\n\nFailed to read node settings, aborting");
-  process.exit(1)
+fs.watchFile(pathToSettings, (curr, prev) => {
+  console.log('Settings file has changed');
+  readSettingsFile;
+});
+
+function readSettingsFile() {
+  try {
+    let settingsFile = fs.readFileSync(pathToSettings, 'utf8').split('\n');
+    var settings = parseSettings(settingsFile);
+  } catch (err){
+    console.log(err)
+    console.log("\n\nFailed to read node settings, aborting");
+    process.exit(1)
+  }
 }
 
 const server = http.createServer(app)
