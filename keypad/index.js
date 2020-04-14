@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const http = require('http')
 const path = require('path')
+const cors = require('cors')
 const fs = require('fs')
 const net = require('net');
 const client = new net.Socket();
@@ -14,11 +15,12 @@ app.set("views", path.join(__dirname, "views"))
 app.use(express.static('public'))
 app.use(express.json())
 app.use(cookieParser())
+app.use(cors())
 
 
 // Authentication route
 app.post('/auth', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.body.username;
   const pw = req.body.pw;
 
   client.connect(55556, 'localhost', function () {
@@ -34,8 +36,6 @@ app.post('/auth', (req, res) => {
 
 // Serve correct homescreen for node type
 app.get('/', (req, res) => {
-  //res.sendFile(path.join(__dirname + '/public/html/index.html'));
-  console.log('touched');
   res.json(settings);
 })
 
