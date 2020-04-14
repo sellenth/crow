@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import Dashboard from './pages/Dashboard'
 import Keypad from './pages/Keypad'
+import socketIOClient from 'socket.io-client'
 
 class App extends Component {
   constructor(props) {
@@ -13,7 +14,7 @@ class App extends Component {
     switch(this.state["id"]){
       case 'auth':
         return <Dashboard />;
-      case 'keypad':
+      case 'web':
         return <Keypad />;
       default:
         return <h1>Unrecognized Node Type...</h1>
@@ -25,6 +26,7 @@ class App extends Component {
     fetch('http://localhost:3001/')
       .then(response => response.json())
       .then((jsonData) => {
+        console.log(jsonData)
         this.setState(jsonData)
       })
       .catch((error) => {
@@ -34,6 +36,11 @@ class App extends Component {
 
   componentDidMount() {
     this.callAPI();
+    const socket = socketIOClient('http://localhost:3001')
+    socket.on("SettingsUpdate", () => {
+      console.log('got socket update')
+      this.callAPI();
+    })
   }
 
   render() {

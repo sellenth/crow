@@ -3,16 +3,16 @@ const app = express()
 const http = require('http')
 const path = require('path')
 const cors = require('cors')
+const socketIO = require('socket.io')
 const fs = require('fs')
 const net = require('net');
 const client = new net.Socket();
 const cookieParser = require('cookie-parser')
 const port = 3001
 const pathToSettings = '../shamir/code/settings.py';
+var settings = {}
 
-// Middlewares
-app.set("views", path.join(__dirname, "views"))
-// Might not end up using this app.set("view engine", "jade")
+// Middleware
 app.use(express.static('public'))
 app.use(express.json())
 app.use(cookieParser())
@@ -41,7 +41,6 @@ app.get('/', (req, res) => {
 })
 
 function parseSettings(settingsFile){
-  let settings = {};
   let line = null;
 
   for (let l = 0; l < settingsFile.length; l++){
@@ -64,19 +63,23 @@ function parseSettings(settingsFile){
         line.length)
     }
   }
-
   return settings;
 }
 
 fs.watchFile(pathToSettings, (curr, prev) => {
   console.log('Settings file has changed');
-  readSettingsFile;
+  readSettingsFile();
+  try {
+    io.sockets.emit("SettingsUpdate", "pass") 
+  } catch (err) {
+    console.log('SOCKET ERROR: ' + err)
+  }
 });
 
 function readSettingsFile() {
   try {
     let settingsFile = fs.readFileSync(pathToSettings, 'utf8').split('\n');
-    var settings = parseSettings(settingsFile);
+    parseSettings(settingsFile)
   } catch (err){
     console.log(err)
     console.log("\n\nFailed to read node settings, aborting");
@@ -84,7 +87,17 @@ function readSettingsFile() {
   }
 }
 
+
+
 const server = http.createServer(app)
     .listen(port, () => {
+        readSettingsFile();
         console.log('server running on port ' + port)
     })
+
+const io = socketIO(server);
+
+io.on("connection", socket => {
+  console.log('New Client connected');
+  socket.on("disconnect", () => console.log('New Client connected'));
+})
