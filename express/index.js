@@ -40,6 +40,25 @@ app.get('/', (req, res) => {
   res.json(settings);
 })
 
+// Serve correct homescreen for node type
+app.get('/sendit', (req, res) => {
+  caw();
+  res.send('hi');
+})
+
+function caw(){
+  var spawn = require('child_process').spawn;
+  var process = spawn('python3', 
+    ["crow_caw.py"],
+    {cwd: '../shamir/code/'})
+
+  console.log('cawing')
+  process.stdout.on('data', function(data){
+    console.log(data.toString())
+    io.sockets.emit('testchannel', data.toString())
+  })
+}
+
 function parseSettings(settingsFile){
   let line = null;
 
@@ -92,6 +111,7 @@ function readSettingsFile() {
 const server = http.createServer(app)
     .listen(port, () => {
         readSettingsFile();
+        caw();
         console.log('server running on port ' + port)
     })
 

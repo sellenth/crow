@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard'
 import Keypad from './pages/Keypad'
 import socketIOClient from 'socket.io-client'
 
+const socket = socketIOClient('http://localhost:3001')
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -13,7 +15,7 @@ class App extends Component {
   Switch() {
     switch(this.state["id"]){
       case 'auth':
-        return <Dashboard />;
+        return <Dashboard socket={socket} threshold={this.state.threshold} total={this.state.total}/>;
       case 'web':
         return <Keypad />;
       default:
@@ -36,7 +38,6 @@ class App extends Component {
 
   componentDidMount() {
     this.callAPI();
-    const socket = socketIOClient('http://localhost:3001')
     socket.on("SettingsUpdate", () => {
       console.log('got socket update')
       this.callAPI();

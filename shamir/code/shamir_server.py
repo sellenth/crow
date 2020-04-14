@@ -11,6 +11,8 @@ import settings
 import base64
 import shamir_update_client
 import auth_update
+import sys
+
 from Crypto import Random
 
 #set unique number -- not actually unique but 1- (N* (1/2^16*8)) chance of being unique 
@@ -411,6 +413,7 @@ def run():
 	
 	#Officialy start the server
 	while 1 == 1:
+		sys.stdout.flush()
 		#grab data and sender from the multicast address
 		#continue if error in recv
 		try:
