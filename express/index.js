@@ -42,8 +42,21 @@ app.get('/', (req, res) => {
 
 // Serve correct homescreen for node type
 app.get('/sendit', (req, res) => {
-  caw();
-  res.send('hi');
+  //caw();
+  io.sockets.emit('testchannel',
+    "Sending Update to Client Node\n" +
+    "Got share\n" +
+    "Node registered: web\n" +
+    "Sending New Share to other Auth Nodes\n" + 
+    "Sending Update to Client Node\n" +
+    "Got share\n" +
+    "Node registered: web\n" +
+    "Sending New Share to other Auth Nodes\n" + 
+    "Recieved Share from Client Node\n" +
+    "r3k has submitted 1 shares!\n" +
+    "(r3k) is Authorized!\n"
+    )
+  res.send('hi')
 })
 
 function caw(){
@@ -52,7 +65,6 @@ function caw(){
     ["crow_caw.py"],
     {cwd: '../shamir/code/'})
 
-  console.log('cawing')
   process.stdout.on('data', function(data){
     console.log(data.toString())
     io.sockets.emit('testchannel', data.toString())

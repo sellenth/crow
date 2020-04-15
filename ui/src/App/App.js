@@ -3,6 +3,8 @@ import './App.css';
 import Dashboard from './pages/Dashboard'
 import Keypad from './pages/Keypad'
 import socketIOClient from 'socket.io-client'
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 const socket = socketIOClient('http://localhost:3001')
 
