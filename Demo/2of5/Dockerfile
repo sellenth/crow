@@ -1,9 +1,9 @@
 FROM ubuntu:19.04
 
-#Install and configure nesecary tools
-RUN apt update
-RUN apt -y upgrade
-RUN apt install -y openssh-server python3-pip tmux git netcat
+#Install and configure necessary tools
+RUN apt update 
+RUN apt -y upgrade 
+RUN apt install -y openssh-server python3-pip tmux git netcat nodejs
 RUN mkdir /var/run/sshd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
@@ -15,7 +15,7 @@ EXPOSE 22
 RUN echo "root:crow" | chpasswd
 
 
-#Copy nesecary files
+#Copy necessary files
 RUN mkdir app
 COPY crow /app/crow
 WORKDIR "/app/crow"
