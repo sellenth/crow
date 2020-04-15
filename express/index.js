@@ -47,12 +47,17 @@ app.get('/sendit', (req, res) => {
     "Sending Update to Client Node\n" +
     "Got share\n" +
     "Node registered: web\n" +
+    "Node registered: face\n" +
+    "Node registered: web\n" +
     "Sending New Share to other Auth Nodes\n" + 
     "Sending Update to Client Node\n" +
     "Got share\n" +
-    "Node registered: web\n" +
     "Sending New Share to other Auth Nodes\n" + 
     "Recieved Share from Client Node\n" +
+    "r3k has submitted 1 shares!\n" +
+    "tim has submitted 1 shares!\n" +
+    "r3k has submitted 1 shares!\n" +
+    "r3k has submitted 1 shares!\n" +
     "r3k has submitted 1 shares!\n" +
     "(r3k) is Authorized!\n"
     )
@@ -69,6 +74,10 @@ function caw(){
     console.log(data.toString())
     io.sockets.emit('testchannel', data.toString())
   })
+
+  process.stderr.on('data', function(data){
+    console.log(data.toString())
+  });
 }
 
 function parseSettings(settingsFile){

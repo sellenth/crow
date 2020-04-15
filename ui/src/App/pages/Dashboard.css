@@ -31,8 +31,18 @@ div[class*=" col"] {
     text-align: left;
     scrollbar-width: none;
     scrollbar-color: transparent transparent;
+}
 
+.empty {
+    background-color: grey;
+}
 
+.unauthorized {
+    background-color: red;
+}
+
+.authorized {
+    background-color: green;
 }
 
 ::-webkit-scrollbar {

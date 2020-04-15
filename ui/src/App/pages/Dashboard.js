@@ -21,8 +21,9 @@ export default class Dashboard extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            nodes: ['qr'],
-            msgs: []
+            nodes: [],
+            msgs: [],
+            usrs: []
         }
     }
     componentDidMount() {
@@ -50,9 +51,22 @@ export default class Dashboard extends React.Component {
             if (element.includes("has submitted")) {
                 let usr = element.split(' ')[0];
                 console.log(element.split(' ')[0] + '')
-                this.setState(prevState => ({
-                    msgs: [...prevState.msgs, usr + ' SUBMITTED A SHARE']
-                }))
+
+                if (this.state[usr]){
+                    this.setState(prevState => ({
+                        msgs: [...prevState.msgs, usr + ' SUBMITTED A SHARE'],
+                        [usr]: prevState[usr] + 1,
+                    }))
+                }
+                else {
+                    this.setState(prevState => ({
+                        msgs: [...prevState.msgs, usr + ' SUBMITTED A SHARE'],
+                        usrs: [...prevState.usrs, usr],
+                        [usr]: 1
+                    }))
+                }
+
+                console.log(this.state)
                 return;
             }
             if (element.includes("is Authorized")) {
@@ -100,6 +114,9 @@ export default class Dashboard extends React.Component {
                 }))
                 return
             }
+            this.setState(prevState => ({
+                msgs: [...prevState.msgs, "MESSAGE: " + element]
+            }))
             console.log('FELL THROUGH: ' + element)
         });
     }
@@ -116,42 +133,67 @@ export default class Dashboard extends React.Component {
     render() {
         return <div>
             <h3 className="section_heading">Nodes Online</h3>
-            <RenderMap active={this.state.nodes} />
+            <RenderMap active={this.state.nodes} threshold={this.props.threshold} />
             <br></br>
+
             <h3 className="section_heading" >Output Log</h3>
             <Container fluid style={{ width: "95%" }}>
                 <div className="log overflow-auto">
-                    {this.state.msgs && this.state.msgs.map(item => <p>{item}</p>)}
+                    {this.state.msgs && this.state.msgs.map((item, i) => <p key={i}>{item}</p>)}
                     <div ref={el => { this.el = el; }} />
                 </div>
+            </Container>
+            <br></br>
+
+            <h3 className="section_heading" >Current Users</h3>
+            <Container fluid style={{ width: "95%" }}>
+                <Row style={{width: 'auto'}}>
+                    {this.state.usrs && 
+                        this.state.usrs.map((usr, i) => 
+                        <ShareCounter key={i} usr={usr} num={this.state[usr]} threshold={this.props.threshold} total={this.props.total}/>)}
+                </Row>
+
             </Container>
         </div>
     }
 }
 
-function RenderLog(props) {
+function ShareCounter(props) {
+    return <Col>
+    <Container>
+        {
+          (props.total - props.num > 0) &&
+            Array(props.total - props.num).fill(' ').map((_, i) => {
+            return <Row key={i} className='empty' style={{ height: '25px', width: '50px', margin: '0 auto 0 auto'}}></Row>
+        })}
+        {Array(Math.min(props.total, props.num)).fill(' ').map((_, i) => {
+            return <Row key={i} className={props.num >= props.threshold ? 'authorized' : 'unauthorized'} style={{ height: '25px', width: '50px', margin: '0 auto 0 auto'}}></Row>
+        })}
+    </Container>
+        <p>{props.usr} ({props.num}/{props.threshold})</p>
+    </Col>
 }
 
 function RenderMap(props) {
-    return <Container fluid style={{ width: "95%" }}>
-        <Row>
+    return <Container fluid className={props.active.length < props.threshold ? 'unauthorized' : ''} style={{ width: "95%" }}>
+        <Row style={{width: 'auto'}}>
             <RenderIcon icon={<GiLockedFortress />} label={'Auth Node'} />
         </Row>
-        <Row>
-            {props.active.includes('face') &&
-                <RenderIcon icon={<GiCyborgFace />} label={'Face ID'} />}
-
-            {props.active.includes('web') &&
-                <RenderIcon icon={<FaGlobe />} label={'Web ID'} />}
-
-            {props.active.includes('other') &&
-                <RenderIcon icon={<FaServer />} label={'Unknown Node'} />}
-
-            {props.active.includes('voice') &&
-                <RenderIcon icon={<GiSpeaker />} label={'Speech ID'} />}
-
-            {props.active.includes('qr') &&
-                <RenderIcon icon={<FaBarcode />} label={'QR Scan ID'} />}
+        <Row style={{width: 'auto'}}>
+            {props.active && props.active.map((nodeType, i) => {
+                switch(nodeType){
+                    case 'face':
+                        return <RenderIcon key={i} icon={<GiCyborgFace />} label={'Face ID'} />
+                    case 'web':
+                        return <RenderIcon key={i} icon={<FaGlobe />} label={'Web ID'} />
+                    case 'other':
+                        return <RenderIcon key={i} icon={<FaServer />} label={'Unknown Node'} />
+                    case 'voice':
+                        return <RenderIcon key={i} icon={<GiSpeaker />} label={'Speech ID'} />
+                    case 'qr':
+                        return <RenderIcon key={i} icon={<FaBarcode />} label={'QR Scan ID'} />
+                }
+            })}
         </Row>
     </Container>
 
