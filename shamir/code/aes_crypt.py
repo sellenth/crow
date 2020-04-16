@@ -32,7 +32,7 @@ def aes_enc(rsa_key, message):
     x = Cip.encrypt(message)
     
     #prepend iv to message
-    payload = bytes(iv) + x
+    payload = bytes(k) + bytes(iv) + x
 
     #Create hash of message
     mac = hashlib.sha256(payload)
@@ -78,7 +78,7 @@ def aes_dec(rsa_key, ciphertext):
     hsh = hmac[32:]
 
     #validate that the message hash matches the hash given
-    if(hsh == hashlib.sha256(cip).digest()):
+    if(hsh == hashlib.sha256(key + cip).digest()):
 
         #decrypt the AES encrypted message
         Cip = AES.new(key, AES.MODE_CBC, cip[0:16])
