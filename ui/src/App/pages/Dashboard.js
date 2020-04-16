@@ -40,7 +40,7 @@ export default class Dashboard extends React.Component {
                 return;
             }
             if (element.includes("Node registered")) {
-                let nodeType = element.split(': ')[1]
+                let nodeType = element.split(': ')[1].trim()
                 console.log("REGISTERED " + nodeType)
                 this.setState(prevState => ({
                     nodes: [...prevState.nodes, nodeType],
@@ -49,8 +49,8 @@ export default class Dashboard extends React.Component {
                 return;
             }
             if (element.includes("has submitted")) {
-                let usr = element.split(' ')[0];
-                console.log(element.split(' ')[0] + '')
+                let usr = element.split(' ')[0].trim();
+
 
                 if (this.state[usr]){
                     this.setState(prevState => ({
@@ -66,7 +66,6 @@ export default class Dashboard extends React.Component {
                     }))
                 }
 
-                console.log(this.state)
                 return;
             }
             if (element.includes("is Authorized")) {

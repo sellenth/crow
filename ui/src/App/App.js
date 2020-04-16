@@ -6,7 +6,7 @@ import socketIOClient from 'socket.io-client'
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
-const socket = socketIOClient('http://localhost:3001')
+const socket = socketIOClient(window.location.href)
 
 class App extends Component {
   constructor(props) {
@@ -27,10 +27,9 @@ class App extends Component {
 
 
   callAPI() {
-    fetch('http://localhost:3001/')
+    fetch('/settings')
       .then(response => response.json())
       .then((jsonData) => {
-        console.log(jsonData)
         this.setState(jsonData)
       })
       .catch((error) => {

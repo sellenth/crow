@@ -45,7 +45,7 @@ function check_complete() {
 
     //Send the proper header information along with the request
     http.setRequestHeader('Content-type', 'application/json;charset=UTF-8');
-    http.send(JSON.stringify({"pw": pw}));
+    http.send(JSON.stringify({"username": getCookie('username'), "pw": pw}));
 
     pw = '';
     clr();

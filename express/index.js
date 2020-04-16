@@ -14,6 +14,8 @@ var settings = {}
 
 // Middleware
 app.use(express.static('public'))
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, './../ui/build')));
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors())
@@ -24,19 +26,32 @@ app.post('/auth', (req, res) => {
   const username = req.body.username;
   const pw = req.body.pw;
 
-  client.connect(55556, 'localhost', function () {
-    client.write(username + ':' + pw);
-  })
+  if (pw === '111' || pw === '222'){
 
-  client.on('error', function(err){
-    console.log("Error: "+err.message);
+    client.connect(55556, 'localhost', function () {
+      //client.write(username + ':' + pw); THE ACTUAL MESSAGE TO SEND
+      pw === '111' ? 
+        client.write("r3k has submitted 1 shares!") // demo message
+        : client.write("tim has submitted 1 shares!") // demo message
+    })
+
+    client.on('error', function(err){
+      console.log("Error: "+err.message);
+    })
+
+    client.close
+  }
+
+  res.status(200).send()
 })
 
-  // TODO: send response to client
+app.get('/keypad', (req, res) => {
+  res.sendFile(path.join(__dirname + '/public/html/index.html'));
 })
 
-// Serve correct homescreen for node type
-app.get('/', (req, res) => {
+
+// Send settings.py as json
+app.get('/settings', (req, res) => {
   res.json(settings);
 })
 
@@ -64,10 +79,14 @@ app.get('/sendit', (req, res) => {
   res.send('hi')
 })
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname + './../ui/build/index.html'));
+})
+
 function caw(){
   var spawn = require('child_process').spawn;
-  var process = spawn('python3', 
-    ["crow_caw.py"],
+  var process = spawn('netcat', 
+    ["-l", "-p", "55556", "-k"],
     {cwd: '../shamir/code/'})
 
   process.stdout.on('data', function(data){
@@ -127,18 +146,28 @@ function readSettingsFile() {
   }
 }
 
-
+var os = require( 'os' );
+var networkInterfaces = Object.values(os.networkInterfaces())
+    .reduce((r,a)=>{
+        r = r.concat(a)
+        return r;
+    }, [])
+    .filter(({family, address}) => {
+        return family.toLowerCase().indexOf('v4') >= 0 &&
+            address !== '127.0.0.1'
+    })
+    .map(({address}) => address);
+var ipAddresses = networkInterfaces.join(', ')
 
 const server = http.createServer(app)
     .listen(port, () => {
         readSettingsFile();
         caw();
-        console.log('server running on port ' + port)
+        console.log('Connect to server at ' + ipAddresses + ':' + port)
     })
 
 const io = socketIO(server);
 
 io.on("connection", socket => {
-  console.log('New Client connected');
-  socket.on("disconnect", () => console.log('New Client connected'));
+  socket.on("disconnect", () => console.log('A client disconnected'));
 })
