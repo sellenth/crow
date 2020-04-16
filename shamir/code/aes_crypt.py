@@ -32,10 +32,10 @@ def aes_enc(rsa_key, message):
     x = Cip.encrypt(message)
     
     #prepend iv to message
-    payload = bytes(k) + bytes(iv) + x
+    payload = bytes(iv) + x
 
     #Create hash of message
-    mac = hashlib.sha256(payload)
+    mac = hashlib.sha256(k + payload)
     mac = mac.digest()
 
     #encrypt the key k and the hash of the message via the rsa key
