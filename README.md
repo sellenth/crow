@@ -8,7 +8,7 @@ The demo runs using docker-compose so please install Docker and Docker-compose i
 
 # UI Demonstration
 In order to see what the system dashboard will look like, follow these steps
-1. cd ui; npm install; npm run-script build; cd ..; cd express; npm install; npm start & 
+1. `cd ui; npm install; npm run-script build; cd ..; cd express; npm install; npm start &`
 2. access the webpage at localhost:3001
 3. pull up a terminal so that both the browser and terminal are visible 
 4. run the /shamir/code/demo_output.sh script, it will submit strings to the server upon the press of any key
