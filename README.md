@@ -6,6 +6,13 @@ A demonstration of two systems is included in the Demo directory. This demonstra
 
 The demo runs using docker-compose so please install Docker and Docker-compose if you intend on  running the demo. The docker containers represnet the small systems this software was designed to run on, and allow easy deployment of many nodes. 
 
+# UI Demonstration
+In order to see what the system dashboard will look like, follow these steps
+1. cd ui; npm install; npm run-script build; cd ..; cd express; npm install; npm start & 
+2. access the webpage at localhost:3001
+3. pull up a terminal so that both the browser and terminal are visible 
+4. run the /shamir/code/demo_output.sh script, it will submit strings to the server upon the press of any key
+
 # Shamir Setup
 
 To use the shamir software some set up is required. It is a bit lengthy and manual, but this is to prevent private keys being leaked, and unauthorized public keys from being added to the node list.
