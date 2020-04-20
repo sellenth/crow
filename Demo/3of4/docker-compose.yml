@@ -1,0 +1,105 @@
+version: "3.7"
+
+services:
+
+    auth1: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/3of4/Dockerfile
+            args:
+                ID: auth
+        hostname: auth1
+        ports:
+            - "44444:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - auth1:/app/crow/shamir/assets
+        
+    auth2:
+        image: demo_auth1 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/3of4/Dockerfile
+            args:
+                ID: auth
+        hostname: auth2
+        ports:
+            - "44445:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - auth2:/app/crow/shamir/assets
+        
+    face: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/3of4/Dockerfile
+            args:
+                ID: face
+        hostname: face
+        ports:
+            - "44440:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - face:/app/crow/shamir/assets
+    qr: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/3of4/Dockerfile
+            args:
+                ID: qr
+        hostname: qr
+        ports:
+            - "44442:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - qr:/app/crow/shamir/assets
+
+    voice: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/3of4/Dockerfile
+            args:
+                ID: voice
+        hostname: voice
+        ports:
+            - "44443:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - voice:/app/crow/shamir/assets
+
+    web: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/3of4/Dockerfile
+            args:
+                ID: web
+        hostname: web
+        ports:
+            - "44441:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - web:/app/crow/shamir/assets
+
+volumes:
+    auth1:
+    auth2:
+    web:
+    face:
+    qr:
+    hosts:
+    voice:
+
+networks: 
+    bridge:
