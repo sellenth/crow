@@ -19,7 +19,7 @@ To use the shamir software some set up is required. It is a bit lengthy and manu
 
 All directories refrenced are from the context of crow/shamir
 
-1 Log in to an auth node and cd to 'crow/shamir', change the settings file to match your set up. An example file is provided below.
+1. Log in to an auth node and cd to 'crow/shamir', change the settings file to match your set up. An example file is provided below.
 
 ```
 #Global settings cariables for easy management
