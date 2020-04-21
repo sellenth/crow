@@ -1,3 +1,6 @@
+# Please make sure PyAudio and Python 3 are installed before run this Python file
+# How to run: python3 voice.py
+
 import speech_recognition as sr
 
 r = sr.Recognizer()
