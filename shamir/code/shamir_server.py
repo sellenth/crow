@@ -245,16 +245,31 @@ def recv_update(data):
 		#Throw away the hash and store values into share
 		share = data[1:]
 
-		#connect to the database
-		conn = sqlite3.connect(settings.DBdir + share[0] + ".db")
-		conn.row_factory = sqlite3.Row
-		c = conn.cursor()
+		
 
 		#If inserting into a shares database
 		if share[0] in settings.DBS:
 
+			#connect to the database
+			conn = sqlite3.connect(settings.DBdir + share[0] + ".db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
+
 			#Create the enc_shares table if it doesnt exist
 			c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
+
+			#Grab user timestamp from db
+			c.execute("SELECT timestamp FROM enc_shares WHERE id = ?", [share[1]])
+			t = c.fetchone()
+			
+			#error handle
+			if t == None:
+				t = 0
+
+			#Exit if incoming share is old. 
+			# This handles for multiple incoming changes to a single user at once
+			if(share[3] < t):
+				return
 
 			#Insert the share into the database
 			c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[1], share[2], share[3]])
@@ -262,7 +277,6 @@ def recv_update(data):
 			#commit the changes and close
 			conn.commit()
 			conn.close()
-			print("Got Share")
 
 		#if inserting into a secrets database
 		elif share[0] == "secrets":
@@ -274,6 +288,19 @@ def recv_update(data):
 			#Create the secrets table if it doesnt exist
 			c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
 			
+			#Grab user timestamp from db
+			c.execute("SELECT timestamp FROM secrets WHERE id = ?", [share[1]])
+			t = c.fetchone()
+			
+			#error handle
+			if t == None:
+				t = 0
+
+			#Exit if incoming share is old. 
+			# This handles for multiple incoming changes to a single user at once
+			if(share[4] < t):
+				return
+
 			#If the secret is marked for deletion then delete it from all databases
 			if share[2] == "DEL":
 				auth_update.delete_all(share[1])
@@ -284,7 +311,7 @@ def recv_update(data):
 			#Commit the transaction and exit, logging the share's addition
 			conn.commit()
 			conn.close()
-			print("Got Secret")
+			print("Incoming Update From Auth Node")
 
 
 #Broadcasts a given user's shares and secret to the auth nodes, 
