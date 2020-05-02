@@ -246,7 +246,7 @@ def recv_update(data):
 		share = data[1:]
 
 		#connect to the database
-		conn = sqlite3.connect(settings.DBdir + data[0] + ".db")
+		conn = sqlite3.connect(settings.DBdir + share[0] + ".db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
 
@@ -262,9 +262,10 @@ def recv_update(data):
 			#commit the changes and close
 			conn.commit()
 			conn.close()
+			print("Got Share")
 
 		#if inserting into a secrets database
-		else:
+		else if share[0] == "secrets":
 			#Connect to the secrets database
 			conn = sqlite3.connect(settings.DBdir + "secrets.db")
 			conn.row_factory = sqlite3.Row
@@ -283,7 +284,7 @@ def recv_update(data):
 			#Commit the transaction and exit, logging the share's addition
 			conn.commit()
 			conn.close()
-			print("Got share")
+			print("Got Secret")
 
 
 #Broadcasts a given user's shares and secret to the auth nodes, 
