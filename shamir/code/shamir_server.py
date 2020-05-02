@@ -252,6 +252,7 @@ def recv_update(data):
 		
 		#Split the share
 		share = data.split("|")
+		print(share)
 
 		#If inserting into a shares database
 		if share[0] in settings.DBS:
