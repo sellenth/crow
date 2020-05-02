@@ -265,7 +265,7 @@ def recv_update(data):
 			print("Got Share")
 
 		#if inserting into a secrets database
-		else if share[0] == "secrets":
+		elif share[0] == "secrets":
 			#Connect to the secrets database
 			conn = sqlite3.connect(settings.DBdir + "secrets.db")
 			conn.row_factory = sqlite3.Row
