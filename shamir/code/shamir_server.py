@@ -254,8 +254,6 @@ def recv_update(data):
 		share = data.split("|")
 		print(share)
 
-		fff
-
 		#If inserting into a shares database
 		if share[0] in settings.DBS:
 
@@ -350,14 +348,14 @@ def broadcast(uid):
 				data = settings.DBS[i] + "|" + str(shares[i]['id']) + "|" + str(shares[i]['share']) + "|" + str(shares[i]['timestamp'])
 				
 				#prepend header and send data
-				data = "here:" + my_number + ":" + auth_hash + "||"+ data
+				data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
 				s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 		
 		#Frab the data from the secrets database as a string
 		data = "secrets|" + str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp'])
 		
 		#Prepend header and send data
-		data = "here:" + my_number + ":" + auth_hash + "||"+ data
+		data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
 		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 
 #Send broadcasts to other auth nodes
