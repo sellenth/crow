@@ -242,17 +242,13 @@ def recv_update(data):
 	#and is therefore an auth node
 	if data[0] == rsa_encrypt.get_auth_hash():
 
-		#Throw away the hash
-		data = data[1:]
+		#Throw away the hash and store values into share
+		share = data[1:]
 
 		#connect to the database
 		conn = sqlite3.connect(settings.DBdir + data[0] + ".db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
-		
-		#Split the share
-		share = data.split("|")
-		print(share)
 
 		#If inserting into a shares database
 		if share[0] in settings.DBS:
@@ -333,11 +329,8 @@ def broadcast(uid):
 		shares.append(c.fetchone())
 		conn.close()
 
-		#Create an empty string to hold the data
-		data = ""
-
 		#For each share
-		for i in range(len(shares) -1):
+		for i in range(len(shares)-1):
 			
 			#Add no data if this is a delete message
 			if shares[i] == None:
@@ -345,14 +338,14 @@ def broadcast(uid):
 			
 			else:
 				#Grab the data from current database as a string
-				data = settings.DBS[i] + "|" + str(shares[i]['id']) + "|" + str(shares[i]['share']) + "|" + str(shares[i]['timestamp'])
+				data = settings.DBS[i] + "||" + str(shares[i]['id']) + "||" + str(shares[i]['share']) + "||" + str(shares[i]['timestamp'])
 				
 				#prepend header and send data
 				data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
 				s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 		
 		#Frab the data from the secrets database as a string
-		data = "secrets|" + str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp'])
+		data = "secrets||" + str(shares[-1]['id']) + "||" + str(shares[-1]['name']) + "||" + str(shares[-1]['secret']) + "||" + str(shares[-1]['timestamp'])
 		
 		#Prepend header and send data
 		data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
