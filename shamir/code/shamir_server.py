@@ -245,53 +245,48 @@ def recv_update(data):
 		#Throw away the hash
 		data = data[1:]
 
-		#For each database
-		for i in range(len(data)-1):
-
-			#If the share exists
-			#It will not if a delete is sent
-			if not data[i] == 'NONE':
-
-				#connect to the database
-				conn = sqlite3.connect(settings.DBdir + settings.DBS[i] + ".db")
-				conn.row_factory = sqlite3.Row
-				c = conn.cursor()
-
-				#Create the enc_shares table if it doesnt exist
-				c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
-				
-				#Split the share
-				share = data[i].split("|")
-
-				#Insert the share into the database
-				c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
-
-				#commit the changes and close
-				conn.commit()
-				conn.close()
-
-		#Connect to the secrets database
-		conn = sqlite3.connect(settings.DBdir + "secrets.db")
+		#connect to the database
+		conn = sqlite3.connect(settings.DBdir + data[0] + ".db")
 		conn.row_factory = sqlite3.Row
 		c = conn.cursor()
-
-		#Create the secrets table if it doesnt exist
-		c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
 		
-		#Split the secrets entry
-		secret = data[-1].split("|")	
+		#Split the share
+		share = data.split("|")
 
-		#If the secret is marked for deletion then delete it from all databases
-		if secret[2] == "DEL":
-			auth_update.delete_all(secret[0])
+		#If inserting into a shares database
+		if share[0] in settings.DBS:
 
-		#insert the secret into the database
-		c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
+			#Create the enc_shares table if it doesnt exist
+			c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
-		#Commit the transaction and exit, logging the share's addition
-		conn.commit()
-		conn.close()
-		print("Got share")
+			#Insert the share into the database
+			c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[1], share[2], share[3]])
+
+			#commit the changes and close
+			conn.commit()
+			conn.close()
+
+		#if inserting into a secrets database
+		else:
+			#Connect to the secrets database
+			conn = sqlite3.connect(settings.DBdir + "secrets.db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
+
+			#Create the secrets table if it doesnt exist
+			c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
+			
+			#If the secret is marked for deletion then delete it from all databases
+			if share[2] == "DEL":
+				auth_update.delete_all(share[1])
+
+			#insert the secret into the database
+			c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [share[1], share[2], share[3], share[4]])
+
+			#Commit the transaction and exit, logging the share's addition
+			conn.commit()
+			conn.close()
+			print("Got share")
 
 
 #Broadcasts a given user's shares and secret to the auth nodes, 
@@ -300,67 +295,67 @@ def broadcast(uid):
 	
 	print("Sending New Share to other Auth Nodes") 
 	
+	#grab auth hash for use
+	auth_hash = rsa_encrypt.get_auth_hash()
+
 	#instantiate a shares list
 	shares = []
 	
-	#For each database
-	for i in settings.DBS:
-
-		#Open a connection to the db
-		conn = sqlite3.connect(settings.DBdir + i + ".db")
-		conn.row_factory = sqlite3.Row
-		c = conn.cursor()
-
-		#Grab the provided user's share from this database
-		c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
-
-		#append the share to the list and close the connection
-		shares.append(c.fetchone())
-		conn.close()
-	
-	#Connect to the secrets database
-	conn = sqlite3.connect(settings.DBdir + "secrets.db")
-	conn.row_factory = sqlite3.Row
-	c = conn.cursor()
-	
-	#Grab the user's secret entry
-	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
-	
-	#append the secret to the list and close the connection
-	shares.append(c.fetchone())
-	conn.close()
-
-	#Create an empty string to hold the data
-	data = ""
-
-	#For each share
-	for i in range(len(shares) -1):
-		
-		#Add no data if this is a delete message
-		if shares[i] == None:
-			data += "NONE||"
-		
-		else:
-			#Append the share as a string to the data using the seperator ||
-			data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + "|" + str(shares[i]['timestamp'])) + "||")
-	
-	#Append the secrets entry to the data string
-	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
-	
-	#Prepend a hash of the auth private key to the data
-	data = (rsa_encrypt.get_auth_hash() + "||" + data)
-
-	#Open a socket to the multicast address
+	#open socket to multicast address
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
 		
-		#Set the data header
-		data = "here:" + str(my_number) + ":" + data
+		#For each database
+		for i in settings.DBS:
 
-		#Encrypt the data and send it to the auth nodes
-		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
-		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
+			#Open a connection to the db
+			conn = sqlite3.connect(settings.DBdir + i + ".db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
 
+			#Grab the provided user's share from this database
+			c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
+
+			#append the share to the list and close the connection
+			shares.append(c.fetchone())
+			conn.close()
+		
+		#Connect to the secrets database
+		conn = sqlite3.connect(settings.DBdir + "secrets.db")
+		conn.row_factory = sqlite3.Row
+		c = conn.cursor()
+		
+		#Grab the user's secret entry
+		c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
+		
+		#append the secret to the list and close the connection
+		shares.append(c.fetchone())
+		conn.close()
+
+		#Create an empty string to hold the data
+		data = ""
+
+		#For each share
+		for i in range(len(shares) -1):
+			
+			#Add no data if this is a delete message
+			if shares[i] == None:
+				continue
+			
+			else:
+				#Grab the data from current database as a string
+				data = settings.DBS[i] + "|" + str(shares[i]['id']) + "|" + str(shares[i]['share']) + "|" + str(shares[i]['timestamp'])
+				
+				#prepend header and send data
+				data = "here:" + my_number + ":" + auth_hash + "||"+ data
+				s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
+		
+		#Frab the data from the secrets database as a string
+		data = "secrets|" + str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp'])
+		
+		#Prepend header and send data
+		data = "here:" + my_number + ":" + auth_hash + "||"+ data
+		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 
 #Send broadcasts to other auth nodes
 #This function is used to make sure all network actions are
