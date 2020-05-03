@@ -284,6 +284,7 @@ def updater(address):
                     print("end of recv")
                     break
         except:
+            print("exception??")
             return -1
 
         #decrypt response
