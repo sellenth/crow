@@ -312,13 +312,13 @@ def recv_update(data, addr):
 				
 				#connect to db
 				conn2 = sqlite3.connect(settings.DBdir + i + ".db")
-				c = conn2.cursor()
+				c2 = conn2.cursor()
 				
 				#grab timestamp
-				c.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
+				c2.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
 				
 				#if timestamp is not equal to the recieved share
-				if( float(c.fetchone()[0]) != float(share[4])):
+				if( float(c2.fetchone()[0]) != float(share[4])):
 					conn.close()
 					conn2.close()
 
@@ -326,7 +326,6 @@ def recv_update(data, addr):
 					with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 						s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "resend"), (addr, 55558))
 						return
-
 				conn2.close()
 
 			#insert the secret into the database
