@@ -39,10 +39,15 @@ def delete_all(uid):
 #Fills each database on this authentication node with the updates provided by the updater
 def fill_dbs(updates):
 
+    #setup connection for secrets DB
+    sconn = sqlite3.connect(settings.DBdir + "secrets.db")
+    sconn.row_factory = sqlite3.Row
+    sc = sconn.cursor()
+
     #for each database to be updated
     for i in updates:
         
-        #Set up database connection
+        #Set up database cursor
         conn = sqlite3.connect(settings.DBdir + i+".db")
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
@@ -67,13 +72,26 @@ def fill_dbs(updates):
                 #convert str to list
                 share = j.split("|")
 
-                #if the update is a deletion than delete all associated database entries.
-                # The secrets update will be the last in the list of databases
-                if(share[2] == "DEL"):
-                    delete_all(share[0])
-                
-                #insert or replace the share into the secrets table (REPLACE is better represented as INSERT OR REPLACE)
-                c.execute("REPLACE INTO secrets VALUES (?, ?, ?, ?)", share)
+                #grab timestamp of user
+                sc.execute("SELECT timestamp FROM shares WHERE id = ?", share[0])
+                t = sc.fetchone()
+
+                #Error handle timestamp value
+                if t == None:
+                    t = 0.0
+                else:
+                    t = t['timestamp']
+
+                #if the update is truly new then update
+                if float(share[-1]) > t:
+                    
+                    #if the update is a deletion than delete all associated database entries.
+                    # The secrets update will be the last in the list of databases
+                    if(share[2] == "DEL"):
+                        delete_all(share[0])
+                    
+                    #insert or replace the share into the secrets table (REPLACE is better represented as INSERT OR REPLACE)
+                    c.execute("REPLACE INTO secrets VALUES (?, ?, ?, ?)", share)
         
         #For all non-secrets database
         else:
@@ -85,15 +103,28 @@ def fill_dbs(updates):
 
             #make sure that the proper table exists
             c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
-            
+
             #For each share in this update set
             for j in shares:
 
-                #Convert str to list
-                share = j.split("|")
+                #grab timestamp of user
+                sc.execute("SELECT timestamp FROM shares WHERE id = ?", share[0])
+                t = sc.fetchone()
 
-                #Insert or replace the share into the table
-                c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
+                #Error handle timestamp value
+                if t == None:
+                    t = 0.0
+                else:
+                    t = t['timestamp']
+
+                #if the update is truly new then update
+                if float(share[-1]) > t:
+
+                    #Convert str to list
+                    share = j.split("|")
+
+                    #Insert or replace the share into the table
+                    c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", share)
         
         #commit changes
         conn.commit()
@@ -210,7 +241,6 @@ def updateee(my_number):
         #encrypt number and return it to the host
         #send the timestamp of the most recent share along with the number
         timestamps = grab_timestamps()
-        print(timestamps)
         cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + timestamps))
         
         #Recv data until the sender is done
@@ -236,8 +266,6 @@ def updateee(my_number):
         #if the data is invalid return error
         if data == -2 or data == -1:
             return -1
-
-        print(data)
 
         #if no databases hold data then return
         if data == b':::'*settings.TOTAL:
@@ -313,7 +341,7 @@ def updater(address):
            
             #grab timestamp
             timestamps = response[1].split("|")
-            print(timestamps)
+
             #create holder for share information
             data = ""
 

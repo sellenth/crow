@@ -7,7 +7,7 @@ import time
 
 
 #Delete all entries refering to a specefic id
-def delete_all(id):
+def delete_all(uid):
     
     #For each db in settigs
     for i in settings.DBS:
@@ -19,7 +19,7 @@ def delete_all(id):
         conn.cursor().execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
         #Delete share and exit
-        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [id])
+        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [uid])
         conn.commit()
         conn.close()
 
