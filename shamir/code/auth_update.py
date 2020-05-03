@@ -58,6 +58,11 @@ def fill_dbs(updates):
             
             #for each share
             for j in shares:
+                
+                #Skip db if empty
+                if shares == [''] or shares == None:
+                conn.close()
+                continue
 
                 #convert str to list
                 share = j.split("|")
@@ -231,6 +236,8 @@ def updateee(my_number):
         #if the data is invalid return error
         if data == -2 or data == -1:
             return -1
+
+        print(data)
 
         #if no databases hold data then return
         if data == b':::'*settings.TOTAL:
