@@ -246,8 +246,6 @@ def recv_update(data, addr):
 		#Throw away the hash and store values into share
 		share = data[1:]
 
-		
-
 		#If inserting into a shares database
 		if share[0] in settings.DBS:
 

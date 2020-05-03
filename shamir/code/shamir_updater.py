@@ -47,10 +47,11 @@ def update(cli):
     try:
         while 1==1:
             temp = cli.recv(4096)
-            if temp:
+            if temp and len(temp) == 4096:
                 data += temp
             else:
                 break
+        data += temp
     
     #if the connection dies
     except:

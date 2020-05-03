@@ -210,15 +210,15 @@ def updateee(my_number):
         
         #Recv data until the sender is done
         data = b""
-
+        temp = b""
         try:
             while 1==1:
                 temp = cli.recv(4096)
-                if temp:
+                if temp and len(temp) == 4096:
                     data += temp
                 else:
-                    print("end of recv")
                     break
+            data += temp
         
         #if the sender loses the connection then quit
         except:
@@ -277,17 +277,18 @@ def updater(address):
         #Get the number back, along with the updatee's timestamps
         #Recieve until done
         response = b""
+        temp = b""
         try:
             while 1==1:
                 temp = s.recv(4096)
-                if temp:
+                if temp and len(temp) == 4096:
                     response += temp
-                    print(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response))
                 else:
-                    print("end of recv")
                     break
+            response += temp
+        
+        #exit if connection breaks
         except:
-            print("exception??")
             return -1
 
         #decrypt response
