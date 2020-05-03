@@ -96,8 +96,8 @@ def fill_dbs(updates):
     return
 
 
-#Grabs the most recent timestamp from the secrets database. (Nessecary in case the most recent update was a deletion)
-def grab_timestamp():
+#Grabs all timestamps from the secrets database.
+def grab_timestamps():
 
     #connect to secrets db
     conn = sqlite3.connect(settings.DBdir + "secrets.db") 
@@ -108,16 +108,22 @@ def grab_timestamp():
     c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
     
     #Grab timestamp
-    c.execute("SELECT MAX(timestamp) FROM secrets")
-    timestamp = c.fetchone()[0]
+    c.execute("SELECT timestamp FROM secrets")
+    timestamps = c.fetchall()
 
     #If timestamp should be zero change it to zero
-    if timestamp == None:
-        timestamp = 0
-    
-    #Close the connection and return the timestamp
+    if timestamps == None:
+        timestamps = "0"
+
+    #concatenate all timestamps
+    payload = ""
+    for i in timestamps:
+        payload = i + "|"
+    payload = payload[:-1]
+
+    #Close the connection and return the timestamps
     conn.close()
-    return str(timestamp)
+    return payload
 
 
 #This challenges the authentication servers, it questions them to pick one to communicate with on wakeup
@@ -198,7 +204,7 @@ def updateee(my_number):
 
         #encrypt number and return it to the host
         #send the timestamp of the most recent share along with the number
-        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamp()))
+        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamps()))
         
         #Recv data until the sender is done
         data = b""
@@ -265,9 +271,19 @@ def updater(address):
         #Send the number to the recieving node
         s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(challenge)))
         
-        #Get the number back, along with the most recent timestamp that the recieving server has
-        response = s.recv(2048)
-        
+        #Get the number back, along with the updatee's timestamps
+        #Recieve until done
+        response = b""
+        try:
+            while 1==1:
+                temp = cli.recv(4096)
+                if temp:
+                    reaponse += temp
+                else:
+                    break
+        except:
+            return -1
+
         #decrypt response
         response = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response)
         
@@ -282,7 +298,7 @@ def updater(address):
         if (challenge + 1) == int(response[0], 0):
            
             #grab timestamp
-            timestamp = response[1]
+            timestamps = response[1].split("|")
             
             #create holder for share information
             data = ""
@@ -299,19 +315,21 @@ def updater(address):
                 c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
                 #Grab all shares from the current database with timestamp greater than the client's timestamp
-                c.execute("SELECT * FROM enc_shares WHERE timestamp > ?", [float(timestamp)])
+                c.execute("SELECT * FROM enc_shares")
                 d = c.fetchall()
 
+                shares = []
                 #for each share
                 for i in range(len(d)):
-                    #Join the components into a string
-                    d[i] = d[i]["id"] + "|" + d[i]["share"] + "|" + str(d[i]["timestamp"])
+                    #Join the components into a string if they are needed by the updatee
+                    if not str(d[i]['timestamp']) in timestamps:
+                        shares.append(d[i]["id"] + "|" + d[i]["share"] + "|" + str(d[i]["timestamp"]))
                 
                 #Join each share together
-                d = "::".join(d)
+                shares = "::".join(shares)
 
                 #add the information from this database to the database string
-                data += (d + ":::")
+                data += (shares + ":::")
 
                 #close connection
                 conn.close()
@@ -325,17 +343,19 @@ def updater(address):
             c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
 
             #Grab all shares past the client timestamp 
-            c.execute("SELECT * FROM secrets WHERE timestamp > ?", [float(timestamp)])
+            c.execute("SELECT * FROM secrets")
             d = c.fetchall()
 
-            #For each share
+            secrets = []
+            #For each secret
             for i in range(len(d)):
                 
-                #convert the share to a string
-                d[i] = d[i]["id"] + "|" + d[i]["name"] + "|" + d[i]["secret"] + "|" + str(d[i]['timestamp'])
+                #convert the share to a string if it is needed by the updatee
+                if not str(d[i]['timestamp']) in timestamps: 
+                    secrets.append(d[i]["id"] + "|" + d[i]["name"] + "|" + d[i]["secret"] + "|" + str(d[i]['timestamp']))
             
             #join all the shares and add them to the db string
-            data += "::".join(d)
+            data += "::".join(secrets)
 
             #send the databases to the client and exit
             s.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data))

@@ -328,15 +328,13 @@ def recv_update(data, addr):
 				else:
 					t = float(t[0])
 
-				#if timestamp is not equal to the recieved share
+				#if timestamp is not equal to the recieved share then exit 
 				if( t != float(share[4])):
 					conn.close()
 					conn2.close()
-
-					#Ask sender to send again
-					with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-						s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "resend"), (addr, 55558))
-						return
+					return
+				
+				#close temporary connection
 				conn2.close()
 
 			#insert the secret into the database
@@ -414,29 +412,6 @@ def broadcast(uid):
 		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 
 
-#Checks to make sure that a broadcast was fully succesful
-def check_response():
-	
-	#open udp socket
-	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-		s.settimeout(1)
-		s.bind(("0.0.0.0", 55558))
-		
-		#wait for message
-		try:
-			#if asking for resend respond 1
-			if aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recvfrom(2048)) == b"resend":
-				return 1
-		
-		#If no ask return 0
-		except:
-			return 0
-	
-	#Return 0 if bad message recieved
-	return 0
-
-
-
 #Send broadcasts to other auth nodes
 #This function is used to make sure all network actions are
 #handeled by the server code and to prevent 
@@ -455,8 +430,6 @@ def broadcast_socket():
 			cli, addr = s.accept()				
 			user = str(cli.recv(256), 'ascii')
 			broadcast(user)
-			while check_response() == 1:
-				broadcast(user)
 
 			#close the client connection
 			cli.close()
