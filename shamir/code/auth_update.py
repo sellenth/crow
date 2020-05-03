@@ -204,7 +204,9 @@ def updateee(my_number):
 
         #encrypt number and return it to the host
         #send the timestamp of the most recent share along with the number
-        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + grab_timestamps()))
+        timestamps = grab_timestamps()
+        print(timestamps)
+        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data + ":" + timestamps))
         
         #Recv data until the sender is done
         data = b""
