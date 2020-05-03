@@ -61,8 +61,8 @@ def fill_dbs(updates):
                 
                 #Skip db if empty
                 if shares == [''] or shares == None:
-                conn.close()
-                continue
+                    conn.close()
+                    continue
 
                 #convert str to list
                 share = j.split("|")
