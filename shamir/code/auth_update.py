@@ -282,7 +282,7 @@ def updater(address):
                 temp = s.recv(4096)
                 if temp:
                     response += temp
-                    print("1")
+                    print(aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), response))
                 else:
                     print("end of recv")
                     break
