@@ -265,11 +265,13 @@ def recv_update(data, addr):
 			
 			#error handle
 			if t == None:
-				t = 0
+				t = 0.0
+			else:
+				t = float(t[0])
 
 			#Exit if incoming share is old. 
 			# This handles for multiple incoming changes to a single user at once
-			if(float(share[3]) <= float(t[0])):
+			if(float(share[3]) <= t):
 				return
 
 			#Insert the share into the database
@@ -295,11 +297,13 @@ def recv_update(data, addr):
 			
 			#error handle
 			if t == None:
-				t = 0
+				t = [0]
+			else:
+				t = float(t[0])
 
 			#Exit if incoming share is old. 
 			# This handles for multiple incoming changes to a single user at once
-			if(float(share[4]) <= float(t[0])):
+			if(float(share[4]) <= t):
 				return
 
 			#If the secret is marked for deletion then delete it from all databases
@@ -316,9 +320,16 @@ def recv_update(data, addr):
 				
 				#grab timestamp
 				c2.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
-				
+				t = c2.fetchone()
+			
+				#error handle
+				if t == None:
+					t = [0]
+				else:
+					t = float(t[0])
+
 				#if timestamp is not equal to the recieved share
-				if( float(c2.fetchone()[0]) != float(share[4])):
+				if( float(t != float(share[4])):
 					conn.close()
 					conn2.close()
 
