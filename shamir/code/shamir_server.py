@@ -297,7 +297,7 @@ def recv_update(data, addr):
 			
 			#error handle
 			if t == None:
-				t = [0]
+				t = 0.0
 			else:
 				t = float(t[0])
 
