@@ -118,7 +118,7 @@ def grab_timestamps():
     #concatenate all timestamps
     payload = ""
     for i in timestamps:
-        payload = str(i['timestamp']) + "|"
+        payload = payload + str(i['timestamp']) + "|"
     payload = payload[:-1]
 
     #Close the connection and return the timestamps
