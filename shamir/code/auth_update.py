@@ -23,14 +23,14 @@ class Host():
 
 
 #Delets all entries in all shares databases for a given ID
-def delete_all(id):
+def delete_all(uid):
     
     #For each db in settigs
     for i in settings.DBS:
 
         #connect to that database, remove all shares with id == provided_id and commit the action
         conn = sqlite3.connect( settings.DBdir + i+".db")
-        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [id])
+        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [uid])
         conn.commit()
         conn.close()
     return
