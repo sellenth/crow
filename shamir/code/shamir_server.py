@@ -318,7 +318,7 @@ def recv_update(data, addr):
 				c.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
 				
 				#if timestamp is not equal to the recieved share
-				if( c.fetchone != share[4]):
+				if( float(c.fetchone()[0]) != float(share[4])):
 					conn.close()
 					conn2.close()
 
