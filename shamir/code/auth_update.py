@@ -215,6 +215,7 @@ def updateee(my_number):
                 if temp:
                     data += temp
                 else:
+                    print("end of recv")
                     break
         
         #if the sender loses the connection then quit
@@ -280,6 +281,7 @@ def updater(address):
                 if temp:
                     reaponse += temp
                 else:
+                    print("end of recv")
                     break
         except:
             return -1
