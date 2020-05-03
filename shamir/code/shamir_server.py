@@ -269,7 +269,7 @@ def recv_update(data, addr):
 
 			#Exit if incoming share is old. 
 			# This handles for multiple incoming changes to a single user at once
-			if(share[3] <= t):
+			if(float(share[3]) <= float(t[0])):
 				return
 
 			#Insert the share into the database
@@ -299,7 +299,7 @@ def recv_update(data, addr):
 
 			#Exit if incoming share is old. 
 			# This handles for multiple incoming changes to a single user at once
-			if(share[4] <= t):
+			if(float(share[4]) <= float(t[0])):
 				return
 
 			#If the secret is marked for deletion then delete it from all databases
