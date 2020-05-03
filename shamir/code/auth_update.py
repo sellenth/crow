@@ -279,7 +279,7 @@ def updater(address):
             while 1==1:
                 temp = s.recv(4096)
                 if temp:
-                    reaponse += temp
+                    response += temp
                 else:
                     print("end of recv")
                     break
