@@ -207,13 +207,14 @@ def handle_response(data, address, keys, dbkeys):
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
-		contest_auth(address[0])
+		if not data[1] == my_number:
+			contest_auth(address[0])
 
 	#Recieve an update when a user is registered or deleted, unless it comes from this node
 	elif data[0] == "here":
 		#dont recieve a share sent by self
 		if not int(data[1]) == my_number:
-			recv_update(data[2])
+			recv_update(data[2], address[0])
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
@@ -233,7 +234,7 @@ def handle_response(data, address, keys, dbkeys):
 
 #Handles the reception of inserts and delets inserted on other nodes during execution
 #Takes one user's information at a time in the form db1_share||db2_share||... || secret
-def recv_update(data):
+def recv_update(data, addr):
 
 	#Split the data into its databases
 	data = data.split("||")
@@ -268,7 +269,7 @@ def recv_update(data):
 
 			#Exit if incoming share is old. 
 			# This handles for multiple incoming changes to a single user at once
-			if(share[3] < t):
+			if(share[3] <= t):
 				return
 
 			#Insert the share into the database
@@ -298,12 +299,35 @@ def recv_update(data):
 
 			#Exit if incoming share is old. 
 			# This handles for multiple incoming changes to a single user at once
-			if(share[4] < t):
+			if(share[4] <= t):
 				return
 
 			#If the secret is marked for deletion then delete it from all databases
 			if share[2] == "DEL":
 				auth_update.delete_all(share[1])
+
+			#The secret is shared last so I will make sure all shares have arrived as well
+			#if not exit, an update will come soon.
+			for i in settings.DBS:
+				
+				#connect to db
+				conn2 = sqlite3.connect(settings.DBdir + i + ".db")
+				c = conn2.cursor()
+				
+				#grab timestamp
+				c.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
+				
+				#if timestamp is not equal to the recieved share
+				if( c.fetchone != share[4]):
+					conn.close()
+					conn2.close()
+
+					#Ask sender to send again
+					with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+						s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "resend"), (addr, 55558))
+						return
+
+				conn2.close()
 
 			#insert the secret into the database
 			c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [share[1], share[2], share[3], share[4]])
@@ -379,11 +403,35 @@ def broadcast(uid):
 		data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
 		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 
+
+#Checks to make sure that a broadcast was fully succesful
+def check_response():
+	
+	#open udp socket
+	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+		s.settimeout(1)
+		s.bind(("0.0.0.0", 55558))
+		
+		#wait for message
+		try:
+			#if asking for resend respond 1
+			if aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recvfrom(2048)) == b"resend":
+				return 1
+		
+		#If no ask return 0
+		except:
+			return 0
+	
+	#Return 0 if bad message recieved
+	return 0
+
+
+
 #Send broadcasts to other auth nodes
 #This function is used to make sure all network actions are
 #handeled by the server code and to prevent 
 #This node from responding to its own message
-def broadcast_sender():
+def broadcast_socket():
 
 	#Create a local socket
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -397,9 +445,18 @@ def broadcast_sender():
 			cli, addr = s.accept()				
 			user = str(cli.recv(256), 'ascii')
 			broadcast(user)
-			
+			while check_response() == 1:
+				broadcast(user)
+
 			#close the client connection
 			cli.close()
+
+#Runs auth update every 3.5 minutes 
+def timer_update_start():
+    while 1 == 1:
+        time.sleep(60 * 3.5)
+        t = threading.Thread(target = auth_update.updateee, args=[my_number])
+        t.start()
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
@@ -411,7 +468,8 @@ def run():
 	#Run the auth node update process which is required for the server to start properly
 	
 	print("Looking for updates")
-	auth_update.updateee() 
+	auth_update.updateee(my_number)
+	threading.Thread(target=timer_update_start).start() 
 	
 	#Set up multicast listener
 	address = settings.MULT_ADDR
@@ -424,7 +482,7 @@ def run():
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 	
 	#Start the listener for local inserts and deletes
-	threading.Thread(target=broadcast_sender).start()
+	threading.Thread(target=broadcast_socket).start()
 	
 	#Officialy start the server
 	while 1 == 1:

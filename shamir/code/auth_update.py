@@ -121,7 +121,7 @@ def grab_timestamp():
 
 
 #This challenges the authentication servers, it questions them to pick one to communicate with on wakeup
-def challenge():
+def challenge(my_number):
 
     #Creates a host object for use in multicast socket
     host = Host()
@@ -138,7 +138,7 @@ def challenge():
             us.bind(('0.0.0.0', 44443))
 
             #Sends a messafe to the other auth nodes to start a contest
-            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"), ((host.host, host.port)))
+            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"+str(my_number)), ((host.host, host.port)))
 
             #Recieves encrypted number from auth node
             data, address = us.recvfrom(4096)
@@ -161,7 +161,7 @@ def challenge():
 
 #This function handles the updating of an auth node by 
 #downloading the shares and secrets from another auth node
-def updateee():
+def updateee(my_number):
 
     #open socket to recieve shares into
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -172,9 +172,9 @@ def updateee():
         #Attempt to update the node
         try:    
             #make sure that challenge exits succesfully and grab host address
-            address = challenge()
+            address = challenge(my_number)
             while address == 1:
-                address  = challenge()
+                address  = challenge(my_number)
         
         #If socket times out then return, this is likely the first auth node to be activated
         except socket.timeout:
