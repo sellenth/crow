@@ -329,7 +329,7 @@ def recv_update(data, addr):
 					t = float(t[0])
 
 				#if timestamp is not equal to the recieved share
-				if( float(t != float(share[4])):
+				if( t != float(share[4])):
 					conn.close()
 					conn2.close()
 
