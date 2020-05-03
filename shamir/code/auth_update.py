@@ -276,7 +276,7 @@ def updater(address):
         response = b""
         try:
             while 1==1:
-                temp = cli.recv(4096)
+                temp = s.recv(4096)
                 if temp:
                     reaponse += temp
                 else:
@@ -299,7 +299,7 @@ def updater(address):
            
             #grab timestamp
             timestamps = response[1].split("|")
-            
+            print(timestamps)
             #create holder for share information
             data = ""
 
