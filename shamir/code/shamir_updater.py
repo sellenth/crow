@@ -7,6 +7,20 @@ import settings
 import base64
 
 
+#deletes a user from the database if appropriate
+def delete_user(conn, share):
+    c = conn.cursor()
+
+    #verify that the delete action is apprpriately timed
+    c.execute("SELECT timestamp FROM shares WHERE id = ?", [share[1]])
+    t = c.fetchone()
+    if (not t == None) and float(share[2]) >= t['timestamp']:
+
+        #Delete the share and commit the action
+        c.execute("DELETE FROM shares WHERE id = ?", [share[1]])
+        conn.commit()
+
+
 #Update share databse based on a given share string 
 def update_db(data, conn):
 
@@ -24,11 +38,15 @@ def update_db(data, conn):
     share['key'] = data[3]
     share['timestamp'] = data[4]
 
-    #INSERT OR REPLACE the share into the database
-    c.execute("REPLACE INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
-    
-    #commit changes
-    conn.commit()
+    c.execute("SELECT timestamp FROM shares WHERE id = ?", [share['id']])
+    t = c.fetchone()
+
+    if (not t == None) and float(share['timestamp'] >= t['timestamp']):
+        #INSERT OR REPLACE the share into the database
+        c.execute("REPLACE INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
+        
+        #commit changes
+        conn.commit()
     return
 
 #update share database based on connecton to auth node
@@ -44,13 +62,20 @@ def update(cli):
     data = b""
 
     #Recieve until done
-    while 1==1:
-        temp = cli.recv(4096)
-        if temp:
-            data += temp
-        else:
-            break
-        
+    try:
+        while 1==1:
+            temp = cli.recv(4096)
+            if temp and len(temp) == 4096:
+                data += temp
+            else:
+                break
+        data += temp
+    
+    #if the connection dies
+    except:
+        #Return no updates
+        return 0        
+    
     #close the socket
     cli.close()
     
@@ -78,10 +103,7 @@ def update(cli):
 
         #If user is marked for deletion
         if d[0] == "DEL":
-
-            #Delete the share and commit the action
-            conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
-            conn.commit()
+            delete_user(conn, d)
             continue
 
         #decrypt the share and concatenate it with the timestamp

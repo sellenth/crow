@@ -7,7 +7,7 @@ import time
 
 
 #Delete all entries refering to a specefic id
-def delete_all(id):
+def delete_all(uid):
     
     #For each db in settigs
     for i in settings.DBS:
@@ -19,7 +19,7 @@ def delete_all(id):
         conn.cursor().execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
         #Delete share and exit
-        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [id])
+        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [uid])
         conn.commit()
         conn.close()
 
@@ -110,7 +110,7 @@ def list_users():
 
     #Print all users to stdout and file
     #open file
-    with open("userlist.txt", 'w') as u:    
+    with open("../userlist.txt", 'w') as u:    
         print("Users:\n")
         u.write("Users:\n")
         for i in users:
@@ -118,7 +118,7 @@ def list_users():
             u.write("\tUser: " + i['id'] + "\n\tName: " + i['name'] +"\n\n" )
 
     #wait until user is done 
-    print("Users also saved in userlist.txt for your convience")
+    print("Users also saved in shamir/userlist.txt for your convience")
     print("Press Enter to continue")
     input()
 
