@@ -248,9 +248,9 @@ def delete():
     c.execute("SELECT * FROM secrets where id = ?", [uid])
     s = c.fetchone()
 
-    #If user doesnt exist than quit
+    #If user doesnt exist than record deletion with unknown name
     if s == None:
-        c.execute("INSERT INTO secrets VALUES(?,?,?,?)", [uid, " ", "DEL", time.time()])
+        c.execute("INSERT INTO secrets VALUES(?,?,?,?)", [uid, "UNKNOWN", "DEL", time.time()])
         conn.commit()
         conn.close()
 
