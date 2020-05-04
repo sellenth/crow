@@ -144,17 +144,33 @@ def register_node(data, address, keys, dbkeys):
 					#log that the node was registered
 					i.db = data[1]    
 					
-					#grab timestamp from node
-					timestamp = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(4096))
+					#grab timestamps from node
+					temp = b""
+					data = b""
+					try:
+						while 1==1:
+							temp = s.recv(4096)
+							if temp and len(temp) == 4096:
+								data += temp
+							else:
+								break
+						data += temp
+
+					#if connection dies
+					except:
+						return -1
+
+					#decrypt timestamps
+					timestamps = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 
 					#validate data and convert timstamp to float
-					if timestamp == -1 or timestamp == -2:
-						return
+					if timestamps == -1 or timestamps == -2:
+						return -1
 					
-					timestamp = float(str(timestamp, "ascii"))
+					timestamps = str(timestamps, "ascii")
 					
 					#start node database update and print results when finished
-					shamir_update_client.update(i, timestamp, s)
+					shamir_update_client.update(i, timestamps, s)
 					print("Node registered:   " + data[1])
    
 
