@@ -110,7 +110,7 @@ def list_users():
 
     #Print all users to stdout and file
     #open file
-    with open("userlist.txt", 'w') as u:    
+    with open("../userlist.txt", 'w') as u:    
         print("Users:\n")
         u.write("Users:\n")
         for i in users:
@@ -118,7 +118,7 @@ def list_users():
             u.write("\tUser: " + i['id'] + "\n\tName: " + i['name'] +"\n\n" )
 
     #wait until user is done 
-    print("Users also saved in userlist.txt for your convience")
+    print("Users also saved in shamir/userlist.txt for your convience")
     print("Press Enter to continue")
     input()
 

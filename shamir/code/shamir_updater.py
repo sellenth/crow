@@ -17,7 +17,7 @@ def delete_user(conn, share):
     if (not t == None) and float(share[2]) >= t['timestamp']:
 
         #Delete the share and commit the action
-        c.execute("DELETE FROM shares WHERE id = ?", [d[1]])
+        c.execute("DELETE FROM shares WHERE id = ?", [share[1]])
         conn.commit()
 
 
