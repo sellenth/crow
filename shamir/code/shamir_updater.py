@@ -14,7 +14,14 @@ def delete_user(conn, share):
     #verify that the delete action is apprpriately timed
     c.execute("SELECT timestamp FROM shares WHERE id = ?", [share[1]])
     t = c.fetchone()
-    if (not t == None) and float(share[2]) >= t['timestamp']:
+
+    #error handle timestamp
+    if t == None:
+        t = 0.0
+    else: 
+        t = t['timestamp']
+
+    if float(share[2]) > t:
 
         #Delete the share and commit the action
         c.execute("DELETE FROM shares WHERE id = ?", [share[1]])
@@ -38,10 +45,18 @@ def update_db(data, conn):
     share['key'] = data[3]
     share['timestamp'] = data[4]
 
+    #grab current timestamp
     c.execute("SELECT timestamp FROM shares WHERE id = ?", [share['id']])
     t = c.fetchone()
 
-    if (not t == None) and float(share['timestamp'] >= t['timestamp']):
+    #error handle timestamp
+    if t == None:
+        t = 0.0
+    else: 
+        t = t['timestamp']
+
+    #verift that entry is new
+    if float(share['timestamp']) > t:
         #INSERT OR REPLACE the share into the database
         c.execute("REPLACE INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
         

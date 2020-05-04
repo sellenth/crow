@@ -250,14 +250,17 @@ def delete():
 
     #If user doesnt exist than quit
     if s == None:
+        c.execute("INSERT INTO secrets VALUES(?,?,?,?)", [uid, " ", "DEL", time.time()])
+        conn.commit()
         conn.close()
-        return
-    
-    #Mark the user as deleted
-    c.execute("UPDATE secrets SET secret = ?, timestamp = ? WHERE id = ?", ["DEL", time.time(), uid])
-    #commit deletion
-    conn.commit()
-    conn.close()
+
+
+    else:
+        #Mark the user as deleted
+        c.execute("UPDATE secrets SET secret = ?, timestamp = ? WHERE id = ?", ["DEL", time.time(), uid])
+        #commit deletion
+        conn.commit()
+        conn.close()
 
     #Delete the remaining shares from the share databases
     delete_all(uid)

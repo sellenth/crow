@@ -134,7 +134,6 @@ def register():
         
         #clean up and exit
         cli.close()
-        s.shutdown(socket.SHUT_RDWR)
     return
 
 
@@ -149,7 +148,7 @@ def grab_timestamps():
     c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
     
     #Grab timestamps from the db
-    c.execute("SELECT timestamp from shares")
+    c.execute("SELECT timestamp FROM shares")
     timestamps = c.fetchall()
     
     #initalize paylaod string

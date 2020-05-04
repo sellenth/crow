@@ -109,6 +109,10 @@ def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data[0]:
+
+			#log databse name 
+			i.db = data[1]
+
 			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 				s.connect((address[0], 44432))
@@ -143,8 +147,6 @@ def register_node(data, address, keys, dbkeys):
 
 				#validate that the node was able to read the data and modify it predictably
 				if (sum1+1) == check1 and (sum2+1) == check2:
-					#log that the node was registered
-					i.db = data[1]    
 					
 					#grab timestamps from node
 					temp = b""
@@ -169,11 +171,12 @@ def register_node(data, address, keys, dbkeys):
 					if timestamps == -1 or timestamps == -2:
 						return -1
 					
+					#split timestamps into list
 					timestamps = str(timestamps, "ascii").split("|")
 					
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamps, s)
-					print("Node registered:   " + data[1])
+					print("Node registered:   " + i.db)
    
 
 #this sends the servers associated number to the address specified
@@ -326,32 +329,33 @@ def recv_update(data, addr):
 			if share[2] == "DEL":
 				auth_update.delete_all(share[1])
 
-			#The secret is shared last so I will make sure all shares have arrived as well
-			#if not exit, an update will come soon.
-			for i in settings.DBS:
+			else:
+				#The secret is shared last so I will make sure all shares have arrived as well
+				#if not exit, an update will come soon.
+				for i in settings.DBS:
+					
+					#connect to db
+					conn2 = sqlite3.connect(settings.DBdir + i + ".db")
+					c2 = conn2.cursor()
+					
+					#grab timestamp
+					c2.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
+					t = c2.fetchone()
 				
-				#connect to db
-				conn2 = sqlite3.connect(settings.DBdir + i + ".db")
-				c2 = conn2.cursor()
-				
-				#grab timestamp
-				c2.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
-				t = c2.fetchone()
-			
-				#error handle
-				if t == None:
-					t = [0]
-				else:
-					t = float(t[0])
+					#error handle
+					if t == None:
+						t = [0]
+					else:
+						t = float(t[0])
 
-				#if timestamp is not equal to the recieved share then exit 
-				if( t != float(share[4])):
-					conn.close()
-					conn2.close()
-					return
+					#if timestamp is not equal to the recieved share then exit 
+					if( t != float(share[4])):
+						conn.close()
+						conn2.close()
+						return
 				
-				#close temporary connection
-				conn2.close()
+					#close temporary connection
+					conn2.close()
 
 			#insert the secret into the database
 			c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [share[1], share[2], share[3], share[4]])
@@ -359,7 +363,7 @@ def recv_update(data, addr):
 			#Commit the transaction and exit, logging the share's addition
 			conn.commit()
 			conn.close()
-			print("Incoming Update From Auth Node")
+			print("Recieved Update From Auth Node")
 
 
 #Broadcasts a given user's shares and secret to the auth nodes, 
@@ -496,5 +500,3 @@ def run():
 		
 		except KeyboardInterrupt:
 			return
-		
-		

@@ -73,7 +73,7 @@ def fill_dbs(updates):
                 share = j.split("|")
 
                 #grab timestamp of user
-                sc.execute("SELECT timestamp FROM shares WHERE id = ?", share[0])
+                sc.execute("SELECT timestamp FROM secrets WHERE id = ?", [share[0]])
                 t = sc.fetchone()
 
                 #Error handle timestamp value
@@ -107,8 +107,10 @@ def fill_dbs(updates):
             #For each share in this update set
             for j in shares:
 
+                share =  j.split("|")
+
                 #grab timestamp of user
-                sc.execute("SELECT timestamp FROM shares WHERE id = ?", share[0])
+                sc.execute("SELECT timestamp FROM secrets WHERE id = ?", [share[0]])
                 t = sc.fetchone()
 
                 #Error handle timestamp value
