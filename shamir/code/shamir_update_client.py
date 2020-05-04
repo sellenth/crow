@@ -52,7 +52,7 @@ def grab(timestamps, db):
     #Add the users to be deleted to the list
     for i in users:
         if not str(i['timestamp']) in timestamps:
-            shares.append("DEL" + "|" + str(i['id']))
+            shares.append("DEL" + "|" + str(i['id']) + "|" + str(i['timestamp']))
 
     #Close the connection and return
     conn.close()

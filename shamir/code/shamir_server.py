@@ -167,7 +167,7 @@ def register_node(data, address, keys, dbkeys):
 					if timestamps == -1 or timestamps == -2:
 						return -1
 					
-					timestamps = str(timestamps, "ascii")
+					timestamps = str(timestamps, "ascii").split("|")
 					
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamps, s)
