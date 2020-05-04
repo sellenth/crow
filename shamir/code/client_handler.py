@@ -162,7 +162,7 @@ def grab_timestamps():
     #If timestamps exist then concatenate into strings
     else:
         for i in timestamps:
-            payload = payload + i['timestamp'] + "|"
+            payload = payload + str(i['timestamp']) + "|"
         payload = payload[:-1]
 
     #return the timestamp
