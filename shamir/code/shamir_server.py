@@ -326,7 +326,7 @@ def recv_update(data, addr):
 				return
 
 			#If the secret is marked for deletion then delete it from all databases
-			if share[2] == "DEL":
+			if share[3] == "DEL":
 				auth_update.delete_all(share[1])
 
 			else:
@@ -412,7 +412,7 @@ def broadcast(uid):
 		#For each share
 		for i in range(len(shares)-1):
 			
-			#Add no data if this is a delete message
+			#Add no data if this is an empty message
 			if shares[i] == None:
 				continue
 			
@@ -424,7 +424,7 @@ def broadcast(uid):
 				data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
 				s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 		
-		#Frab the data from the secrets database as a string
+		#grab the data from the secrets database as a string
 		data = "secrets||" + str(shares[-1]['id']) + "||" + str(shares[-1]['name']) + "||" + str(shares[-1]['secret']) + "||" + str(shares[-1]['timestamp'])
 		
 		#Prepend header and send data

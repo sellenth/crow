@@ -26,6 +26,11 @@ def delete_user(conn, share):
         #Delete the share and commit the action
         c.execute("DELETE FROM shares WHERE id = ?", [share[1]])
         conn.commit()
+        return 1
+    
+    #if delete wasnt new report it
+    else:
+         return 0
 
 
 #Update share databse based on a given share string 
@@ -105,10 +110,13 @@ def update(cli):
 
     #Convert data to a list
     data = str(data, 'ascii').split(":")
-    
+
     #if no data then return
     if data == ['']:
         return 
+
+    #record number of updates
+    num_updates = len(data)
 
     #For each share
     for i in data:
@@ -118,7 +126,9 @@ def update(cli):
 
         #If user is marked for deletion
         if d[0] == "DEL":
-            delete_user(conn, d)
+            new = delete_user(conn, d)
+            if not new:
+                num_updates -= 1
             continue
 
         #decrypt the share and concatenate it with the timestamp
@@ -129,4 +139,4 @@ def update(cli):
 
     #close the connection and return the number of shares commited
     conn.close()
-    return(len(data))
+    return num_updates
