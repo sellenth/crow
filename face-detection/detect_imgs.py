@@ -64,11 +64,13 @@ while(True):
             label = f"{probs[i]:.2f}"
             cv2.putText(orig_image, str(boxes.size(0)), (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             cropped = orig_image[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
+            
             try:
                 imshow("Win" + str(i), cropped);
             except:
                 print("Img capture error");
             waitKey(1);
+            cropped = cv2.resize(cropped, (160,160))
             cv2.imwrite('./results/new' + str(i) + '.jpg', cropped)
         print(f"Found {len(probs)} faces.")
 

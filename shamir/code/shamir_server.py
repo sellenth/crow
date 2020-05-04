@@ -11,6 +11,8 @@ import settings
 import base64
 import shamir_update_client
 import auth_update
+import sys
+
 from Crypto import Random
 
 #set unique number -- not actually unique but 1- (N* (1/2^16*8)) chance of being unique 
@@ -27,7 +29,6 @@ def add_line(username, conn):
 #authenticate a user based on a given id and share
 #shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
 def auth_user(incoming, conn):
-	
 	print("Recieved Share from Client Node")
 
 	#grab username and start db cursor
@@ -483,6 +484,7 @@ def run():
 	
 	#Officialy start the server
 	while 1 == 1:
+		sys.stdout.flush()
 		#grab data and sender from the multicast address
 		#continue if error in recv
 		try:

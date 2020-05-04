@@ -11,7 +11,7 @@ TOTAL = 5
 
 #The number of shares that need to be sent to authenticate a user successfully
 #Changing this number will break an active system. After changing you must regenerate shares for all users.
-THRESH = 2
+THRESH = 3
 
 #Directory locations
 DBdir = "../assets/DBs/"
