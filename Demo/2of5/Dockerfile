@@ -31,7 +31,7 @@ COPY crow/Demo/2of5/assets shamir/assets
 COPY crow/Demo/2of5/settings.py shamir/code/settings.py
 
 #Set up user directory
-RUN echo cd /app/crow/shamir/code >> /root/.bashrc
+RUN echo cd /app/crow/express >> /root/.bashrc
 
 #Change setting file to reflect node ID
 ARG ID
