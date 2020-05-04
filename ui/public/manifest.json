@@ -1,0 +1,8 @@
+{
+  "short_name": "Crow Web UI",
+  "name": "Dashboard and keypad views for Ryan's crow backend",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

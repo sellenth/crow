@@ -3,5 +3,8 @@ shamir/assets/*
 shamir/assets/hosts/
 *.pyc
 shamir/__pycache__/
+face-detection/results/*
 shamir/DBs
 shamir/userlist.txt
+keypad/node_modules
+ui/node_modules

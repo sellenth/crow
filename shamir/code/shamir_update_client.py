@@ -14,7 +14,7 @@ def send_share(key, shares, s):
     s.send(payload)
 
 #grabs all shares for the provided database created after time t
-def grab(t, db): 
+def grab(timestamps, db): 
 
     #initiate connection to database
     conn = sqlite3.connect(settings.DBdir + db + ".db")
@@ -25,13 +25,14 @@ def grab(t, db):
     c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
     #grab all shares created after time t
-    c.execute("SELECT share, timestamp FROM enc_shares WHERE timestamp > ?", [float(t)])
+    c.execute("SELECT share, timestamp FROM enc_shares")
     temp = c.fetchall()
     
     #Create a string for each share to be sent and store them in a list
     shares = []
     for i in temp:
-        shares.append(i['share'] + "|" + str(i['timestamp']))
+        if not str(i['timestamp']) in timestamps:
+            shares.append(i['share'] + "|" + str(i['timestamp']))
 
     #close the databse
     conn.close()
@@ -45,12 +46,13 @@ def grab(t, db):
     c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
 
     #Grab all of the users to be deleted 
-    c.execute("SELECT * FROM secrets WHERE timestamp > ? AND secret = ?", [float(t), "DEL"])
+    c.execute("SELECT * FROM secrets WHERE secret = ?", ["DEL"])
     users = c.fetchall()
 
     #Add the users to be deleted to the list
     for i in users:
-        shares.append("DEL" + "|" + str(i['id']))
+        if not str(i['timestamp']) in timestamps:
+            shares.append("DEL" + "|" + str(i['id']) + "|" + str(i['timestamp']))
 
     #Close the connection and return
     conn.close()
