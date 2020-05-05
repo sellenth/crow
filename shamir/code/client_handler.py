@@ -126,7 +126,7 @@ def register():
         num_updates = shamir_updater.update(cli)
         
         #make number presentable
-        if num_updates == None:
+        if num_updates == -1:
             num_updates = 0
         
         #Report shares

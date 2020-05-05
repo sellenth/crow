@@ -106,6 +106,7 @@ def update(cli):
     
     #If the data is invalid return an error
     if data == -1 or data == -2:
+        print("Error in transmission, updates will be applied shortly")
         return -1
 
     #Convert data to a list

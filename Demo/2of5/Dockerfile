@@ -12,7 +12,7 @@ RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/s
 RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 RUN pip3 install qrcode SpeechRecognition pillow shamir
-RUN npm install fs qrcode-reader jimp net
+RUN npm install fs qrcode-reader jimp net crypto-js
 EXPOSE 22 3001
 
 #Change root password
