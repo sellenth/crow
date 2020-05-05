@@ -58,7 +58,7 @@ def validate(share, share_conn):
         share_conn.commit()
         
         #authorize the user (this is where the "door open", or "ssh successful" code would be in the real world)
-        print(res["name"] + " (" + res["username"] + ")" + " is Authorized!")
+        print(res["name"] + " is Authorized!")
     
     else:
     

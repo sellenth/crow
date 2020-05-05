@@ -7,7 +7,7 @@ import time
 
 
 #Delete all entries refering to a specefic id
-def delete_all(id):
+def delete_all(uid):
     
     #For each db in settigs
     for i in settings.DBS:
@@ -19,7 +19,7 @@ def delete_all(id):
         conn.cursor().execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
         #Delete share and exit
-        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [id])
+        conn.cursor().execute("DELETE FROM enc_shares WHERE id = ?", [uid])
         conn.commit()
         conn.close()
 
@@ -110,7 +110,7 @@ def list_users():
 
     #Print all users to stdout and file
     #open file
-    with open("userlist.txt", 'w') as u:    
+    with open("../userlist.txt", 'w') as u:    
         print("Users:\n")
         u.write("Users:\n")
         for i in users:
@@ -118,7 +118,7 @@ def list_users():
             u.write("\tUser: " + i['id'] + "\n\tName: " + i['name'] +"\n\n" )
 
     #wait until user is done 
-    print("Users also saved in userlist.txt for your convience")
+    print("Users also saved in shamir/userlist.txt for your convience")
     print("Press Enter to continue")
     input()
 
@@ -130,21 +130,21 @@ def list_users():
 def cli_register():
     #Ask for and recieve uid
     print("Enter user id: ")
-    uid = input().strip("\n")
+    uid = input().strip("\n").strip(":").strip("|")
 
     #Make sure the uid is less than 16 characters
     while len(uid) > 16:
         print("lets keep it under 16 chars")
-        uid = input().strip("\n")
+        uid = input().strip("\n").strip(":").strip("|")
 
     #Ask for the user's name 
     print("Enter user's name: ")
-    name = input().strip("\n")
+    name = input().strip("\n").strip(":").strip("|")
 
     #Keep the name shorter than 16 characters
     while len(name) > 16:
         print("lets keep it under 16 chars")
-        name = input().strip("\n")
+        name = input().strip("\n").strip(":").strip("|")
 
     #Holder for user keys
     keys = []
@@ -154,12 +154,12 @@ def cli_register():
 
         #Prompt for password
         print("Enter the user's password for the " + i + " database: ")
-        temp = input().strip("\n")
+        temp = input().strip("\n").strip(":").strip("|")
         
         #Make sure the password isnt longer than a sha256 hash
         while len(temp) > 66:
             print("lets keep it under 66 chars")
-            name = input().strip("\n")
+            name = input().strip("\n").strip(":").strip("|")
         
         #append the key to the list
         keys.append(temp)
@@ -175,21 +175,21 @@ def cli_register():
 def net_register():
     #Ask for and recieve uid
     print("Enter user id: ")
-    uid = input().strip("\n")
+    uid = input().strip("\n").strip(":").strip("|")
 
     #Make sure the uid is less than 16 characters
     while len(uid) > 16:
         print("lets keep it under 16 chars")
-        uid = input().strip("\n")
+        uid = input().strip("\n").strip(":").strip("|")
 
     #Ask for the user's name 
     print("Enter user's name: ")
-    name = input().strip("\n")
+    name = input().strip("\n").strip(":").strip("|")
 
     #Keep the name shorter than 16 characters
     while len(name) > 16:
         print("lets keep it under 16 chars")
-        name = input().strip("\n")
+        name = input().strip("\n").strip(":").strip("|")
 
     #Holder for user keys
     keys = []
@@ -209,7 +209,7 @@ def net_register():
             cli, addr = s.accept()
 
             #Get password
-            temp = str(cli.recv(128), 'ascii').strip("\n")
+            temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
             
             #Close connection
             cli.close()
@@ -248,16 +248,19 @@ def delete():
     c.execute("SELECT * FROM secrets where id = ?", [uid])
     s = c.fetchone()
 
-    #If user doesnt exist than quit
+    #If user doesnt exist than record deletion with unknown name
     if s == None:
+        c.execute("INSERT INTO secrets VALUES(?,?,?,?)", [uid, "UNKNOWN", "DEL", time.time()])
+        conn.commit()
         conn.close()
-        return
-    
-    #Mark the user as deleted
-    c.execute("UPDATE secrets SET secret = ?, timestamp = ? WHERE id = ?", ["DEL", time.time(), uid])
-    #commit deletion
-    conn.commit()
-    conn.close()
+
+
+    else:
+        #Mark the user as deleted
+        c.execute("UPDATE secrets SET secret = ?, timestamp = ? WHERE id = ?", ["DEL", time.time(), uid])
+        #commit deletion
+        conn.commit()
+        conn.close()
 
     #Delete the remaining shares from the share databases
     delete_all(uid)

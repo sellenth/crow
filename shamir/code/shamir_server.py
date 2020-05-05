@@ -29,6 +29,7 @@ def add_line(username, conn):
 #authenticate a user based on a given id and share
 #shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
 def auth_user(incoming, conn):
+
 	print("Recieved Share from Client Node")
 
 	#grab username and start db cursor
@@ -108,6 +109,10 @@ def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data[0]:
+
+			#log databse name 
+			i.db = data[1]
+
 			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 				s.connect((address[0], 44432))
@@ -142,21 +147,36 @@ def register_node(data, address, keys, dbkeys):
 
 				#validate that the node was able to read the data and modify it predictably
 				if (sum1+1) == check1 and (sum2+1) == check2:
-					#log that the node was registered
-					i.db = data[1]    
 					
-					#grab timestamp from node
-					timestamp = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), s.recv(4096))
+					#grab timestamps from node
+					temp = b""
+					data = b""
+					try:
+						while 1==1:
+							temp = s.recv(4096)
+							if temp and len(temp) == 4096:
+								data += temp
+							else:
+								break
+						data += temp
+
+					#if connection dies
+					except:
+						return -1
+
+					#decrypt timestamps
+					timestamps = aes_crypt.aes_dec(rsa_encrypt.get_priv_key_auth(), data)
 
 					#validate data and convert timstamp to float
-					if timestamp == -1 or timestamp == -2:
-						return
+					if timestamps == -1 or timestamps == -2:
+						return -1
 					
-					timestamp = float(str(timestamp, "ascii"))
+					#split timestamps into list
+					timestamps = str(timestamps, "ascii").split("|")
 					
 					#start node database update and print results when finished
-					shamir_update_client.update(i, timestamp, s)
-					print("Node registered:   " + data[1])
+					shamir_update_client.update(i, timestamps, s)
+					print("Node registered:   " + i.db)
    
 
 #this sends the servers associated number to the address specified
@@ -208,13 +228,14 @@ def handle_response(data, address, keys, dbkeys):
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
-		contest_auth(address[0])
+		if not data[1] == my_number:
+			contest_auth(address[0])
 
 	#Recieve an update when a user is registered or deleted, unless it comes from this node
 	elif data[0] == "here":
 		#dont recieve a share sent by self
 		if not int(data[1]) == my_number:
-			recv_update(data[2])
+			recv_update(data[2], address[0])
 
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
@@ -234,7 +255,7 @@ def handle_response(data, address, keys, dbkeys):
 
 #Handles the reception of inserts and delets inserted on other nodes during execution
 #Takes one user's information at a time in the form db1_share||db2_share||... || secret
-def recv_update(data):
+def recv_update(data, addr):
 
 	#Split the data into its databases
 	data = data.split("||")
@@ -243,56 +264,106 @@ def recv_update(data):
 	#and is therefore an auth node
 	if data[0] == rsa_encrypt.get_auth_hash():
 
-		#Throw away the hash
-		data = data[1:]
+		#Throw away the hash and store values into share
+		share = data[1:]
 
-		#For each database
-		for i in range(len(data)-1):
+		#If inserting into a shares database
+		if share[0] in settings.DBS:
 
-			#If the share exists
-			#It will not if a delete is sent
-			if not data[i] == 'NONE':
+			#connect to the database
+			conn = sqlite3.connect(settings.DBdir + share[0] + ".db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
 
-				#connect to the database
-				conn = sqlite3.connect(settings.DBdir + settings.DBS[i] + ".db")
-				conn.row_factory = sqlite3.Row
-				c = conn.cursor()
+			#Create the enc_shares table if it doesnt exist
+			c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
 
-				#Create the enc_shares table if it doesnt exist
-				c.execute("CREATE TABLE IF NOT EXISTS enc_shares(id PRIMARY KEY, share, timestamp DOUBLE)")
+			#Grab user timestamp from db
+			c.execute("SELECT timestamp FROM enc_shares WHERE id = ?", [share[1]])
+			t = c.fetchone()
+			
+			#error handle
+			if t == None:
+				t = 0.0
+			else:
+				t = float(t[0])
+
+			#Exit if incoming share is old. 
+			# This handles for multiple incoming changes to a single user at once
+			if(float(share[3]) <= t):
+				return
+
+			#Insert the share into the database
+			c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[1], share[2], share[3]])
+
+			#commit the changes and close
+			conn.commit()
+			conn.close()
+
+		#if inserting into a secrets database
+		elif share[0] == "secrets":
+			#Connect to the secrets database
+			conn = sqlite3.connect(settings.DBdir + "secrets.db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
+
+			#Create the secrets table if it doesnt exist
+			c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
+			
+			#Grab user timestamp from db
+			c.execute("SELECT timestamp FROM secrets WHERE id = ?", [share[1]])
+			t = c.fetchone()
+			
+			#error handle
+			if t == None:
+				t = 0.0
+			else:
+				t = float(t[0])
+
+			#Exit if incoming share is old. 
+			# This handles for multiple incoming changes to a single user at once
+			if(float(share[4]) <= t):
+				return
+
+			#If the secret is marked for deletion then delete it from all databases
+			if share[3] == "DEL":
+				auth_update.delete_all(share[1])
+
+			else:
+				#The secret is shared last so I will make sure all shares have arrived as well
+				#if not exit, an update will come soon.
+				for i in settings.DBS:
+					
+					#connect to db
+					conn2 = sqlite3.connect(settings.DBdir + i + ".db")
+					c2 = conn2.cursor()
+					
+					#grab timestamp
+					c2.execute("SELECT timestamp from enc_shares where id = ?", [share[1]])
+					t = c2.fetchone()
 				
-				#Split the share
-				share = data[i].split("|")
+					#error handle
+					if t == None:
+						t = [0]
+					else:
+						t = float(t[0])
 
-				#Insert the share into the database
-				c.execute("REPLACE INTO enc_shares VALUES (?,?,?)", [share[0], share[1], share[2]])
+					#if timestamp is not equal to the recieved share then exit 
+					if( t != float(share[4])):
+						conn.close()
+						conn2.close()
+						return
+				
+					#close temporary connection
+					conn2.close()
 
-				#commit the changes and close
-				conn.commit()
-				conn.close()
+			#insert the secret into the database
+			c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [share[1], share[2], share[3], share[4]])
 
-		#Connect to the secrets database
-		conn = sqlite3.connect(settings.DBdir + "secrets.db")
-		conn.row_factory = sqlite3.Row
-		c = conn.cursor()
-
-		#Create the secrets table if it doesnt exist
-		c.execute("CREATE TABLE IF NOT EXISTS secrets(id PRIMARY KEY, name, secret, timestamp DOUBLE)")
-		
-		#Split the secrets entry
-		secret = data[-1].split("|")	
-
-		#If the secret is marked for deletion then delete it from all databases
-		if secret[2] == "DEL":
-			auth_update.delete_all(secret[0])
-
-		#insert the secret into the database
-		c.execute("REPLACE INTO secrets VALUES (?,?,?,?)", [secret[0], secret[1], secret[2], secret[3]])
-
-		#Commit the transaction and exit, logging the share's addition
-		conn.commit()
-		conn.close()
-		print("Got share")
+			#Commit the transaction and exit, logging the share's addition
+			conn.commit()
+			conn.close()
+			print("Recieved Update From Auth Node")
 
 
 #Broadcasts a given user's shares and secret to the auth nodes, 
@@ -301,73 +372,71 @@ def broadcast(uid):
 	
 	print("Sending New Share to other Auth Nodes") 
 	
+	#grab auth hash for use
+	auth_hash = rsa_encrypt.get_auth_hash()
+
 	#instantiate a shares list
 	shares = []
 	
-	#For each database
-	for i in settings.DBS:
-
-		#Open a connection to the db
-		conn = sqlite3.connect(settings.DBdir + i + ".db")
-		conn.row_factory = sqlite3.Row
-		c = conn.cursor()
-
-		#Grab the provided user's share from this database
-		c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
-
-		#append the share to the list and close the connection
-		shares.append(c.fetchone())
-		conn.close()
-	
-	#Connect to the secrets database
-	conn = sqlite3.connect(settings.DBdir + "secrets.db")
-	conn.row_factory = sqlite3.Row
-	c = conn.cursor()
-	
-	#Grab the user's secret entry
-	c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
-	
-	#append the secret to the list and close the connection
-	shares.append(c.fetchone())
-	conn.close()
-
-	#Create an empty string to hold the data
-	data = ""
-
-	#For each share
-	for i in range(len(shares) -1):
-		
-		#Add no data if this is a delete message
-		if shares[i] == None:
-			data += "NONE||"
-		
-		else:
-			#Append the share as a string to the data using the seperator ||
-			data += (str(shares[i]['id']) + "|" + str(shares[i]['share'] + "|" + str(shares[i]['timestamp'])) + "||")
-	
-	#Append the secrets entry to the data string
-	data += (str(shares[-1]['id']) + "|" + str(shares[-1]['name']) + "|" + str(shares[-1]['secret']) + "|" + str(shares[-1]['timestamp']))
-	
-	#Prepend a hash of the auth private key to the data
-	data = (rsa_encrypt.get_auth_hash() + "||" + data)
-
-	#Open a socket to the multicast address
+	#open socket to multicast address
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
 		
-		#Set the data header
-		data = "here:" + str(my_number) + ":" + data
+		#For each database
+		for i in settings.DBS:
 
-		#Encrypt the data and send it to the auth nodes
-		payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data)
-		s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
+			#Open a connection to the db
+			conn = sqlite3.connect(settings.DBdir + i + ".db")
+			conn.row_factory = sqlite3.Row
+			c = conn.cursor()
+
+			#Grab the provided user's share from this database
+			c.execute("SELECT * FROM enc_shares WHERE id = ?", [uid])
+
+			#append the share to the list and close the connection
+			shares.append(c.fetchone())
+			conn.close()
+		
+		#Connect to the secrets database
+		conn = sqlite3.connect(settings.DBdir + "secrets.db")
+		conn.row_factory = sqlite3.Row
+		c = conn.cursor()
+		
+		#Grab the user's secret entry
+		c.execute("SELECT * FROM secrets WHERE id = ?", [uid])
+		
+		#append the secret to the list and close the connection
+		shares.append(c.fetchone())
+		conn.close()
+
+		#For each share
+		for i in range(len(shares)-1):
+			
+			#Add no data if this is an empty message
+			if shares[i] == None:
+				continue
+			
+			else:
+				#Grab the data from current database as a string
+				data = settings.DBS[i] + "||" + str(shares[i]['id']) + "||" + str(shares[i]['share']) + "||" + str(shares[i]['timestamp'])
+				
+				#prepend header and send data
+				data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
+				s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
+		
+		#grab the data from the secrets database as a string
+		data = "secrets||" + str(shares[-1]['id']) + "||" + str(shares[-1]['name']) + "||" + str(shares[-1]['secret']) + "||" + str(shares[-1]['timestamp'])
+		
+		#Prepend header and send data
+		data = "here:" + str(my_number) + ":" + auth_hash + "||"+ data
+		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), data), ((settings.MULT_ADDR, settings.MULT_PORT)))
 
 
 #Send broadcasts to other auth nodes
 #This function is used to make sure all network actions are
 #handeled by the server code and to prevent 
 #This node from responding to its own message
-def broadcast_sender():
+def broadcast_socket():
 
 	#Create a local socket
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -381,9 +450,16 @@ def broadcast_sender():
 			cli, addr = s.accept()				
 			user = str(cli.recv(256), 'ascii')
 			broadcast(user)
-			
+
 			#close the client connection
 			cli.close()
+
+#Runs auth update every 3.5 minutes 
+def timer_update_start():
+    while 1 == 1:
+        time.sleep(60 * 3.5)
+        t = threading.Thread(target = auth_update.updateee, args=[my_number])
+        t.start()
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
@@ -395,7 +471,8 @@ def run():
 	#Run the auth node update process which is required for the server to start properly
 	
 	print("Looking for updates")
-	auth_update.updateee() 
+	auth_update.updateee(my_number)
+	threading.Thread(target=timer_update_start).start() 
 	
 	#Set up multicast listener
 	address = settings.MULT_ADDR
@@ -408,7 +485,7 @@ def run():
 	s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 	
 	#Start the listener for local inserts and deletes
-	threading.Thread(target=broadcast_sender).start()
+	threading.Thread(target=broadcast_socket).start()
 	
 	#Officialy start the server
 	while 1 == 1:
@@ -423,5 +500,3 @@ def run():
 		
 		except KeyboardInterrupt:
 			return
-		
-		

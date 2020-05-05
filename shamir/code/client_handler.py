@@ -117,16 +117,16 @@ def register():
         cli.send(payload + b"\x00" * (4096-len(payload)))
 
         #Grab the latest timestamp
-        timestamp = grab_timestamp()
+        timestamps = grab_timestamps()
 
         #Send the timestamp encrypted with the auth public key
-        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(timestamp)))
+        cli.send(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(timestamps)))
 
         #Run the update process
         num_updates = shamir_updater.update(cli)
         
         #make number presentable
-        if num_updates == None:
+        if num_updates == -1:
             num_updates = 0
         
         #Report shares
@@ -134,12 +134,11 @@ def register():
         
         #clean up and exit
         cli.close()
-        s.shutdown(socket.SHUT_RDWR)
     return
 
 
 #Returns the newest timestamp from the device db
-def grab_timestamp():
+def grab_timestamps():
     #create a database connection
     conn = sqlite3.connect(settings.DBdir + settings.ID + ".db")
     conn.row_factory = sqlite3.Row
@@ -148,14 +147,25 @@ def grab_timestamp():
     #initialize table if nonexistent
     c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
     
-    #Grab newest timestamp setting it to zero if there is none
-    c.execute("SELECT MAX(timestamp) from shares")
-    timestamp = c.fetchone()[0]
-    if timestamp == None:
-        timestamp = 0.0
+    #Grab timestamps from the db
+    c.execute("SELECT timestamp FROM shares")
+    timestamps = c.fetchall()
+    
+    #initalize paylaod string
+    payload = ""
+    
+    #handle for no timestamps
+    if timestamps == None:
+        payload = "0.0"
+
+    #If timestamps exist then concatenate into strings
+    else:
+        for i in timestamps:
+            payload = payload + str(i['timestamp']) + "|"
+        payload = payload[:-1]
 
     #return the timestamp
-    return timestamp
+    return payload
 
 
 #Runs node registration every 3.5 minutes 

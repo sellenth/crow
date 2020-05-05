@@ -7,6 +7,32 @@ import settings
 import base64
 
 
+#deletes a user from the database if appropriate
+def delete_user(conn, share):
+    c = conn.cursor()
+
+    #verify that the delete action is apprpriately timed
+    c.execute("SELECT timestamp FROM shares WHERE id = ?", [share[1]])
+    t = c.fetchone()
+
+    #if timestamp does not exist delete is not new
+    if t == None:
+        return 0
+    else: 
+        t = t['timestamp']
+
+    if float(share[2]) > t:
+
+        #Delete the share and commit the action
+        c.execute("DELETE FROM shares WHERE id = ?", [share[1]])
+        conn.commit()
+        return 1
+    
+    #delete is older than entry, will be resolvced shortly but is a true update
+    else:
+         return 1 
+
+
 #Update share databse based on a given share string 
 def update_db(data, conn):
 
@@ -24,11 +50,23 @@ def update_db(data, conn):
     share['key'] = data[3]
     share['timestamp'] = data[4]
 
-    #INSERT OR REPLACE the share into the database
-    c.execute("REPLACE INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
-    
-    #commit changes
-    conn.commit()
+    #grab current timestamp
+    c.execute("SELECT timestamp FROM shares WHERE id = ?", [share['id']])
+    t = c.fetchone()
+
+    #error handle timestamp
+    if t == None:
+        t = 0.0
+    else: 
+        t = t['timestamp']
+
+    #verift that entry is new
+    if float(share['timestamp']) > t:
+        #INSERT OR REPLACE the share into the database
+        c.execute("REPLACE INTO shares VALUES(?,?,?,?,?)", [share['id'], share['x'], share['y'], share['key'], share['timestamp']])
+        
+        #commit changes
+        conn.commit()
     return
 
 #update share database based on connecton to auth node
@@ -47,10 +85,11 @@ def update(cli):
     try:
         while 1==1:
             temp = cli.recv(4096)
-            if temp:
+            if temp and len(temp) == 4096:
                 data += temp
             else:
                 break
+        data += temp
     
     #if the connection dies
     except:
@@ -67,14 +106,18 @@ def update(cli):
     
     #If the data is invalid return an error
     if data == -1 or data == -2:
+        print("Error in transmission, updates will be applied shortly")
         return -1
 
     #Convert data to a list
     data = str(data, 'ascii').split(":")
-    
+
     #if no data then return
     if data == ['']:
         return 
+
+    #record number of updates
+    num_updates = len(data)
 
     #For each share
     for i in data:
@@ -84,10 +127,9 @@ def update(cli):
 
         #If user is marked for deletion
         if d[0] == "DEL":
-
-            #Delete the share and commit the action
-            conn.cursor().execute("DELETE FROM shares WHERE id = ?", [d[1]])
-            conn.commit()
+            new = delete_user(conn, d)
+            if not new:
+                num_updates -= 1
             continue
 
         #decrypt the share and concatenate it with the timestamp
@@ -98,4 +140,4 @@ def update(cli):
 
     #close the connection and return the number of shares commited
     conn.close()
-    return(len(data))
+    return num_updates

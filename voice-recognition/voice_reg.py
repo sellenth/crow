@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
             voicehash = base64.b64encode(hashlib.sha256(bytes(text, 'ascii')).digest())
 
-            s.send(bytes(sys.argv[1], 'ascii') + b":" + voicehash)
+            s.send(voicehash)
     else:
         print('calling convention: command <username> <audiofile>')
 
