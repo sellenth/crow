@@ -130,21 +130,21 @@ def list_users():
 def cli_register():
     #Ask for and recieve uid
     print("Enter user id: ")
-    uid = input().strip("\n")
+    uid = input().strip("\n").strip(":").strip("|")
 
     #Make sure the uid is less than 16 characters
     while len(uid) > 16:
         print("lets keep it under 16 chars")
-        uid = input().strip("\n")
+        uid = input().strip("\n").strip(":").strip("|")
 
     #Ask for the user's name 
     print("Enter user's name: ")
-    name = input().strip("\n")
+    name = input().strip("\n").strip(":").strip("|")
 
     #Keep the name shorter than 16 characters
     while len(name) > 16:
         print("lets keep it under 16 chars")
-        name = input().strip("\n")
+        name = input().strip("\n").strip(":").strip("|")
 
     #Holder for user keys
     keys = []
@@ -154,12 +154,12 @@ def cli_register():
 
         #Prompt for password
         print("Enter the user's password for the " + i + " database: ")
-        temp = input().strip("\n")
+        temp = input().strip("\n").strip(":").strip("|")
         
         #Make sure the password isnt longer than a sha256 hash
         while len(temp) > 66:
             print("lets keep it under 66 chars")
-            name = input().strip("\n")
+            name = input().strip("\n").strip(":").strip("|")
         
         #append the key to the list
         keys.append(temp)
@@ -175,21 +175,21 @@ def cli_register():
 def net_register():
     #Ask for and recieve uid
     print("Enter user id: ")
-    uid = input().strip("\n")
+    uid = input().strip("\n").strip(":").strip("|")
 
     #Make sure the uid is less than 16 characters
     while len(uid) > 16:
         print("lets keep it under 16 chars")
-        uid = input().strip("\n")
+        uid = input().strip("\n").strip(":").strip("|")
 
     #Ask for the user's name 
     print("Enter user's name: ")
-    name = input().strip("\n")
+    name = input().strip("\n").strip(":").strip("|")
 
     #Keep the name shorter than 16 characters
     while len(name) > 16:
         print("lets keep it under 16 chars")
-        name = input().strip("\n")
+        name = input().strip("\n").strip(":").strip("|")
 
     #Holder for user keys
     keys = []
@@ -209,7 +209,7 @@ def net_register():
             cli, addr = s.accept()
 
             #Get password
-            temp = str(cli.recv(128), 'ascii').strip("\n")
+            temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
             
             #Close connection
             cli.close()
