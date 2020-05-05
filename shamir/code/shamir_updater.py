@@ -15,9 +15,9 @@ def delete_user(conn, share):
     c.execute("SELECT timestamp FROM shares WHERE id = ?", [share[1]])
     t = c.fetchone()
 
-    #error handle timestamp
+    #if timestamp does not exist delete is not new
     if t == None:
-        t = 0.0
+        return 0
     else: 
         t = t['timestamp']
 
@@ -28,9 +28,9 @@ def delete_user(conn, share):
         conn.commit()
         return 1
     
-    #if delete wasnt new report it
+    #delete is older than entry, will be resolvced shortly but is a true update
     else:
-         return 0
+         return 1 
 
 
 #Update share databse based on a given share string 

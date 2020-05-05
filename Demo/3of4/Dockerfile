@@ -11,8 +11,8 @@ RUN mkdir /var/run/sshd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-RUN pip3 install qrtools shamir
-RUN npm install fs qrcode-reader jimp net
+RUN pip3 install qrcode SpeechRecognition pillow shamir
+RUN npm install fs qrcode-reader jimp net 
 EXPOSE 22 3001
 #Change root password
 RUN echo "root:crow" | chpasswd
