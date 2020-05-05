@@ -29,7 +29,7 @@ def add_line(username, conn):
 #authenticate a user based on a given id and share
 #shares | id (PRIMARY KEY) | x1 | x2 | x3 | y1 | y2 | y3 | num_shares | timestamp
 def auth_user(incoming, conn):
-	
+
 	print("Recieved Share from Client Node")
 
 	#grab username and start db cursor
