@@ -45,6 +45,19 @@ app.post('/auth', (req, res) => {
   res.status(200).send()
 })
 
+function CommWithSocket(payload){
+    client.connect(55556, 'localhost', function () {
+      client.write(payload)
+    })
+
+    client.on('error', function(err){
+      console.error(err);
+    })
+
+    client.close
+
+}
+
 app.get('/keypad', (req, res) => {
   res.sendFile(path.join(__dirname + '/public/html/index.html'));
 })
@@ -71,6 +84,8 @@ app.get('/sendit', (req, res) => {
     "Recieved Share from Client Node\n" +
     "r3k has submitted 1 shares!\n" +
     "tim has submitted 1 shares!\n" +
+    "jim has submitted 1 shares!\n" +
+    "prim has submitted 1 shares!\n" +
     "r3k has submitted 1 shares!\n" +
     "r3k has submitted 1 shares!\n" +
     "r3k has submitted 1 shares!\n" +
@@ -170,4 +185,5 @@ const io = socketIO(server);
 
 io.on("connection", socket => {
   socket.on("disconnect", () => console.log('A client disconnected'));
+  socket.on("qrchannel", (dat) => CommWithSocket(dat));
 })
