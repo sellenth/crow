@@ -8,7 +8,6 @@ from keras.models import load_model
 from mtcnn import MTCNN
 import cv2
 import face_database as db
-import time
 
 detector = MTCNN()
 
@@ -116,46 +115,3 @@ def lowest_euclidian_distance_list(embed,model,upper,lower):
                 break   
     return classification_list
 
-def get_face_from_camera():
-
-    cap = cv2.VideoCapture(0)
-    c = -1
-    face = None
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        if ret==True:
-            cv2.imshow('frame',frame)
-            if c == 20 or c == -1:
-                face = get_face_frame(frame)
-                if face is not None:
-                    face = format_face_frame(face,frame)
-                    break
-                c = 0
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            c+=1
-            
-        else:
-            break
-
-    # Release everything if job is finished
-    cap.release()
-    cv2.destroyAllWindows()
-    return face
-
-def main():
-    model = load_model("./facenet_keras.h5")
-    # db_conn = db.init_db()
-    # all_embeds = db.getall_from_db(db_conn)
-    # print(all_embeds)
-
-    face = get_face_from_camera()
-    embeds = get_embeddings(np.array([face]),model)
-    cv2.imshow("face",face)
-    cv2.waitKey(0)
-
-
-
-  
-if __name__ == "__main__":
-  main()
