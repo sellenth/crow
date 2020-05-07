@@ -4,6 +4,7 @@ const http = require('http')
 const path = require('path')
 const cors = require('cors')
 const socketIO = require('socket.io')
+const spawn = require('child_process').spawn;
 const fs = require('fs')
 const net = require('net');
 const client = new net.Socket();
@@ -99,7 +100,6 @@ app.get('/', (req, res) => {
 })
 
 function caw(){
-  var spawn = require('child_process').spawn;
   var process = spawn('netcat', 
     ["-l", "-p", "55556", "-k"],
     {cwd: '../shamir/code/'})
@@ -186,4 +186,35 @@ const io = socketIO(server);
 io.on("connection", socket => {
   socket.on("disconnect", () => console.log('A client disconnected'));
   socket.on("qrchannel", (dat) => CommWithSocket(dat));
+  socket.on("voiceChannel", (dat) => VoiceRecognition(dat));
 })
+
+function VoiceRecognition(blob) {
+  fs.writeFile('../voice-recognition/capture.ogg', blob, (err) => {
+    if (!err) {
+
+      var process = spawn('ffmpeg',
+        ["-i", "./capture.ogg", "-vn", "./capture.wav", "-y"],
+        { cwd: '../voice-recognition/' })
+
+      process.stderr.on('data', function (data) {
+        console.log(data.toString())
+      });
+
+      process.on('close', () => {
+        var p2 = spawn('python3',
+          ["voice.py", "halston", "capture.wav"],
+          { cwd: '../voice-recognition/' })
+        
+          p2.stdout.on('data', function (data) {
+            console.log('--transcription is ', data.toString())
+            io.sockets.emit('voiceChannel', data.toString())
+          })
+
+          process.stderr.on('data', function (data) {
+            console.log(data.toString())
+          });
+      })
+    }
+  })
+}
