@@ -6,7 +6,6 @@ import rsa_encrypt
 import settings
 import threading
 import numpy as np
-import json
 from face_recog import *
 
 
@@ -63,8 +62,8 @@ def auth_user(user, db,key):
         return
 
     if db == 'face':
-        incoming_embed = np.asarray(list(map(np.float,json.loads(key))))
-        database_embed = np.asarray(list(map(np.float,json.loads(share["key"]))))
+        incoming_embed = string_to_embed(key)
+        database_embed = string_to_embed(share["key"])
         num_face = share["num_faces"]
         database_embed_norm = database_embed / num_face
         dist = get_euclidian_distance(incoming_embed,database_embed_norm)
@@ -73,7 +72,7 @@ def auth_user(user, db,key):
             conn = sqlite3.connect(settings.DBdir + settings.ID + ".db")
             c = conn.cursor()
             new_db_embed = incoming_embed + database_embed
-            new_db_embed_str = json.dumps([str(i) for i in list(new_db_embed)])
+            new_db_embed_str = embed_to_string(new_db_embed)
             new_num_face = num_face + 1
             params = (new_db_embed_str, new_num_face, share["id"])
             c.execute('UPDATE shares SET key=?,num_faces=? WHERE id=?',params)

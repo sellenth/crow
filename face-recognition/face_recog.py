@@ -79,35 +79,9 @@ def get_embeddings(imgs,model):
 def get_euclidean_distance(emb1,emb2):
    return np.linalg.norm(emb1-emb2)
 
-# #gets the embedding with the shortest euclidian distance to the input embedding
+def embed_to_string(embed):
+    return ",".join([str(i) for i in list(embed)])
 
-# def lowest_euclidian_distance(embed,model):
-#     dataset = load('face_embeds_dataset.npz')
-#     labels_train,embeds_train, images_train = dataset['arr_0'], dataset['arr_1'], dataset['arr_2']
-#     lowest = 10
-#     classification = "None"
-#     for i in range(len(embeds_train)):
-#         for j in range(len(embeds_train[i])):
-#             dist = get_euclidean_distance(embeds_train[i][j],embed)
-#             if dist < lowest:
-#                 lowest = dist
-#                 classification = labels_train[i]
-#     if lowest == 10:
-#         print("ERROR in finding match: could not find match")
-#     return lowest,classification
-    
-# #return list of embeddings that fall below a certain threshold
-
-# def lowest_euclidian_distance_list(embed,model,upper,lower):
-#     dataset = load('face_embeds_dataset.npz')
-#     labels_train,embeds_train, images_train = dataset['arr_0'], dataset['arr_1'], dataset['arr_2']
-#     classification_list = []
-#     for i in range(len(embeds_train)):
-#         for j in range(len(embeds_train[i])):
-#             dist = get_euclidean_distance(embeds_train[i][j],embed)
-#             if dist >= upper:
-#                 break
-#             if dist <= lower:
-#                 classification_list.append((labels_train[i],dist)) 
-#                 break   
-#     return classification_list
+def string_to_embed(string):
+    embed = np.array(string.split(","))
+    return embed.astype(np.float)

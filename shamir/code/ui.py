@@ -5,8 +5,8 @@ import socket
 import sqlite3
 import time
 import sys
-import json
 from face_register import *
+from face_recog import *
 
 #Delete all entries refering to a specefic id
 def delete_all(uid):
@@ -161,7 +161,7 @@ def cli_register():
             if embed is None:
                 # Handle error in registering face if needed
                 pass
-            tmp = json.dumps([str(i) for i in list(embed)])
+            tmp = embed_to_string(embed)
             keys.append(tmp)
         else:
 

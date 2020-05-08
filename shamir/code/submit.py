@@ -3,7 +3,7 @@
 import socket
 import settings
 from face_submit import *
-import json
+from face_recog import *
 
 #This program sends user input to the local client to authenticate
 if __name__ == "__main__":
@@ -22,7 +22,7 @@ if __name__ == "__main__":
             usr = input().strip("\n")
             print("Getting User's Face...")
             embed = submit_face()
-            embed_str = json.dumps([str(i) for i in list(embed)])
+            embed_str = embed_to_string(embed)
             s.send(bytes(usr + ":" + embed_str, 'ascii'))
 
         else:
