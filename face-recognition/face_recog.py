@@ -1,18 +1,14 @@
 import os
 import os.path
 import numpy as np
-from numpy import savez_compressed
-from numpy import load
 from numpy import expand_dims
 from keras.models import load_model
 from mtcnn import MTCNN
 import cv2
-import face_database as db
-
-detector = MTCNN()
 
 def get_face(file):
     IMAGE_SIZE = (160,160)
+    detector = MTCNN()
     try:
         img = cv2.cvtColor(cv2.imread(file),cv2.COLOR_BGR2RGB)
         faces = detector.detect_faces(img)
@@ -28,6 +24,7 @@ def get_face(file):
 
 
 def get_face_frame(frame):
+    detector = MTCNN()
     faces = detector.detect_faces(frame)
     if len(faces) < 1:
         print('No faces detected')
@@ -82,36 +79,35 @@ def get_embeddings(imgs,model):
 def get_euclidean_distance(emb1,emb2):
    return np.linalg.norm(emb1-emb2)
 
-#gets the embedding with the shortest euclidian distance to the input embedding
+# #gets the embedding with the shortest euclidian distance to the input embedding
 
-def lowest_euclidian_distance(embed,model):
-    dataset = load('face_embeds_dataset.npz')
-    labels_train,embeds_train, images_train = dataset['arr_0'], dataset['arr_1'], dataset['arr_2']
-    lowest = 10
-    classification = "None"
-    for i in range(len(embeds_train)):
-        for j in range(len(embeds_train[i])):
-            dist = get_euclidean_distance(embeds_train[i][j],embed)
-            if dist < lowest:
-                lowest = dist
-                classification = labels_train[i]
-    if lowest == 10:
-        print("ERROR in finding match: could not find match")
-    return lowest,classification
+# def lowest_euclidian_distance(embed,model):
+#     dataset = load('face_embeds_dataset.npz')
+#     labels_train,embeds_train, images_train = dataset['arr_0'], dataset['arr_1'], dataset['arr_2']
+#     lowest = 10
+#     classification = "None"
+#     for i in range(len(embeds_train)):
+#         for j in range(len(embeds_train[i])):
+#             dist = get_euclidean_distance(embeds_train[i][j],embed)
+#             if dist < lowest:
+#                 lowest = dist
+#                 classification = labels_train[i]
+#     if lowest == 10:
+#         print("ERROR in finding match: could not find match")
+#     return lowest,classification
     
-#return list of embeddings that fall below a certain threshold
+# #return list of embeddings that fall below a certain threshold
 
-def lowest_euclidian_distance_list(embed,model,upper,lower):
-    dataset = load('face_embeds_dataset.npz')
-    labels_train,embeds_train, images_train = dataset['arr_0'], dataset['arr_1'], dataset['arr_2']
-    classification_list = []
-    for i in range(len(embeds_train)):
-        for j in range(len(embeds_train[i])):
-            dist = get_euclidean_distance(embeds_train[i][j],embed)
-            if dist >= upper:
-                break
-            if dist <= lower:
-                classification_list.append((labels_train[i],dist)) 
-                break   
-    return classification_list
-
+# def lowest_euclidian_distance_list(embed,model,upper,lower):
+#     dataset = load('face_embeds_dataset.npz')
+#     labels_train,embeds_train, images_train = dataset['arr_0'], dataset['arr_1'], dataset['arr_2']
+#     classification_list = []
+#     for i in range(len(embeds_train)):
+#         for j in range(len(embeds_train[i])):
+#             dist = get_euclidean_distance(embeds_train[i][j],embed)
+#             if dist >= upper:
+#                 break
+#             if dist <= lower:
+#                 classification_list.append((labels_train[i],dist)) 
+#                 break   
+#     return classification_list

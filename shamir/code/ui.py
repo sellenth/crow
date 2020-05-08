@@ -4,7 +4,9 @@ import shamir_gen
 import socket
 import sqlite3
 import time
-
+import sys
+import json
+from face_register import *
 
 #Delete all entries refering to a specefic id
 def delete_all(uid):
@@ -152,17 +154,28 @@ def cli_register():
     #For each db
     for i in settings.DBS:
 
-        #Prompt for password
-        print("Enter the user's password for the " + i + " database: ")
-        temp = input().strip("\n").strip(":").strip("|")
+        # register user's face
+        if i is "face":
+            print("Registering user's face")
+            embed = register_face()
+            if embed is None:
+                # Handle error in registering face if needed
+                pass
+            tmp = json.dumps([str(i) for i in list(embed)])
+            keys.append(tmp)
+        else:
+
+            #Prompt for password
+            print("Enter the user's password for the " + i + " database: ")
+            temp = input().strip("\n").strip(":").strip("|")
+            
+            #Make sure the password isnt longer than a sha256 hash
+            while len(temp) > 66:
+                print("lets keep it under 66 chars")
+                name = input().strip("\n").strip(":").strip("|")
         
-        #Make sure the password isnt longer than a sha256 hash
-        while len(temp) > 66:
-            print("lets keep it under 66 chars")
-            name = input().strip("\n").strip(":").strip("|")
-        
-        #append the key to the list
-        keys.append(temp)
+            #append the key to the list
+            keys.append(temp)
 
     #Send the gathered information to be entered into the proper databases
     shamir_gen.add_user(uid, name, keys)

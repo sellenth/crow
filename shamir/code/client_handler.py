@@ -11,6 +11,7 @@ import sqlite3
 import shamir_updater
 import time
 import shamir_client
+from face_database import *
 
 #Host object to hold multicast information
 class Host():
@@ -144,8 +145,11 @@ def grab_timestamps():
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
-    #initialize table if nonexistent
-    c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
+    if settings.ID == 'face':
+        c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE, num_faces integer)")
+    else:
+        #initialize table if nonexistent
+        c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
     
     #Grab timestamps from the db
     c.execute("SELECT timestamp FROM shares")

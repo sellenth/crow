@@ -70,4 +70,3 @@ def register_face():
         print("Successfully saved! exiting...")
         return embed[0]
 
-register_face()

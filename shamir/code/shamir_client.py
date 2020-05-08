@@ -5,6 +5,9 @@ import aes_crypt
 import rsa_encrypt
 import settings
 import threading
+import numpy as np
+import json
+from face_recog import *
 
 
 #Host object to store multicast information
@@ -59,11 +62,29 @@ def auth_user(user, db,key):
     if share == -1:
         return
 
-    #Make sure that the given key matches the key in the database 
-    #and that the key is not null
-    if key == share["key"] and not key == "":
-        #Send the share if the key is valid
-        send_share(share, Host())
+    if db == 'face':
+        incoming_embed = np.asarray(list(map(np.float,json.loads(key))))
+        database_embed = np.asarray(list(map(np.float,json.loads(share["key"]))))
+        num_face = share["num_faces"]
+        database_embed_norm = database_embed / num_face
+        dist = get_euclidian_distance(incoming_embed,database_embed_norm)
+        if dist <= settings.FACE_THRESH:
+            send_share(share, Host())
+            conn = sqlite3.connect(settings.DBdir + settings.ID + ".db")
+            c = conn.cursor()
+            new_db_embed = incoming_embed + database_embed
+            new_db_embed_str = json.dumps([str(i) for i in list(new_db_embed)])
+            new_num_face = num_face + 1
+            params = (new_db_embed_str, new_num_face, share["id"])
+            c.execute('UPDATE shares SET key=?,num_faces=? WHERE id=?',params)
+            
+    else:
+
+        #Make sure that the given key matches the key in the database 
+        #and that the key is not null
+        if key == share["key"] and not key == "":
+            #Send the share if the key is valid
+            send_share(share, Host())
 
 
 #Recieves the user credentials from another process on the same host
