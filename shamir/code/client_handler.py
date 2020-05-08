@@ -11,7 +11,6 @@ import sqlite3
 import shamir_updater
 import time
 import shamir_client
-from face_database import *
 
 #Host object to hold multicast information
 class Host():
