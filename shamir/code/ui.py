@@ -162,6 +162,7 @@ def cli_register():
                 # Handle error in registering face if needed
                 pass
             tmp = embed_to_string(embed)
+            tmp = "1," + tmp
             keys.append(tmp)
         else:
 
@@ -172,7 +173,7 @@ def cli_register():
             #Make sure the password isnt longer than a sha256 hash
             while len(temp) > 66:
                 print("lets keep it under 66 chars")
-                name = input().strip("\n").strip(":").strip("|")
+                temp = input().strip("\n").strip(":").strip("|")
         
             #append the key to the list
             keys.append(temp)

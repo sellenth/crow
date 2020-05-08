@@ -144,11 +144,8 @@ def grab_timestamps():
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
-    if settings.ID == 'face':
-        c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE, num_faces integer)")
-    else:
-        #initialize table if nonexistent
-        c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
+    #initialize table if nonexistent
+    c.execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY, x, y, key, timestamp DOUBLE)")
     
     #Grab timestamps from the db
     c.execute("SELECT timestamp FROM shares")
