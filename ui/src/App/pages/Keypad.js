@@ -68,7 +68,7 @@ export default class Keypad extends React.Component {
     }
 
     check_complete() {
-        if (pw.length >= 3) {
+        if (pw.length >= 6) {
             var http = new XMLHttpRequest();
             var url = 'http://localhost:3001/auth';
             http.open('POST', url, true);

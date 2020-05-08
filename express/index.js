@@ -3,6 +3,7 @@ const app = express()
 const http = require('http')
 const path = require('path')
 const cors = require('cors')
+const sha256 = require('js-sha256').sha256
 const socketIO = require('socket.io')
 const spawn = require('child_process').spawn;
 const fs = require('fs')
@@ -11,7 +12,7 @@ const client = new net.Socket();
 const cookieParser = require('cookie-parser')
 const port = 3001
 const pathToSettings = '../shamir/code/settings.py';
-var settings = {}
+const settings = {}
 
 // Middleware
 app.use(express.static('public'))
@@ -24,35 +25,35 @@ app.use(cors())
 
 // Authentication route
 app.post('/auth', (req, res) => {
+  console.log('-- In Authentication route')
   const username = req.body.username;
   const pw = req.body.pw;
-
-  if (pw === '111' || pw === '222'){
-
-    client.connect(55556, 'localhost', function () {
-      //client.write(username + ':' + pw); THE ACTUAL MESSAGE TO SEND
-      pw === '111' ? 
-        client.write("r3k has submitted 1 shares!") // demo message
-        : client.write("tim has submitted 1 shares!") // demo message
-    })
-
-    client.on('error', function(err){
-      console.log("Error: "+err.message);
-    })
-
-    client.close
-  }
-
+  CommWithSocket(username, pw)
   res.status(200).send()
 })
 
-function CommWithSocket(payload){
+function CommWithSocket(username, password){
+    let pw_hash = sha256(password)
+    let buff = new Buffer(pw_hash)
+    let base64enc = buff.toString('base64')
+    let payload = username + ':'+ base64enc
+    console.log("-- In CommWithSocket, received this payload: " + payload)
+    console.log("-- The username is: " + username + ' and the password is: ' + password)
     client.connect(55556, 'localhost', function () {
       client.write(payload)
     })
 
     client.on('error', function(err){
       console.error(err);
+      client.destroy()
+    })
+
+    // getting errors that socket was already connected
+    // now destroying socket after .25 seconds
+    // might become problematic if message can't be sent
+    // that quickly
+    client.setTimeout(250, () => {
+      client.destroy()
     })
 
     client.close
@@ -69,7 +70,7 @@ app.get('/settings', (req, res) => {
   res.json(settings);
 })
 
-// Serve correct homescreen for node type
+// an endpoint for testing, will remove
 app.get('/sendit', (req, res) => {
   //caw();
   io.sockets.emit('testchannel',
@@ -92,7 +93,7 @@ app.get('/sendit', (req, res) => {
     "r3k has submitted 1 shares!\n" +
     "(r3k) is Authorized!\n"
     )
-  res.send('hi')
+  res.end()
 })
 
 app.get('/', (req, res) => {
@@ -100,12 +101,12 @@ app.get('/', (req, res) => {
 })
 
 function caw(){
-  var process = spawn('netcat', 
-    ["-l", "-p", "55556", "-k"],
+  console.log('-- Spawning crow caw process')
+  var process = spawn('crow_caw', [],
     {cwd: '../shamir/code/'})
 
   process.stdout.on('data', function(data){
-    console.log(data.toString())
+    console.log('-- Caw stdout: ' + data.toString())
     io.sockets.emit('testchannel', data.toString())
   })
 
@@ -185,11 +186,11 @@ const io = socketIO(server);
 
 io.on("connection", socket => {
   socket.on("disconnect", () => console.log('A client disconnected'));
-  socket.on("qrchannel", (dat) => CommWithSocket(dat));
-  socket.on("voiceChannel", (dat) => VoiceRecognition(dat));
+  socket.on("qrchannel", (username, password) => CommWithSocket(username, password));
+  socket.on("voiceChannel", (username, dat) => VoiceRecognition(username, dat));
 })
 
-function VoiceRecognition(blob) {
+function VoiceRecognition(username, blob) {
   fs.writeFile('../voice-recognition/capture.ogg', blob, (err) => {
     if (!err) {
 
@@ -197,22 +198,20 @@ function VoiceRecognition(blob) {
         ["-i", "./capture.ogg", "-vn", "./capture.wav", "-y"],
         { cwd: '../voice-recognition/' })
 
-      process.stderr.on('data', function (data) {
-        console.log(data.toString())
-      });
-
       process.on('close', () => {
         var p2 = spawn('python3',
           ["voice.py", "halston", "capture.wav"],
           { cwd: '../voice-recognition/' })
         
           p2.stdout.on('data', function (data) {
-            console.log('--transcription is ', data.toString())
+            console.log('-- In voice recognition, transcript is: ' + data.toString())
+            let payload = username + ':' + data.toString()
+            //CommWithSocket(payload)
             io.sockets.emit('voiceChannel', data.toString())
           })
 
           process.stderr.on('data', function (data) {
-            console.log(data.toString())
+            console.error(data.toString())
           });
       })
     }

@@ -1,8 +1,8 @@
 import React from 'react'
+import { Container, Row, Col } from 'react-bootstrap'
 import { GiSpeaker, GiCyborgFace, GiLockedFortress } from 'react-icons/gi'
 import { FaBarcode, FaGlobe, FaServer } from 'react-icons/fa'
 import { IconContext } from "react-icons";
-import { Container, Row, Col } from 'react-bootstrap'
 
 import './Dashboard.css'
 

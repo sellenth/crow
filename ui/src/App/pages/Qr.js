@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import QrReader from 'react-qr-reader'
 import './Qr.css'
 
-
 export default class Qr extends Component {
     state = {
         result: 'No result'
@@ -14,7 +13,10 @@ export default class Qr extends Component {
             this.setState({
                 result: data
             })
-            this.props.socket.emit('qrchannel', data)
+            let colonPos = data.indexOf(':')
+            let username = data.slice(0, colonPos)
+            let password = data.slice(colonPos + 1)
+            this.props.socket.emit('qrchannel', username, password)
             setTimeout(() => {
                 this.setState({
                     result: 'No result'
@@ -37,9 +39,9 @@ export default class Qr extends Component {
                 alignItems: "center"
             }}>
                 {this.state.result === 'No result' &&
-                    <h1>Scan your QR Code</h1>}
+                    <h1 style={{fontSize: '4em'}}>Scan your QR Code</h1>}
                 {this.state.result !== 'No result' &&
-                    <h1>QR scan has been received!</h1>}
+                    <h1 style={{fontSize: '4em'}}>QR scan has been received!</h1>}
                 <QrReader
                     delay={300}
                     onError={this.handleError}

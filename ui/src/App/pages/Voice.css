@@ -4,6 +4,11 @@
   background: #EEEEEE;
 }
 
+h1 {
+  font-size: 6em;
+  font-weight: 600;
+}
+
 .styled__control-is-focused {
   outline: 0;
 }
@@ -31,4 +36,33 @@
 
 .play-stop:focus {
   outline: 0;
+}
+
+.w_content {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+  .w_content h2 {
+    margin-right: 10px;
+    margin-bottom: 0px;
+  }
+
+  #i_username {
+    font-family: 'Questrial', sans-serif;
+    font-weight: bold;
+    font-size: 2em;
+    height: 100%;
+    background-color: #EEEEEE;
+    border-style: none;
+  }
+  
+  #i_username:focus {
+    outline: 0;
+  }
+
+#i_username {
+  display: inline-block;
 }
