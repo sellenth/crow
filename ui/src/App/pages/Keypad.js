@@ -70,7 +70,7 @@ export default class Keypad extends React.Component {
     check_complete() {
         if (pw.length >= 6) {
             var http = new XMLHttpRequest();
-            var url = 'http://localhost:3001/auth';
+            var url = window.location.href + 'auth';
             http.open('POST', url, true);
 
             //Send the proper header information along with the request

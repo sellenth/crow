@@ -4,7 +4,7 @@
 DBS = ["face", "qr", "voice", "web", "other"]
 
 #The identity of this node, should be auth or one of the database names
-ID = 'auth'
+ID = 'qr'
 
 #The total number of nodes in this system
 TOTAL = 5
