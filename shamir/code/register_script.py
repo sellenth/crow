@@ -12,6 +12,7 @@ def net_register():
 
     #Create a socket to get user passwords
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+
         s.bind(('127.0.0.1', 55557))
         s.listen(5)
 
