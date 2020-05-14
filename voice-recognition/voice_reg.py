@@ -18,7 +18,7 @@ if __name__ == "__main__":
             audio = r.record(source)
 
             try:
-                text = r.recognize_google(audio)
+                text = r.recognize_google(audio).lower().strip()
                 print(text)
             except:
                 print('Sorry could not recognize your voice')

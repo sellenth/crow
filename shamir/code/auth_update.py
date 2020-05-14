@@ -179,7 +179,7 @@ def challenge(my_number):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
             #sets a small timeout in case this is the first auth node in the system or the response is delayed
             us.settimeout(1)
-            us.bind(('0.0.0.0', 44443))
+            us.bind(('0.0.0.0', 55551))
 
             #Sends a messafe to the other auth nodes to start a contest
             s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "regA:"+str(my_number)), ((host.host, host.port)))
@@ -209,7 +209,7 @@ def updateee(my_number):
 
     #open socket to recieve shares into
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('0.0.0.0', 44441))
+        s.bind(('0.0.0.0', 55552))
         s.listen(5)
         address = 0
         
@@ -303,7 +303,7 @@ def updater(address):
 
     #Open a socket to send the shares from, connecting to the provided address
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((address, 44441))
+        s.connect((address, 55552))
 
         #create a random number for the challenge response authentication
         challenge = int.from_bytes(Random.get_random_bytes(10), 'big')

@@ -3,9 +3,9 @@ FROM ubuntu:18.04
 #Install and configure necessary tools
 RUN apt update 
 RUN apt -y upgrade 
-RUN apt install -y openssh-server python3-pip tmux git netcat --fix-missing
+RUN apt install -y openssh-server python3-pip tmux git ffmpeg netcat --fix-missing
 RUN apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN apt install -y nodejs
 RUN mkdir /var/run/sshd
 RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
@@ -24,8 +24,6 @@ RUN mkdir app
 COPY crow /app/crow
 WORKDIR "/app/crow/express"
 RUN npm install
-WORKDIR "/app/crow/ui"
-RUN npm run-script build
 WORKDIR "/app/crow"
 RUN rm -rf shamir/assets
 COPY crow/Demo/2of5/assets shamir/assets
