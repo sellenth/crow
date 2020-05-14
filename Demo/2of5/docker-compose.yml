@@ -10,6 +10,7 @@ services:
         hostname: auth1
         ports:
             - "44444:22"
+            - "4001:3001"
         networks: 
             - bridge
         volumes:
@@ -40,6 +41,7 @@ services:
         hostname: face
         ports:
             - "44440:22"
+            - "4002:3001"
         networks: 
             - bridge
         volumes:
@@ -54,6 +56,7 @@ services:
         hostname: qr
         ports:
             - "44442:22"
+            - "4003:3001"
         networks: 
             - bridge
         volumes:
@@ -69,6 +72,7 @@ services:
         hostname: voice
         ports:
             - "44443:22"
+            - "4004:3001"
         networks: 
             - bridge
         volumes:
@@ -84,6 +88,7 @@ services:
         hostname: web
         ports:
             - "44441:22"
+            - "4005:3001"
         networks: 
             - bridge
         volumes:
