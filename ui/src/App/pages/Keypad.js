@@ -9,7 +9,7 @@ export default class Keypad extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            opened: false,
+            opened: false || this.props.register
         };
 
 
@@ -70,12 +70,16 @@ export default class Keypad extends React.Component {
     check_complete() {
         if (pw.length >= 6) {
             var http = new XMLHttpRequest();
-            var url = window.location.href + 'auth';
+            var url = 'https://' + window.location.hostname + ':3001' + '/auth';
             http.open('POST', url, true);
 
             //Send the proper header information along with the request
             http.setRequestHeader('Content-type', 'application/json;charset=UTF-8');
-            http.send(JSON.stringify({ "username": cookies.get('username'),"pw": pw }));
+            let shouldRegister = this.props.register ? 1 : 0;
+            http.send(JSON.stringify({
+                "username": shouldRegister ? "" : cookies.get('username'),
+                "pw": pw,
+                "register": shouldRegister }));
 
             pw = '';
             this.clr();
@@ -107,7 +111,7 @@ export default class Keypad extends React.Component {
 
 
     render() {
-        const { opened } = this.state;
+        const opened = this.state.opened
         return (
             <div className='outer'>
                 {!opened && this.WelcomePage()} 

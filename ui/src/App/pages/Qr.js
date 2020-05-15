@@ -16,7 +16,8 @@ export default class Qr extends Component {
             let colonPos = data.indexOf(':')
             let username = data.slice(0, colonPos)
             let password = data.slice(colonPos + 1)
-            this.props.socket.emit('qrchannel', username, password)
+            let register = this.props.register ? 1 : 0
+            this.props.socket.emit('qrchannel', username, password, register)
             setTimeout(() => {
                 this.setState({
                     result: 'No result'

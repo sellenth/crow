@@ -19,8 +19,6 @@ def net_register():
         #For each db
         for i in settings.DBS:
             
-            #TODO SPAWN PROCESS in "node_programs.txt"
-
             #accept connection
             cli, addr = s.accept()
 
@@ -31,10 +29,12 @@ def net_register():
             cli.close()
 
             #Make sure the password isnt longer than a sha256 hash
-            if len(temp) > 66:
-                print("ERROR recieving pass, needs to be under 66 chars")
-                return
+            #if len(temp) > 66:
+            #    print("ERROR recieving pass, needs to be under 66 chars")
+            #    return
             
+            print("SUCCESS received a pass")
+            sys.stdout.flush()
             #append the key to the list
             keys.append(temp)
 

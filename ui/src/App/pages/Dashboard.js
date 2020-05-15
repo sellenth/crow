@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container, Row, Col } from 'react-bootstrap'
+import { Container, Row, Col, Button } from 'react-bootstrap'
 import { GiSpeaker, GiCyborgFace, GiLockedFortress } from 'react-icons/gi'
 import { FaBarcode, FaGlobe, FaServer } from 'react-icons/fa'
 import { IconContext } from "react-icons";
@@ -128,9 +128,17 @@ export default class Dashboard extends React.Component {
         this.el.scrollIntoView({ behavior: 'smooth' });
     }
 
+    initiateRegister() {
+        //I need to create a modal that asks for username and fullname
+        //then pass it to this handler 
+        //this.props.registerHandler()
+    }
 
     render() {
         return <div style={{ height: "100%"}}>
+            <Button variant="dark" onClick={this.initiateRegister}>
+                Register a user
+            </Button>
             <h3 className="section_heading">Nodes Online</h3>
             <RenderMap active={this.state.nodes} threshold={this.props.threshold} />
             <br></br>

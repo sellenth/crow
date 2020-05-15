@@ -32,7 +32,8 @@ app.post('/auth', (req, res) => {
   console.log('-- In Authentication route')
   const username = req.body.username;
   const pw = req.body.pw;
-  CommWithSocket(username, pw)
+  const register = req.body.register;
+  CommWithSocket(username, pw, register)
   res.status(200).send()
 })
 
@@ -41,28 +42,38 @@ app.post('/auth', (req, res) => {
 
 // This function sends user data to 55556 where it is
 // ingested by crow_caw and processed by the client/auth node
-function CommWithSocket(username, password, encrypt){
+function CommWithSocket(username, password, registerFlag){
+    if (password.length > 66){
+      io.emit("ErrChannel", "Password is too long to be securely hashed, try a shorter one")
+      return
+    }
     devOut("-- The username is: " + username + ' and the password is: ' + password)
+    let payload
 
-    // the encrypt flag is used only when
-    // registering user data
-    if (encrypt) {
+    // When registering a user we send only a hash of their password
+    if (registerFlag) {
+      devOut("-- User is being registered")
       let pw_hash = sha256(password)
+      devOut("-- Length of pw hash is: " + pw_hash.length)
       let buff = new Buffer(pw_hash)
       password = buff.toString('base64')
+      payload = password
+    }
+    // When authenticating a user, we send their username and password (unhashed)
+    else {
+      payload = username + ':' + password
     }
 
-    let payload = username + ':' + password
     console.log("-- In CommWithSocket, received this payload: " + payload)
 
-    client.connect(55556, 'localhost', () => {
+    client.connect(registerFlag ? 55557 : 55556, 'localhost', () => {
       client.write(payload)
       client.destroy()
     });
 
     client.on('error', function (err) {
       console.error(err);
-      console.error("\nIt may be the case that nothing is listening on 55556!!")
+      console.error("\nIt may be the case that nothing is listening on 55556/7!!")
 
       client.destroy()
       process.exit()
@@ -174,7 +185,6 @@ const server = https.createServer(options, app)
     readSettingsFile();
 
     process.env.DEV !== 'true' && caw();
-
     console.log('Connect to server at ' + ipAddresses + ':' + port)
   })
 
@@ -182,12 +192,13 @@ const io = socketIO(server);
 
 io.on("connection", socket => {
   socket.on("disconnect", () => console.log('A client disconnected'));
-  socket.on("qrchannel", (username, password) => CommWithSocket(username, password));
-  socket.on("voiceChannel", (username, dat) => VoiceRecognition(username, dat));
+  socket.on("qrchannel", (username, password, registerFlag) => CommWithSocket(username, password, registerFlag));
+  socket.on("voiceChannel", (username, blob, registerFlag) => VoiceRecognition(username, blob, registerFlag));
   socket.on("SettingsUpdate", () => io.sockets.emit("SettingsUpdate", settings));
+  socket.on("Register", (usr, full) => register(usr, full));
 })
 
-function VoiceRecognition(username, blob) {
+function VoiceRecognition(username, blob, registerFlag) {
   fs.writeFile('../voice-recognition/capture.ogg', blob, (err) => {
     if (!err) {
 
@@ -196,8 +207,9 @@ function VoiceRecognition(username, blob) {
         { cwd: '../voice-recognition/' })
 
       process.on('close', () => {
+        let scriptToRun = registerFlag ? "voice_reg.py" : "voice.py"
         var p2 = spawn('python3',
-          ["voice.py", "halston", "capture.wav"],
+          [scriptToRun, username, "capture.wav"],
           { cwd: '../voice-recognition/' })
         
           p2.stdout.on('data', function (data) {
@@ -216,15 +228,19 @@ function VoiceRecognition(username, blob) {
   })
 }
 
-function register(){
+function register(username, fullname){
   console.log('-- Spawning register process')
-  var process = spawn('python3', ['register_script.py'],
+  io.sockets.emit('Register')
+  var process = spawn('python3', ['register_script.py', username, fullname],
     {cwd: '../shamir/code/'})
 
   // Log crow_caw's stdout and send to dashboard
   process.stdout.on('data', function(data){
-    console.log('-- Register stdout: ' + data.toString())
-    io.sockets.emit('testchannel', data.toString())
+    let msg = data.toString()
+    console.log('-- Register stdout: ' + msg)
+    if (msg.indexOf("SUCCESS" !== -1)){
+      io.sockets.emit('Register')
+    }
   })
 
   // Log crow_caw's stderr and redirect to our stderr

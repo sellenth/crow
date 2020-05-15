@@ -13,7 +13,7 @@ export default class Voice extends Component {
         super(props);
         this.state = {
             record: false,
-            opened: false
+            opened: false || this.props.register
         }
         
         this.onStop = this.onStop.bind(this)
@@ -55,7 +55,8 @@ export default class Voice extends Component {
 
     onStop(recordedBlob) {
         console.log('recordedBlob is: ', recordedBlob);
-        this.props.socket.emit('voiceChannel', cookies.get('username'), recordedBlob.blob)
+        let register = this.props.register ? 1 : 0;
+        this.props.socket.emit('voiceChannel', cookies.get('username'), recordedBlob.blob, register);
     }
 
     WelcomePage() {
@@ -78,7 +79,8 @@ export default class Voice extends Component {
         )
     }
 
-    render() {
+    render(){
+
         return (
             <>
                 {!this.state.opened && this.WelcomePage()}
