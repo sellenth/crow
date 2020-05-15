@@ -3,7 +3,7 @@ FROM ubuntu:18.04
 #Install and configure nesecary tools
 RUN apt update 
 RUN apt -y upgrade 
-RUN apt install -y openssh-server python3-pip tmux git netcat --fix-missing
+RUN apt install -y openssh-server python3-pip tmux git netcat ffmpeg --fix-missing
 RUN apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt install -y nodejs

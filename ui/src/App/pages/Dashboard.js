@@ -1,8 +1,8 @@
 import React from 'react'
+import { Container, Row, Col } from 'react-bootstrap'
 import { GiSpeaker, GiCyborgFace, GiLockedFortress } from 'react-icons/gi'
 import { FaBarcode, FaGlobe, FaServer } from 'react-icons/fa'
 import { IconContext } from "react-icons";
-import { Container, Row, Col } from 'react-bootstrap'
 
 import './Dashboard.css'
 
@@ -130,29 +130,33 @@ export default class Dashboard extends React.Component {
 
 
     render() {
-        return <div>
+        return <div style={{ height: "100%"}}>
             <h3 className="section_heading">Nodes Online</h3>
             <RenderMap active={this.state.nodes} threshold={this.props.threshold} />
             <br></br>
 
-            <h3 className="section_heading" >Output Log</h3>
-            <Container fluid style={{ width: "95%" }}>
-                <div className="log overflow-auto">
-                    {this.state.msgs && this.state.msgs.map((item, i) => <p key={i}>{item}</p>)}
-                    <div ref={el => { this.el = el; }} />
-                </div>
+            <Container fluid style={{ height: '40%', width: "95%" }}>
+                <Row style={{ height: '5%', width: 'auto' }}>
+                    <h3 className="section_heading" style={{width: '45%', marginLeft: '0px'}} >Output Log</h3>
+                    <h3 className="section_heading" style={{width: '45%'}} >Current Users</h3>
+                </Row>
+                <Row style={{ height: '90%', width: 'auto' }}>
+                    <div className="col log overflow-auto">
+                        {this.state.msgs && this.state.msgs.map((item, i) => <p key={i}>{item}</p>)}
+                        <div ref={el => { this.el = el; }} />
+                    </div>
+                    <div className="col" style={{margin: '0px'}}>
+                        <Container fluid style={{ height: '100%', width: "100%", borderStyle: 'none' }}>
+                            <Row style={{ height: '100%', width: 'auto' }}>
+                                {this.state.usrs &&
+                                    this.state.usrs.map((usr, i) =>
+                                        <ShareCounter key={i} usr={usr} num={this.state[usr]} threshold={this.props.threshold} total={this.props.total} />)}
+                            </Row>
+                        </Container>
+                    </div>
+                </Row>
             </Container>
             <br></br>
-
-            <h3 className="section_heading" >Current Users</h3>
-            <Container fluid style={{ width: "95%" }}>
-                <Row style={{width: 'auto'}}>
-                    {this.state.usrs && 
-                        this.state.usrs.map((usr, i) => 
-                        <ShareCounter key={i} usr={usr} num={this.state[usr]} threshold={this.props.threshold} total={this.props.total}/>)}
-                </Row>
-
-            </Container>
         </div>
     }
 }
@@ -163,10 +167,10 @@ function ShareCounter(props) {
         {
           (props.total - props.num > 0) &&
             Array(props.total - props.num).fill(' ').map((_, i) => {
-            return <Row key={i} className='empty' style={{ height: '25px', width: '50px', margin: '0 auto 0 auto'}}></Row>
+            return <Row key={i} className='empty' style={{ height: '50px', width: '50px', margin: '0 auto 0 auto'}}></Row>
         })}
         {Array(Math.min(props.total, props.num)).fill(' ').map((_, i) => {
-            return <Row key={i} className={props.num >= props.threshold ? 'authorized' : 'unauthorized'} style={{ height: '25px', width: '50px', margin: '0 auto 0 auto'}}></Row>
+            return <Row key={i} className={props.num >= props.threshold ? 'authorized' : 'unauthorized'} style={{ height: '50px', width: '50px', margin: '0 auto 0 auto'}}></Row>
         })}
     </Container>
         <p>{props.usr} ({props.num}/{props.threshold})</p>

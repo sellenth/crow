@@ -117,5 +117,5 @@ if __name__ == "__main__":
         exit(0)
 
     #Add test users
-    add_user("r3k", "Ryan Kennedy", ["111"] * settings.TOTAL)
-    add_user("tt", "Tom Tom",  ["AAA"] * settings.TOTAL)
+    add_user("r3k", "Ryan Kennedy", ["111111"] * settings.TOTAL)
+    add_user("hal", "Halston Sellentin", ["111111"] * settings.TOTAL )
