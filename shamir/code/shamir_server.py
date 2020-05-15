@@ -107,6 +107,11 @@ def add_secret(d):
 #this registers and updates a node at address
 def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
+	
+	#register update type
+	update_type = data[0]
+	data = data[1:]
+
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data[0]:
 
@@ -115,7 +120,7 @@ def register_node(data, address, keys, dbkeys):
 
 			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-				s.connect((address[0], 44432))
+				s.connect((address[0], 55550))
 				
 				#pick 2 numbers, one for the db key, and one for the decvice key
 				sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
@@ -176,7 +181,12 @@ def register_node(data, address, keys, dbkeys):
 					
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamps, s)
-					print("Node registered:   " + i.db)
+					
+					if update_type == "imup":
+						print("Node updated:   " + i.db)
+					
+					if update_type == "regN":
+						print("Node registered:   " + i.db)
    
 
 #this sends the servers associated number to the address specified
@@ -191,7 +201,7 @@ def contest(address, pub, keys):
 			#send the node's number to the provided address, encrypted with their public key
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 				data = aes_crypt.aes_enc(i.key, str(my_number)) 
-				s.sendto(data, (address, 44443))
+				s.sendto(data, (address, 55551))
 
 
 #this sends the servers associated number to the address specified
@@ -203,7 +213,7 @@ def contest_auth(address):
 		
 		#send the number
 		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
-		s.sendto(data, (address, 44443))
+		s.sendto(data, (address, 55551))
 
 
 #Handler for any multicast message that is recieved
@@ -244,7 +254,13 @@ def handle_response(data, address, keys, dbkeys):
 			if data[2] == "imup":
 				
 				print("Sending Update to Client Node")
-				register_node(data[3:], address, keys, dbkeys)
+				register_node(data[2:], address, keys, dbkeys)
+
+			#respond to startup update for client node
+			if data[2] == "regN":
+				
+				print("Registering to Client Node")
+				register_node(data[2:], address, keys, dbkeys)
 			
 			#respond to startup update for auth node
 			elif data[2] == "woke":
@@ -440,7 +456,7 @@ def broadcast_socket():
 
 	#Create a local socket
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-		s.bind(('127.0.0.1', 55557))
+		s.bind(('127.0.0.1', 55558))
 		s.listen(5)
 
 		#For the remainder of execution
