@@ -84,7 +84,7 @@ h2 {
 }
 
 .cell {
-  flex: 0 0 32%;                       /* don't grow, don't shrink, width */
+  flex: 0 0 28%;                       /* don't grow, don't shrink, width */
   height: 20vh;
   max-width: 20vh;
   background-color: #999;

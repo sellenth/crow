@@ -1,21 +1,11 @@
 import React from 'react'
 import { Container, Row, Col, Button } from 'react-bootstrap'
 import { GiSpeaker, GiCyborgFace, GiLockedFortress } from 'react-icons/gi'
-import { FaBarcode, FaGlobe, FaServer } from 'react-icons/fa'
+import { FaBarcode, FaGlobe, FaServer, FaArrowCircleRight } from 'react-icons/fa'
 import { IconContext } from "react-icons";
+import Modal, {closeStyle} from 'simple-react-modal'
 
 import './Dashboard.css'
-
-{/* 
-    print("Sending Update to Client Node")
-    print("Got share")
-    print("Node registered:   " + data[1])
-	print("Sending New Share to other Auth Nodes") 
-	print("Recieved Share from Client Node")
-    print(share["id"] + " has submitted " + str(share["num_shares"]) + " shares!")
-    print(res["name"] + " (" + res["username"] + ")" + " is Authorized!")
-    kill -9 $(sudo lsof -t -i:55557)
-*/}
 
 export default class Dashboard extends React.Component {
     constructor(props) {
@@ -23,8 +13,11 @@ export default class Dashboard extends React.Component {
         this.state = {
             nodes: [],
             msgs: [],
-            usrs: []
+            usrs: [],
+            show: false,
         }
+
+        this.initiateRegister = this.initiateRegister.bind(this)
     }
     componentDidMount() {
         const socket = this.props.socket;
@@ -32,6 +25,14 @@ export default class Dashboard extends React.Component {
             this.parse_data(data.split('\n'))
         })
         this.scrollToBottom();
+    }
+
+    show(){
+        this.setState({show: true})
+    }
+
+    hide(){
+        this.setState({show: false})
     }
 
     parse_data(d) {
@@ -129,16 +130,39 @@ export default class Dashboard extends React.Component {
     }
 
     initiateRegister() {
-        //I need to create a modal that asks for username and fullname
-        //then pass it to this handler 
-        //this.props.registerHandler()
+        let username = document.getElementById("username").value
+        let fullname = document.getElementById("fullname").value
+        if (username === '' || fullname === ''){
+            document.getElementById("send-arrow").style.color = 'red';
+        }
+        else {
+            this.props.registerHandler(username, fullname)
+        }
     }
 
     render() {
-        return <div style={{ height: "100%"}}>
-            <Button variant="dark" onClick={this.initiateRegister}>
-                Register a user
+        return <div style={{ height: "100%" }}>
+            <Button className="register-btn" variant="dark" onClick={this.show.bind(this)}>
+                Register a new user
             </Button>
+            <Modal
+                className="username-modal" //this will completely overwrite the default css 
+                containerClassName="modal-container"
+                closeOnOuterClick={true}
+                show={this.state.show}
+                onClose={this.hide.bind(this)}>
+                <h3 className="modal-title">Register a New User</h3>
+                <div className="modal-background">
+                    <div className="input-boxes">
+                        <input id='username' placeholder="username"></input>
+                        <input id='fullname' placeholder="fullname"></input>
+                    </div>
+                    <div id='send-arrow' className="icon-holder">
+                        <FaArrowCircleRight onClick={this.initiateRegister} size={32}/>
+                    </div>
+                </div>
+
+                </Modal>
             <h3 className="section_heading">Nodes Online</h3>
             <RenderMap active={this.state.nodes} threshold={this.props.threshold} />
             <br></br>

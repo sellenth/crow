@@ -15,6 +15,7 @@ def net_register():
 
         s.bind(('127.0.0.1', 55557))
         s.listen(5)
+        print("Username", sys.argv[1], "fullname: ", sys.argv[2] )
 
         #For each db
         for i in settings.DBS:
