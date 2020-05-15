@@ -215,3 +215,25 @@ function VoiceRecognition(username, blob) {
     }
   })
 }
+
+function register(){
+  console.log('-- Spawning register process')
+  var process = spawn('python3', ['register_script.py'],
+    {cwd: '../shamir/code/'})
+
+  // Log crow_caw's stdout and send to dashboard
+  process.stdout.on('data', function(data){
+    console.log('-- Register stdout: ' + data.toString())
+    io.sockets.emit('testchannel', data.toString())
+  })
+
+  // Log crow_caw's stderr and redirect to our stderr
+  process.stderr.on('data', function(data){
+    console.error(data.toString())
+  });
+
+  // Log crow_caw's error and redirect to our stderr
+  process.on('error', (err) => {
+    console.error(err)
+  })
+}
