@@ -21,6 +21,7 @@ export default class Keypad extends React.Component {
         this.update_cookie = this.update_cookie.bind(this)
     }
 
+    // used to toggle between welcome screen and keypad screen
     togglescreen() {
         const { opened } = this.state;
         this.setState({
@@ -28,7 +29,7 @@ export default class Keypad extends React.Component {
         })
     }
 
-
+    // Set the cookie to contain the current user's username
     update_cookie = event => {
         event.preventDefault();
 
@@ -38,6 +39,7 @@ export default class Keypad extends React.Component {
         this.togglescreen();
     }
 
+    // clear the password and placeholder asterisks
     clr() {
         let btn = document.getElementById("clr");
         this.style_btn_press(btn);
@@ -47,6 +49,7 @@ export default class Keypad extends React.Component {
         return 1;
     }
 
+    // Used to grab the username from user
     WelcomePage() {
         return (
             <div id="scr_1">
@@ -67,7 +70,9 @@ export default class Keypad extends React.Component {
         )
     }
 
+    // Called whenever a digit is added to the PIN
     check_complete() {
+        // if the PIN is the desired length, send it to the backend
         if (pw.length >= 6) {
             var http = new XMLHttpRequest();
             var url = 'https://' + window.location.hostname + ':3001' + '/auth';
@@ -81,12 +86,16 @@ export default class Keypad extends React.Component {
                 "pw": pw,
                 "register": shouldRegister }));
 
+            // Clear the password
             pw = '';
+            // reset placeholder asterisks back to 0
             this.clr();
         }
     }
 
-
+    // This function changes subtle style options and
+    // reverts them back after .25 seconds to simulate the
+    // feel of depressing a button
     style_btn_press(btn) {
         btn.style.boxShadow = "-2px -2px 12px 0 rgba(255,255,255,.5), 2px 2px 12px 0 rgba(0,0,0,.03)";
         btn.style.fontSize = "3.7em";
@@ -98,12 +107,17 @@ export default class Keypad extends React.Component {
         }, 250);
     }
 
+    // Called whenever a keypad button is pressed
     enter(i) {
         var entry = document.getElementById("entry");
         let btn = document.getElementById(i);
+        // change size of button and add shadow for effect
         this.style_btn_press(btn);
+        // append the button's number value to the password
         pw += i.toString();
+        // indicate to the user how many digits they have entered
         entry.innerHTML += '*'
+        // check if the user has submitted enough digits to complete the PIN
         this.check_complete();
         return 1;
     }

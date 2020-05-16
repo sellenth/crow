@@ -14,6 +14,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      registerUsername: '',
       numRegistered: 0,
       registerMode: 0,
       threshold: 0,
@@ -29,7 +30,7 @@ class App extends Component {
         case 1:
           return <Keypad register={'true'}/>
         case 2:
-          return <Qr register={'true'} socket={socket} />
+          return <Qr username={this.state.registerUsername} register={'true'} socket={socket} />
         case 3:
           return <Voice register={'true'} socket={socket} />
       }
@@ -57,7 +58,8 @@ class App extends Component {
 
   registerHandler(username, fullname) {
     this.setState({
-      registerMode: 1
+      registerMode: 1,
+      registerUsername: username
     })
     socket.emit("Register", username, fullname)
   }
@@ -70,6 +72,7 @@ class App extends Component {
     socket.on("Register", () => {
       if (this.state.numRegistered >= this.state.total){
         this.setState({
+          registerUsername: '',
           registerMode: 0,
           numRegistered: 0
         })
