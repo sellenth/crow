@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM debian:latest
 
 #Install and configure necessary tools
 RUN apt update 
@@ -24,10 +24,11 @@ RUN mkdir app
 COPY crow /app/crow
 WORKDIR "/app/crow/express"
 RUN npm install
+
 WORKDIR "/app/crow"
 RUN rm -rf shamir/assets
-COPY crow/Demo/2of5/assets shamir/assets
-COPY crow/Demo/2of5/settings.py shamir/code/settings.py
+COPY crow/Demo/2of3/assets shamir/assets
+COPY crow/Demo/2of3/settings.py shamir/code/settings.py
 
 #Set up user directory
 RUN echo cd /app/crow/shamir/code >> /root/.bashrc

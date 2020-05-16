@@ -252,6 +252,7 @@ function VoiceRecognition(username, blob, registerFlag) {
   })
 }
 
+
 // spawn the register script for a new user
 // given their username and fullname
 function register(username, fullname){
