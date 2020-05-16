@@ -12,9 +12,13 @@
 | Other | Get the build reliably working with as little fiddling as possible. If we can have the project build then we have enough to demonstrate what the vision is and that should be good enough for the expo. | The demo build is in a much better place now. |
 
 
-# Demonstration
+# Demonstration RUN THIS FOR CODE REVIEW
 
-A demonstration of two systems is included in the Demo directory. This demonstration shows a 2 out of 5 authentication scheme and a 3 out of 4 authentication scheme. Instructions on how to start and interact with the demo are within the Demo folder.
+A demonstration of two systems is included in the Demo directory. This demonstration shows a 2 out of 3 authentication scheme and a 3 out of 4 authentication scheme. Instructions on how to start and interact with the demo are within the Demo folder.
+
+The 2of3 demo showcases example ui's and end-user authentication systems including voice-recognition, a pin code, and a qr code registration. 
+
+The 3of4 demo showcases the redundancy and ease of management of our system with a simple multi-password system of authentication. This demonstration uses ssh instead of a web ui.
 
 The demo runs using docker-compose so please install Docker and Docker-compose if you intend on  running the demo. The docker containers represnet the small systems this software was designed to run on, and allow easy deployment of many nodes. 
 
