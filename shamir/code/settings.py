@@ -4,10 +4,10 @@
 DBS = ["face", "qr", "voice", "web", "other"]
 
 #The identity of this node, should be auth or one of the database names
-ID = 'qr'
+ID = 'auth'
 
 #The total number of nodes in this system
-TOTAL = 5
+TOTAL = 3
 
 #The number of shares that need to be sent to authenticate a user successfully
 #Changing this number will break an active system. After changing you must regenerate shares for all users.

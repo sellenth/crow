@@ -13,12 +13,14 @@ export default class Voice extends Component {
         super(props);
         this.state = {
             record: false,
-            opened: false
+            opened: false || this.props.register
         }
         
         this.onStop = this.onStop.bind(this)
     }
 
+    // toggle between recording and not recording
+    // update the button style to simulate button being pressed
     toggleRecording = () => {
         this.setState({ record: !this.state.record });
         let box = document.getElementById('play')
@@ -32,6 +34,7 @@ export default class Voice extends Component {
         }, 250);
     }
 
+    // Toggle between welcome screen and record screen
     togglescreen() {
         const { opened } = this.state;
         this.setState({
@@ -39,7 +42,7 @@ export default class Voice extends Component {
         })
     }
 
-
+    // Store username in cookie
     update_cookie = event => {
         event.preventDefault();
 
@@ -49,13 +52,12 @@ export default class Voice extends Component {
         this.togglescreen();
     }
 
-    componentDidMount() {
-
-    }
-
+    // When the recording is stopped, send the voice blob
+    // to the backend for processing
     onStop(recordedBlob) {
         console.log('recordedBlob is: ', recordedBlob);
-        this.props.socket.emit('voiceChannel', cookies.get('username'), recordedBlob.blob)
+        let register = this.props.register ? 1 : 0;
+        this.props.socket.emit('voiceChannel', cookies.get('username'), recordedBlob.blob, register);
     }
 
     WelcomePage() {
@@ -78,7 +80,8 @@ export default class Voice extends Component {
         )
     }
 
-    render() {
+    render(){
+
         return (
             <>
                 {!this.state.opened && this.WelcomePage()}

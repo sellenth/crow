@@ -3,3 +3,13 @@
   height: 100%;
   background: #EEEEEE;
 }
+
+.QRcontainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.clickable {
+  cursor: pointer;
+}
