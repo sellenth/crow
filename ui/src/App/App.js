@@ -14,6 +14,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      dashboardState: null,
       registerUsername: '',
       numRegistered: 0,
       registerMode: 0,
@@ -22,6 +23,13 @@ class App extends Component {
       id:   "none"
     };
     this.registerHandler = this.registerHandler.bind(this)
+    this.liftstate = this.liftstate.bind(this)
+  }
+
+  liftstate(s) {
+    this.setState({
+      dashboardState: s
+    })
   }
   
   Switch() {
@@ -39,6 +47,8 @@ class App extends Component {
       switch(this.state["id"]){
         case 'auth':
           return <Dashboard 
+          savedState={this.state.dashboardState}
+          liftState={this.liftstate}
           socket={socket}
           registerHandler={this.registerHandler}
           threshold={this.state.threshold}

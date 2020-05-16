@@ -24,10 +24,19 @@ export default class Dashboard extends React.Component {
     // parse it for useful information 
     componentDidMount() {
         const socket = this.props.socket;
+        if (this.props.savedState !== null) {
+            this.setState(this.props.savedState)
+        }
         socket.on('testchannel', (data) => {
             this.parse_data(data.split('\n'))
         })
         this.scrollToBottom();
+    }
+
+    // when other screens are visited,
+    // persist the state of the dashboard
+    componentWillUnmount() {
+        this.props.liftState(this.state)
     }
 
     // show the registration modal

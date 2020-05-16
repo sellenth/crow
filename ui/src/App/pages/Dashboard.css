@@ -81,7 +81,7 @@ background-color: transparent;
     display: flex;
     top: 0;
     flex-direction: column;
-    justify-content: start;
+    justify-content: flex-start;
     background: #000000b6;
     align-items: center;
     width: 100%;
