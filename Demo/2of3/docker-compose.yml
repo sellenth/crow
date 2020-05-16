@@ -4,7 +4,7 @@ services:
     auth1: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: auth
         hostname: auth1
@@ -16,41 +16,10 @@ services:
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - auth1:/app/crow/shamir/assets
-        
-    other:
-        build:
-            context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
-            args:
-                ID: other
-        hostname: other
-        ports:
-            - "44445:22"
-        networks: 
-            - bridge
-        volumes:
-            - hosts:/app/crow/shamir/assets/hosts
-            - other:/app/crow/shamir/assets
-        
-    face: 
-        build:
-            context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
-            args:
-                ID: face
-        hostname: face
-        ports:
-            - "44440:22"
-            - "4002:3001"
-        networks: 
-            - bridge
-        volumes:
-            - hosts:/app/crow/shamir/assets/hosts
-            - face:/app/crow/shamir/assets
     qr: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: qr
         hostname: qr
@@ -66,7 +35,7 @@ services:
     voice: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: voice
         hostname: voice
@@ -82,7 +51,7 @@ services:
     web: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: web
         hostname: web
@@ -97,9 +66,7 @@ services:
 
 volumes:
     auth1:
-    other:
     web:
-    face:
     qr:
     hosts:
     voice:
