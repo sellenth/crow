@@ -1,17 +1,22 @@
 # crow
 
+# Code Review Feedback
+
+| Category | Feedback | Response |
+| -------- | -------- | -------- |
+| Build | Project is very messy to build and there are two entirely different sections that require building. The containerization is a great initiative but we need to work on tieing it all together. Having one command to build the project should be priority number one. | The build has been reworked into one unified 2of3 demo. All users have to do is run a single script in the project's home directory and the whole project will be built and demo containers will be created on static IPs. The web servers running on these containers will then be automatically launched in the user's default browser. |
+| Legibility | The python backend is documented generously and helps step a developer through all of what is happening.  There is an attempt to comment the dashboard view and the underlying node server but it is fairly cluttered and would not be easy to pick back up in 6 months. | The web server and React code has been reworked and recomomented. It should be easier to approach now for someone new to the project or someone picking up the project after a long break. |
+| Implementation | There is a visible attempt at abstraction for different UI views. They are all called from the same root component and switch upon a singular change in the settings file. The python files are ordered in a sane fashion where an external function can be roughly understood by its name and context alone. | More features have been added to the program since the review. The QR page has been constructed to scan the webcam for QR codes in realtime and also generate a QR code for the user upon registration. The Voice authentication page has also been added. Additionally, users can now register from the dashboard view and the dashboard persists its state through page changes. |
+| Maintainability | Tangentially related to the build clutter, the project is not in a state now where it is easily maintainable by members of the group, let alone a fresh pair of eyes. We need to streamline our README and clean up the node server and react structure or at least provide some high level documentation within those files. | New comments added to the code make it much easier to understand. The design for the web experience is admittedly still not logical and could use a major refactor. |
+| Design Requirements | All of the requirements listed under “current progress” are essentially done, there is just the data pipeline and example nodes to implement to bring the project together. The document does a good job of demonstrating what is and is not completed. | All the remaining requirements that were "current progress" are now done. Client has reviewed our project and verified that it satisfies their requirements. |
+| Other | Get the build reliably working with as little fiddling as possible. If we can have the project build then we have enough to demonstrate what the vision is and that should be good enough for the expo. | The demo build is in a much better place now. |
+
+
 # Demonstration
 
 A demonstration of two systems is included in the Demo directory. This demonstration shows a 2 out of 5 authentication scheme and a 3 out of 4 authentication scheme. Instructions on how to start and interact with the demo are within the Demo folder.
 
 The demo runs using docker-compose so please install Docker and Docker-compose if you intend on  running the demo. The docker containers represnet the small systems this software was designed to run on, and allow easy deployment of many nodes. 
-
-# UI Demonstration
-In order to see what the system dashboard will look like, follow these steps
-1. Copy/paste into terminal: `git clone https://github.com/sellenth/crow.git; cd crow/ui; npm install; npm run-script build; cd ..; cd express; npm install; npm start &`
-1. access the webpage at localhost:3001
-1. pull up a terminal so that both the browser and terminal are visible 
-1. run the /shamir/code/demo_output.sh script, it will submit strings to the server upon the press of any key
 
 # Shamir Setup
 
