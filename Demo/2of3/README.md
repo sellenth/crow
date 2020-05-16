@@ -4,14 +4,12 @@ To initialize this demo do the following
     
     run docker-compose up -d
 
-    There are now 6 containers running on ports 
+    There are now 4 containers running on ports 
 
         auth1: 44444
-        face: 44440
         web: 44441
         qr: 44442
         voice: 44443
-        other: 44445
     
     Ssh into each of these containers and run "./demo_init.py"
 

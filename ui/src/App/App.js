@@ -8,37 +8,88 @@ import Voice from './pages/Voice'
 import socketIOClient from 'socket.io-client'
 
 // Conect to the nodeJS server's socket
-const socket = socketIOClient(window.location.hostname + ':' + 3001)
+const socket = socketIOClient('https://' + window.location.hostname + ':' + 3001, {secure: true})
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      dashboardState: null,
+      registerUsername: '',
+      numRegistered: 0,
+      registerMode: 0,
       threshold: 0,
       total:     0,
       id:   "none"
     };
+    this.registerHandler = this.registerHandler.bind(this)
+    this.liftstate = this.liftstate.bind(this)
+  }
+
+  liftstate(s) {
+    this.setState({
+      dashboardState: s
+    })
   }
   
   Switch() {
-    switch(this.state["id"]){
-      case 'auth':
-        return <Dashboard socket={socket} threshold={this.state.threshold} total={this.state.total}/>;
-      case 'web':
-        return <Keypad />;
-      case 'qr':
-        return <Qr socket={socket}/>;
-      case 'voice':
-        return <Voice socket={socket}/>;
-      default:
-        return <h1>Unrecognized Node Type...</h1>
+    if (this.state.registerMode){
+      switch(this.state.numRegistered){
+        case 1:
+          return <Keypad register={'true'}/>
+        case 2:
+          return <Qr username={this.state.registerUsername} register={'true'} socket={socket} />
+        case 3:
+          return <Voice register={'true'} socket={socket} />
+      }
     }
+    else{
+      switch(this.state["id"]){
+        case 'auth':
+          return <Dashboard 
+          savedState={this.state.dashboardState}
+          liftState={this.liftstate}
+          socket={socket}
+          registerHandler={this.registerHandler}
+          threshold={this.state.threshold}
+          total={this.state.total}/>;
+        case 'web':
+          return <Keypad />;
+        case 'qr':
+          return <Qr socket={socket}/>;
+        case 'voice':
+          return <Voice socket={socket}/>;
+        case 'register':
+        default:
+          return <h1>Unrecognized Node Type...</h1>
+      }
+    }
+  }
+
+  registerHandler(username, fullname) {
+    this.setState({
+      registerMode: 1,
+      registerUsername: username
+    })
+    socket.emit("Register", username, fullname)
   }
 
   componentDidMount() {
     socket.emit("SettingsUpdate")
     socket.on("SettingsUpdate", (settingsJSON) => {
       this.setState(settingsJSON)
+    })
+    socket.on("Register", () => {
+      if (this.state.numRegistered >= this.state.total){
+        this.setState({
+          registerUsername: '',
+          registerMode: 0,
+          numRegistered: 0
+        })
+      }
+      this.setState({
+        numRegistered: this.state.numRegistered + 1
+      })
     })
   }
 

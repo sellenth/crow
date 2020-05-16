@@ -4,7 +4,7 @@ services:
     auth1: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: auth
         hostname: auth1
@@ -12,45 +12,16 @@ services:
             - "44444:22"
             - "4001:3001"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.1
+
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - auth1:/app/crow/shamir/assets
-        
-    other:
-        build:
-            context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
-            args:
-                ID: other
-        hostname: other
-        ports:
-            - "44445:22"
-        networks: 
-            - bridge
-        volumes:
-            - hosts:/app/crow/shamir/assets/hosts
-            - other:/app/crow/shamir/assets
-        
-    face: 
-        build:
-            context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
-            args:
-                ID: face
-        hostname: face
-        ports:
-            - "44440:22"
-            - "4002:3001"
-        networks: 
-            - bridge
-        volumes:
-            - hosts:/app/crow/shamir/assets/hosts
-            - face:/app/crow/shamir/assets
     qr: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: qr
         hostname: qr
@@ -58,7 +29,8 @@ services:
             - "44442:22"
             - "4003:3001"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.2
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - qr:/app/crow/shamir/assets
@@ -66,7 +38,7 @@ services:
     voice: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: voice
         hostname: voice
@@ -74,7 +46,8 @@ services:
             - "44443:22"
             - "4004:3001"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.3
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - voice:/app/crow/shamir/assets
@@ -82,7 +55,7 @@ services:
     web: 
         build:
             context: ../../../
-            dockerfile: crow/Demo/2of5/Dockerfile
+            dockerfile: crow/Demo/2of3/Dockerfile
             args:
                 ID: web
         hostname: web
@@ -97,12 +70,14 @@ services:
 
 volumes:
     auth1:
-    other:
     web:
-    face:
     qr:
     hosts:
     voice:
 
 networks: 
     bridge:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.28.0.0/16
