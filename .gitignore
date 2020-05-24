@@ -11,3 +11,4 @@ ui/node_modules
 *.wav
 *.mp3
 *.ogg
+.vscode/settings.json
