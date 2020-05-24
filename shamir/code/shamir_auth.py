@@ -59,6 +59,13 @@ def validate(share, share_conn):
         
         #authorize the user (this is where the "door open", or "ssh successful" code would be in the real world)
         print(res["name"] + " is Authorized!")
+
+        #Let user be authorised for 10 seconds
+        time.sleep(10)
+
+        #delete shares information so that users cannot auth twice for free
+        share_conn.cursor().execute("DELETE FROM shares WHERE id = ?", [share['id']])
+        share_conn.commit()
     
     else:
     

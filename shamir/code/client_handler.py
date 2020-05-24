@@ -12,6 +12,12 @@ import shamir_updater
 import time
 import shamir_client
 
+
+#set number for communication with webservers from file
+comms_number = 0
+with open(settings.assetsdir + "comms_number", "r") as c:
+	comms_number = int(c.read())
+
 #Host object to hold multicast information
 class Host():
     def __init__(self):
@@ -19,7 +25,7 @@ class Host():
         self.port = settings.MULT_PORT
 
 #Challenges the auth nodes to pick a single auth node to interact with for update purposes
-def challenge(reg_type):
+def challenge():
 
     #create host object
     host = Host()
@@ -28,7 +34,7 @@ def challenge(reg_type):
     keyhash = str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()),'ascii')
     
     #creates a payload of the message that identifies that this is a client node that needs to be updated 
-    payload = reg_type + ":" + keyhash + ":" + settings.ID
+    payload = "imup" + ":" + str(comms_number) + ":" + keyhash + ":" + settings.ID
 
     #create a socket to communicate with the auth nodes
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
@@ -69,7 +75,7 @@ def challenge(reg_type):
         return addr
 
 #Registers the client node with an auth node, updating its set of shares
-def register(reg_type = "imup"):
+def register():
 
     #Create socket to recieve updates from
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -79,7 +85,7 @@ def register(reg_type = "imup"):
         
         #make sure that challenge executes correctly, else return error
         print("Looking for Auth Node")
-        address = challenge(reg_type)
+        address = challenge()
         if address == -1:
             return -1
 
@@ -179,7 +185,7 @@ def timer_update_start():
 def run():
     
     #Register node
-    while register("regN") == -1:
+    while register() == -1:
         time.sleep(30)
     
     #Start thread to send user shares to the auth node

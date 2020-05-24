@@ -8,16 +8,23 @@ import rsa_encrypt
 import aes_crypt
 import threading
 import settings
+import shamir_gen
+import comms
 import base64
 import shamir_update_client
 import auth_update
 import sys
+import json
 
 from Crypto import Random
 
 #set unique number -- not actually unique but 1- (N* (1/2^16*8)) chance of being unique 
 my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 
+#set number for communication with webservers from file
+comms_number = 0
+with open(settings.assetsdir + "comms_number", "r") as c:
+	comms_number = int(c.read())
 
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
@@ -104,12 +111,23 @@ def add_secret(d):
 		shamir_auth.auth_user(share['id'], conn)
 
 
+#tell other auth nodes a db was added and send info to webUI nodes
+def db_send(db, num):
+	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
+		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "DBUP:" + db + ":" + num), (settings.MULT_ADDR, settings.MULT_PORT))
+
+
+		payload = json.dumps({"Action": "newDB", "type":db, "number":num})
+		s.sendto(bytes(payload, ascii), (settings.COMMS_ADDR, settings.COMMS_PORT))
+
+
 #this registers and updates a node at address
 def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
 	
 	#register update type
-	update_type = data[0]
+	comms_node = data[0]
 	data = data[1:]
 
 	for i in keys:
@@ -117,6 +135,7 @@ def register_node(data, address, keys, dbkeys):
 
 			#log databse name 
 			i.db = data[1]
+			db_send(data[1], comms_node)
 
 			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -182,12 +201,8 @@ def register_node(data, address, keys, dbkeys):
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamps, s)
 					
-					if update_type == "imup":
-						print("Node updated:   " + i.db)
+					print("Node updated:   " + i.db)
 					
-					if update_type == "regN":
-						print("Node registered:   " + i.db)
-   
 
 #this sends the servers associated number to the address specified
 def contest(address, pub, keys):
@@ -216,6 +231,16 @@ def contest_auth(address):
 		s.sendto(data, (address, 55551))
 
 
+#Handler for web ui registrations
+def webreg(data):
+
+	#validate auth hash 
+	if data[0] == rsa_encrypt.get_auth_hash():
+
+		#add user
+		shamir_gen.add_user(data[1], data[2], data[3:])
+
+
 #Handler for any multicast message that is recieved
 def handle_response(data, address, keys, dbkeys):
 	
@@ -228,13 +253,28 @@ def handle_response(data, address, keys, dbkeys):
 
 	#split the message and determine how to respond to it
 	data = str(data, 'ascii').split(":")
+	
 	#Node is sending share for authentication
 	if data[0] == "auth":
 		add_secret(data[1:])
 	
+	#Node is sending db info
+	elif data[0] == "DBUP":
+		comms.database_log(data[1:])
+
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
 		contest(address[0], data[1], keys)
+
+	#If node is asking to register a user via web
+	elif data[0] == "usrW":
+		
+		#if this node is registering the user
+		if data[1] == str(my_number):
+			webreg(data[2:])
+
+			#broadcast user info
+			broadcast(data[3])
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
@@ -250,21 +290,24 @@ def handle_response(data, address, keys, dbkeys):
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
 		if int(data[1]) == my_number:
-			#respond to startup update for client node
-			if data[2] == "imup":
-				
-				print("Sending Update to Client Node")
-				register_node(data[2:], address, keys, dbkeys)
+			
+			#if asking for database info
+			if data[2] == "sndC":
+				comms.send_clients()
+
+			#if asking for user info
+			if data[2] == "sndU":
+				comms.send_users()
 
 			#respond to startup update for client node
-			if data[2] == "regN":
+			elif data[2] == "imup":
 				
-				print("Registering to Client Node")
-				register_node(data[2:], address, keys, dbkeys)
+				print("Sending Update to Client Node")
+				register_node(data[3:], address, keys, dbkeys)
 			
 			#respond to startup update for auth node
 			elif data[2] == "woke":
-				
+
 				print("Sending Update to Auth Node")
 				auth_update.updater(address[0])
 
@@ -484,8 +527,15 @@ def run():
 	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)
-	#Run the auth node update process which is required for the server to start properly
 	
+	#initialize database for comms
+	comms.initialize_db()
+
+	#add self to database
+	db_send("auth", str(comms_number))
+	comms.database_log(["auth", str(comms_number)])
+
+	#Run the auth node update process which is required for the server to start properly
 	print("Looking for updates")
 	auth_update.updateee(my_number)
 	threading.Thread(target=timer_update_start).start() 
