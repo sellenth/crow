@@ -260,7 +260,8 @@ def handle_response(data, address, keys, dbkeys):
 	
 	#Node is sending db info
 	elif data[0] == "DBUP":
-		comms.database_log(data[1:])
+		if data[1] in settings.DBS + ["auth"]:
+			comms.database_log(data[1:])
 
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
