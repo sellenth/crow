@@ -4,7 +4,6 @@ To initialize this demo do the following
     Install Docker and docker-compose
     
     run docker-compose up -d
-    
     There are now 4 containers running on ports 
 
         auth1: 44444

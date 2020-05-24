@@ -252,6 +252,29 @@ function VoiceRecognition(username, blob, registerFlag) {
   })
 }
 
+// Serve correct homescreen for node type
+app.get('/sendit', (req, res) => {
+  //caw();
+  io.sockets.emit('testchannel',
+    "Sending Update to Client Node\n" +
+    "Got share\n" +
+    "Node registered: web\n" +
+    "Node registered: face\n" +
+    "Node registered: web\n" +
+    "Sending New Share to other Auth Nodes\n" + 
+    "Sending Update to Client Node\n" +
+    "Got share\n" +
+    "Sending New Share to other Auth Nodes\n" + 
+    "Recieved Share from Client Node\n" +
+    "r3k has submitted 1 shares!\n" +
+    "tim has submitted 1 shares!\n" +
+    "r3k has submitted 1 shares!\n" +
+    "r3k has submitted 1 shares!\n" +
+    "r3k has submitted 1 shares!\n" +
+    "(r3k) is Authorized!\n"
+    )
+  res.send('hi')
+})
 
 // spawn the register script for a new user
 // given their username and fullname
