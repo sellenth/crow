@@ -1,6 +1,7 @@
 version: "3.7"
 
 services:
+
     auth1: 
         build:
             context: ../../../
@@ -10,14 +11,42 @@ services:
         hostname: auth1
         ports:
             - "44444:22"
-            - "4001:3001"
         networks: 
-            bridge:
-                ipv4_address: 172.28.1.1
-
+            - bridge
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - auth1:/app/crow/shamir/assets
+        
+    auth2:
+        image: demo_auth1 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of3/Dockerfile
+            args:
+                ID: auth
+        hostname: auth2
+        ports:
+            - "44445:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - auth2:/app/crow/shamir/assets
+        
+    face: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of3/Dockerfile
+            args:
+                ID: ui
+        hostname: ui
+        ports:
+            - "44440:22"
+        networks: 
+            - bridge
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - ui:/app/crow/shamir/assets
     qr: 
         build:
             context: ../../../
@@ -27,10 +56,8 @@ services:
         hostname: qr
         ports:
             - "44442:22"
-            - "4003:3001"
         networks: 
-            bridge:
-                ipv4_address: 172.28.1.2
+            - bridge
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - qr:/app/crow/shamir/assets
@@ -44,10 +71,8 @@ services:
         hostname: voice
         ports:
             - "44443:22"
-            - "4004:3001"
         networks: 
-            bridge:
-                ipv4_address: 172.28.1.3
+            - bridge
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - voice:/app/crow/shamir/assets
@@ -61,7 +86,6 @@ services:
         hostname: web
         ports:
             - "44441:22"
-            - "4005:3001"
         networks: 
             - bridge
         volumes:
@@ -70,14 +94,12 @@ services:
 
 volumes:
     auth1:
+    auth2:
     web:
+    ui:
     qr:
     hosts:
     voice:
 
 networks: 
     bridge:
-        ipam:
-            driver: default
-            config:
-                - subnet: 172.28.0.0/16

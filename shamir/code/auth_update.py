@@ -165,7 +165,7 @@ def grab_timestamps():
 
 
 #This challenges the authentication servers, it questions them to pick one to communicate with on wakeup
-def challenge(my_number):
+def challenge(my_number, kind):
 
     #Creates a host object for use in multicast socket
     host = Host()
@@ -199,7 +199,7 @@ def challenge(my_number):
 
         #encrypt the number with the auth public key and send it back to the auth nodes, letting them know which one was chosen and what action to preform
         #in this case the asction is provising updates to the auth server
-        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + "woke"), ((host.host, host.port)))
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + kind), ((host.host, host.port)))
         return address
 
 
@@ -216,9 +216,9 @@ def updateee(my_number):
         #Attempt to update the node
         try:    
             #make sure that challenge exits succesfully and grab host address
-            address = challenge(my_number)
+            address = challenge(my_number, "woke")
             while address == 1:
-                address  = challenge(my_number)
+                address  = challenge(my_number, "woke")
         
         #If socket times out then return, this is likely the first auth node to be activated
         except socket.timeout:

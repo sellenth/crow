@@ -1,52 +1,19 @@
-import shamir_gen
-import ui
 import sys
-import socket
+import rsa_encrypt
+import aes_crypt
+import comms
 import settings
+import socket
 
 #register user via network
-def net_register():
+def register(user, name, keys):
+    payload = "usrW" + ":" + rsa_encrypt.get_auth_hash() + ":" + user + ":" + name + ":" + ":".join(keys)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
+        s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
 
-    #Holder for user keys
-    keys = []
+        payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload)
+        s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
 
-    #Create a socket to get user passwords
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-
-        s.bind(('127.0.0.1', 55557))
-        s.listen(5)
-        print("Username", sys.argv[1], "fullname: ", sys.argv[2] )
-
-        #For each db
-        for i in settings.DBS:
-            
-            #accept connection
-            cli, addr = s.accept()
-
-            #Get password
-            temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
-            
-            #Close connection
-            cli.close()
-
-            #Make sure the password isnt longer than a sha256 hash
-            #if len(temp) > 66:
-            #    print("ERROR recieving pass, needs to be under 66 chars")
-            #    return
-            
-            print("SUCCESS received a pass")
-            sys.stdout.flush()
-            #append the key to the list
-            keys.append(temp)
-
-    #Send the gathered information to be entered into the proper databases
-    shamir_gen.add_user(sys.argv[1], sys.argv[2], keys)
-
-    #Ask the auth server to share the new user
-    ui.broadcast(sys.argv[1])
 
 if __name__ == "__main__":
-    if len(sys.argv) == 3:
-        net_register()
-    else:
-        print("usage: command <username> <name>\nThen Send 4 passwords via localhost:55556")
+    register(sys.argv[1], sys.argv[2], sys.argv[3:])

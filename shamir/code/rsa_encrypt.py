@@ -97,6 +97,12 @@ def generate_device_key():
     #Generate a random rsa_2048 key
     key = RSA.generate(2048, Random.get_random_bytes)
     
+    #Generate comms number
+    comms_number = int.from_bytes(Random.get_random_bytes(8), "big")
+    comms_number = str(comms_number)
+    with open(settings.assetsdir + "comms_number", "w") as c:
+        c.write(comms_number)
+
     #open the files to store the public and private keys
     f1 = open(settings.assetsdir + 'local','wb')
     f2 = open(settings.assetsdir+ "hosts/" +x+'.pub','wb')
