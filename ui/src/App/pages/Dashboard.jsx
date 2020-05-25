@@ -20,6 +20,8 @@ export default class Dashboard extends React.Component {
       nodes: [],
       msgs: [],
       usrs: [],
+      numAuthNodes: 0,
+      numOtherNodes: 0,
       show: false,
     };
 
@@ -33,8 +35,9 @@ export default class Dashboard extends React.Component {
     if (savedState !== null) {
       this.setState(savedState);
     }
-    socket.on('testchannel', (data) => {
-      this.parseData(data.split('\n'));
+    socket.emit('DashboardUpdate')
+    socket.on('DashboardUpdate', (data) => {
+        this.parseData(data);
     });
     this.scrollToBottom();
   }
@@ -61,110 +64,32 @@ export default class Dashboard extends React.Component {
     this.setState({ show: false });
   }
 
-  // Retrieve useful information from the stdout of crow_caw
+  // Retrieve useful information from the multicast message
   parseData(d) {
-    d.forEach((element) => {
-      if (element === '') {
-        return;
+    this.setState((prevState) => ({
+        msgs: [...prevState.msgs, `${d.action}`],
+    }));
+      if (d.clients){ 
+        let clientNodeCount = 0;
+        d.clients.map((client) => {
+            if (client.database === 'auth'){
+                this.setState({
+                    numAuthNodes: client.number
+                })
+            } else {
+                clientNodeCount += 1;
+            }
+        })
+        this.setState({
+            nodes: d.clients,
+            numOtherNodes: clientNodeCount
+        })
       }
-      // If a new node is being registered,
-      // add it to the node visual and log a message
-      if (element.includes('Node registered')) {
-        const nodeType = element.split(': ')[1].trim();
-        console.log(`REGISTERED ${nodeType}`);
-        this.setState((prevState) => ({
-          nodes: [...prevState.nodes, nodeType],
-          msgs: [...prevState.msgs, `REGISTERED NEW NODE TYPE: ${nodeType}`],
-        }));
-        return;
+      if (d.users){ 
+        this.setState({
+            usrs: d.users,
+        })
       }
-
-      // If a share submission is detected
-      if (element.includes('has submitted')) {
-        const { state } = this.state;
-        const usr = element.split(' ')[0].trim();
-
-        // increment the given users share if they exist
-        if (state[usr]) {
-          this.setState((prevState) => ({
-            msgs: [...prevState.msgs, `${usr} SUBMITTED A SHARE`],
-            [usr]: prevState[usr] + 1,
-          }));
-        } else { // Create the user and give them one share in the visual
-          this.setState((prevState) => ({
-            msgs: [...prevState.msgs, `${usr} SUBMITTED A SHARE`],
-            usrs: [...prevState.usrs, usr],
-            [usr]: 1,
-          }));
-        }
-
-        return;
-      }
-
-      // If a user has been authorized
-      if (element.includes('is Authorized')) {
-        const who = element.substring(
-          element.indexOf('(') + 1,
-          element.indexOf(')'),
-        );
-
-        // create a message that they have been authorized
-        this.setState((prevState) => ({
-          msgs: [...prevState.msgs, `${who} HAS BEEN AUTHORIZED`],
-        }));
-        return;
-      }
-
-      // Log out this simple message
-      if (element === 'Looking for updates') {
-        console.log('LOOKING');
-        this.setState((prevState) => ({
-          msgs: [...prevState.msgs, 'LOOKING FOR UPDATES'],
-        }));
-        return;
-      }
-
-      // Log out this simple message
-      if (element === 'Sending New Share to other Auth Nodes') {
-        console.log('UPDATING OTHER AUTHS');
-        this.setState((prevState) => ({
-          msgs: [...prevState.msgs, 'UPDATING OTHER AUTHS'],
-        }));
-      }
-
-      // Log out this simple message
-      if (element === 'Recieved Share from Client Node') {
-        console.log('RECEIVED');
-        this.setState((prevState) => ({
-          msgs: [...prevState.msgs, 'RECEIVED SHARE FROM A CLIENT'],
-        }));
-        return;
-      }
-
-      // Log out this simple message
-      if (element === 'Sending Update to Client Node') {
-        console.log('SENDING UPDATES');
-        this.setState((prevState) => ({
-          msgs: [...prevState.msgs, 'SENDING UPTDATE TO CLIENT NODES'],
-        }));
-        return;
-      }
-
-      // Log out this simple message
-      if (element === 'Got Share') {
-        console.log('RECEIVED2');
-        this.setState((prevState) => ({
-          msgs: [...prevState.msgs, 'ALTERNATIVE SHARE RECEIVED'],
-        }));
-        return;
-      }
-
-      // If message doesn't match any of the previous
-      // patterns, log it out too
-      this.setState((prevState) => ({
-        msgs: [...prevState.msgs, `MESSAGE: ${element}`],
-      }));
-    });
   }
 
 
@@ -189,7 +114,7 @@ export default class Dashboard extends React.Component {
   render() {
     const { state } = this;
     const {
-      show, nodes, msgs, usrs,
+      show, nodes, msgs, usrs, numAuthNodes, numOtherNodes
     } = state;
     const { threshold, total } = this.props;
     return (
@@ -217,7 +142,7 @@ export default class Dashboard extends React.Component {
 
         </Modal>
         <h3 className="section_heading">Nodes Online</h3>
-        <RenderMap active={nodes} threshold={threshold} />
+        <RenderMap active={nodes} threshold={threshold} numAuthNodes={numAuthNodes} numOtherNodes={numOtherNodes}/>
         <br />
 
         <Container fluid style={{ height: '40%', width: '95%' }}>
@@ -236,8 +161,8 @@ export default class Dashboard extends React.Component {
                   {usrs && usrs.map((usr, i) => (
                     <ShareCounter
                       key={i}
-                      usr={usr}
-                      num={state[usr]}
+                      usr={usr.user}
+                      num={usr.num_shares}
                       threshold={threshold}
                       total={total}
                     />
@@ -290,23 +215,23 @@ function ShareCounter(props) {
 // currently in state (the nodes that have been registered to the backend)
 function RenderMap(props) {
   return (
-    <Container fluid className={props.active.length < props.threshold ? 'unauthorized' : ''} style={{ width: '95%' }}>
+    <Container fluid className={props.numOtherNodes < props.threshold ? 'unauthorized' : ''} style={{ width: '95%' }}>
       <Row style={{ width: 'auto' }}>
-        <RenderIcon icon={<GiLockedFortress />} label="Auth Node" />
+        <RenderIcon icon={<GiLockedFortress />} label="Auth Node" number={props.numAuthNodes}/>
       </Row>
       <Row style={{ width: 'auto' }}>
         {props.active && props.active.map((nodeType, i) => {
-          switch (nodeType) {
+          switch (nodeType.database) {
             case 'face':
-              return <RenderIcon key={i} icon={<GiCyborgFace />} label="Face ID" />;
+              return <RenderIcon key={i} icon={<GiCyborgFace />} label="Face ID" number={nodeType.number} />;
             case 'web':
-              return <RenderIcon key={i} icon={<FaGlobe />} label="Web ID" />;
+              return <RenderIcon key={i} icon={<FaGlobe />} label="Web ID" number={nodeType.number} />;
             case 'other':
-              return <RenderIcon key={i} icon={<FaServer />} label="Unknown Node" />;
+              return <RenderIcon key={i} icon={<FaServer />} label="Unknown Node" number={nodeType.number}  />;
             case 'voice':
-              return <RenderIcon key={i} icon={<GiSpeaker />} label="Speech ID" />;
+              return <RenderIcon key={i} icon={<GiSpeaker />} label="Speech ID" number={nodeType.number} />;
             case 'qr':
-              return <RenderIcon key={i} icon={<FaBarcode />} label="QR Scan ID" />;
+              return <RenderIcon key={i} icon={<FaBarcode />} label="QR Scan ID" number={nodeType.number} />;
           }
         })}
       </Row>
@@ -319,7 +244,7 @@ function RenderIcon(props) {
     <IconContext.Provider value={{ size: '5em' }}>
       <Col>
         {props.icon}
-        <h3>{props.label}</h3>
+        <h3>{props.label} (x{props.number})</h3>
       </Col>
     </IconContext.Provider>
   );

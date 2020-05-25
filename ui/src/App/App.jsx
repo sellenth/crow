@@ -28,22 +28,27 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const { numRegistered, total } = this.state;
     socket.emit('SettingsUpdate');
     socket.on('SettingsUpdate', (settingsJSON) => {
       this.setState(settingsJSON);
     });
     socket.on('Register', () => {
-      if (numRegistered >= total) {
+      const { numRegistered } = this.state;
+      // the 3 in the line of code below is a magic number,
+      // it represents how many node types the system supports
+      // it would be equivalent to the length of the DBs assuming
+      // there is an authentication page for each type of DB
+      if (numRegistered >= 3) {
         this.setState({
           registerUsername: '',
           registerMode: 0,
           numRegistered: 0,
         });
+      } else {
+        this.setState({
+          numRegistered: numRegistered + 1,
+        });
       }
-      this.setState({
-        numRegistered: numRegistered + 1,
-      });
     });
   }
 
@@ -87,7 +92,6 @@ class App extends Component {
           return <Qr socket={socket} />;
         case 'voice':
           return <Voice socket={socket} />;
-        case 'register':
         default:
           return <h1>Unrecognized Node Type...</h1>;
       }
@@ -99,6 +103,7 @@ class App extends Component {
       registerMode: 1,
       registerUsername: username,
     });
+    console.log('in register handler with', username, fullname)
     socket.emit('Register', username, fullname);
   }
 

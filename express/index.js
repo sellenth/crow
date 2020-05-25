@@ -7,17 +7,21 @@ const sha256   = require('js-sha256').sha256
 const fs       = require('fs')
 const net      = require('net');
 const spawn    = require('child_process').spawn;
+const dgram    = require('dgram')
 const client   = new net.Socket();
 const port     = process.env.PORT || 3001
 const devOut   = require('debug')('dev')
 const socketIO = require('socket.io')
+const crypto   = require('crypto')
 const settings = {}
 const cookieParser   = require('cookie-parser')
 const pathToSettings = '../shamir/code/settings.py';
-const { createMultiSocket } = require('./challenge')
 
-let MULT_ADDR = ''
-let MULT_PORT = 0
+let keys = []
+let currRegUsername = ''
+let currRegFullname = ''
+let commsAddr = ''
+let commsPort = ''
 
 const options = {
   key: fs.readFileSync('key.pem'),
@@ -55,11 +59,14 @@ function CommWithSocket(username, password, registerFlag){
 
     // When registering a user we send only a hash of their password
     if (registerFlag) {
-      console.log("-- User is being registered")
-      let pw_hash = sha256(password)
-      let buff = new Buffer(pw_hash)
-      password = buff.toString('base64')
-      payload = password
+      keys.push(password)
+
+      if (keys.length >= 3) {
+        sendKeysToRegister();
+      }
+
+      io.sockets.emit('Register')
+      return;
     }
     // When authenticating a user, we send their username and password (unhashed)
     else {
@@ -92,29 +99,66 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + './../ui/build/index.html'));
 })
 
-// This function spawns a child process that run's 
-// crow_caw which handles all the backend secret sharing 
-function caw(){
-  console.log('-- Spawning crow caw process')
-  var process = spawn('python3', ['crow_caw.py'],
-    {cwd: '../shamir/code/'})
+function parseUpdateJSON(obj){
+  switch(obj.action){
+    case "newDB":
+        console.log("New DB Ready")
+        break;
+    case "newUser":
+        console.log("New user share")    
+        break;
+    case "update_dbs":
+        console.log(obj.clients)
+        break;
+    case "update_dbs":
+        console.log(obj.clients)
+        break;
+    case "update_users":
+        console.log(obj.users)
+        break;
+    case "update_all":
+      console.log(obj.clients);
+      console.log(obj.users);
 
-  // Log crow_caw's stdout and send to dashboard
-  process.stdout.on('data', function(data){
-    console.log('-- Caw stdout: ' + data.toString())
-    io.sockets.emit('testchannel', data.toString())
+  }
+}
+
+
+
+  const exObj = JSON.stringify({
+    action: "update_all",
+    clients: [
+      {database: "web", number: 2},
+      {database: "auth", number: 2},
+      {database: "face", number: 1},
+      {database: "qr", number: 3}
+    ],
+    users: [
+      {user: "r3k", num_shares: 1},
+      {user: "hal", num_shares: 3}
+    ]
   })
 
-  // Log crow_caw's stderr and redirect to our stderr
-  process.stderr.on('data', function(data){
-    console.error(data.toString())
-  });
+// This function spawns a process that calls comms
+// which requests a full system state to be sent to the
+// comms socket
+function getUpdates(dev){
+    console.log('-- Dashboard is asking for an update!')
+    if (dev){
+      io.sockets.emit('DashboardUpdate', JSON.parse(exObj))
+    } else {
+      var process = spawn('python3', ['comms.py', 'sndA'],
+        {cwd: '../shamir/code/'})
 
-  // Log crow_caw's error and redirect to our stderr
-  process.on('error', (err) => {
-    console.error(err)
-  })
+      // Log any error messages
+      process.stderr.on('data', function(data){
+        console.error(data.toString())
+      });
 
+      process.on('error', (err) => {
+        console.error(err)
+      })
+    }
 }
 
 // A bit of a hack but this function serves to 
@@ -143,14 +187,14 @@ function parseSettings(settingsFile){
         line.length)
     }
 
-    else if (line.includes("MULT_ADDR")) {
-      MULT_ADDR = line.substring(
+    else if (line.includes("COMMS_ADDR")) {
+      commsAddr = line.substring(
         line.indexOf("'") + 1,
         line.lastIndexOf("'"))
     }
 
-    else if (line.includes("MULT_PORT")) {
-      MULT_PORT = line.substring(
+    else if (line.includes("COMMS_PORT")) {
+      commsPort = line.substring(
         line.lastIndexOf(" ") + 1,
         line.length)
     }
@@ -199,11 +243,36 @@ function returnIPs(){
   return ipAddresses
 }
 
+// messages can be sent to the multicast addr with
+// $ echo "{\"action\":\"new_usr\"}" > /dev/udp/224.3.29.2/13338
+// for debug purposes
+function createListenSocket(){
+  const socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
+  const PORT = commsPort
+  const MULTICAST_ADDR = commsAddr
+
+  socket.bind(PORT);
+
+  socket.on("listening", function() {
+    socket.addMembership(MULTICAST_ADDR);
+    //setInterval(sendMessage, 2500);
+    const address = socket.address();
+    console.log(
+      `UDP multicast socket is listening on ${MULTICAST_ADDR}:${address.port} pid: ${
+        process.pid
+      }`
+    );
+  });
+
+  socket.on("message", function(message, rinfo) {
+    io.sockets.emit('DashboardUpdate', JSON.parse(message.toString()))
+  });
+}
+
 const server = https.createServer(options, app)
   .listen(port, () => {
     readSettingsFile();
-    process.env.DEV !== 'true' && caw();
-    createMultiSocket(MULT_ADDR, MULT_PORT)
+    createListenSocket();
     console.log('Connect to server with one of the following addresses ' + returnIPs())
     console.log('Use the port ' + port)
   })
@@ -224,11 +293,15 @@ io.on("connection", socket => {
   // and sends it to voice_reg.py or voice.py
   socket.on("voiceChannel", (username, blob, registerFlag) => VoiceRecognition(username, blob, registerFlag));
 
+  // voice channel takes an audio data blob 
+  // and sends it to voice_reg.py or voice.py
+  socket.on("DashboardUpdate", () => {getUpdates(!!process.env.DEV)});
+
   // When socket hears a call for settingsUpdate, sends the newest version of settings
   socket.on("SettingsUpdate", () => io.sockets.emit("SettingsUpdate", settings));
 
   // When socket hears register, initiate the register_script.py
-  socket.on("Register", (usr, full) => register(usr, full));
+  socket.on("Register", (usr, full) => initiateRegister(usr, full));
 })
 
 // This function first spawns ffmpeg to convert the blob
@@ -259,7 +332,18 @@ function VoiceRecognition(username, blob, registerFlag) {
         
           p2.stdout.on('data', function (data) {
             console.log('-- In voice recognition, transcript is: ' + data.toString())
-            io.sockets.emit('voiceChannel', data.toString())
+
+            if (registerFlag) {
+              keys.push(data.toString())
+
+              if (keys.length >= 3) {
+                sendKeysToRegister();
+              }
+
+              io.sockets.emit('Register')
+            } else {
+              io.sockets.emit('voiceChannel', data.toString())
+            }
           })
 
           process.stderr.on('data', function (data) {
@@ -270,31 +354,47 @@ function VoiceRecognition(username, blob, registerFlag) {
   })
 }
 
+function hashKeys(keys){
+  for(let i = 0; i < keys.length; i++){
+    keys[i] = new Buffer(crypto.createHmac('sha256', keys[i]).digest('ascii')).toString('base64')
+  }
+}
+
+function sendKeysToRegister(){
+  console.log('registering to user', currRegUsername, currRegFullname)
+  console.log('going to register these keys', keys)
+  hashKeys(keys)
+  console.log('going to register these keys (hashed)', keys)
+  if (!require('process').env.DEV){
+    var process = spawn('python3', ['register_script.py', username, fullname].concat(keys),
+      {cwd: '../shamir/code/'})
+
+    // Log script's stderr and redirect to our stderr
+    process.stderr.on('data', function(data){
+      console.error(data.toString())
+    })
+
+    // Log script's error and redirect to our stderr
+    process.on('error', (err) => {
+      console.error(err)
+    })
+
+    process.stdout.on('data', function(data){
+      let msg = data.toString()
+      console.log('-- Register stdout: ' + msg)
+    })
+  }
+
+  keys = []
+  currRegUsername = ''
+  currRegFullname = ''
+}
 
 // spawn the register script for a new user
 // given their username and fullname
-function register(username, fullname){
-  console.log('-- Spawning register process')
+function initiateRegister(username, fullname){
+  keys = []; 
+  currRegUsername = username;
+  currRegFullname = fullname;
   io.sockets.emit('Register')
-  var process = spawn('python3', ['register_script.py', username, fullname],
-    {cwd: '../shamir/code/'})
-
-  // Log crow_caw's stdout and send to dashboard
-  process.stdout.on('data', function(data){
-    let msg = data.toString()
-    console.log('-- Register stdout: ' + msg)
-    if (msg.indexOf("SUCCESS" !== -1)){
-      io.sockets.emit('Register')
-    }
-  })
-
-  // Log crow_caw's stderr and redirect to our stderr
-  process.stderr.on('data', function(data){
-    console.error(data.toString())
-  });
-
-  // Log crow_caw's error and redirect to our stderr
-  process.on('error', (err) => {
-    console.error(err)
-  })
 }
