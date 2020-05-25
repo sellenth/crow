@@ -1,19 +1,23 @@
-const express = require('express')
-const app     = express()
-const https   = require('https')
-const path    = require('path')
-const cors    = require('cors')
-const sha256  = require('js-sha256').sha256
-const fs      = require('fs')
-const net     = require('net');
-const spawn   = require('child_process').spawn;
-const client  = new net.Socket();
-const port    = process.env.PORT || 3001
-const devOut  = require('debug')('dev')
+const express  = require('express')
+const app      = express()
+const https    = require('https')
+const path     = require('path')
+const cors     = require('cors')
+const sha256   = require('js-sha256').sha256
+const fs       = require('fs')
+const net      = require('net');
+const spawn    = require('child_process').spawn;
+const client   = new net.Socket();
+const port     = process.env.PORT || 3001
+const devOut   = require('debug')('dev')
 const socketIO = require('socket.io')
 const settings = {}
 const cookieParser   = require('cookie-parser')
 const pathToSettings = '../shamir/code/settings.py';
+const { createMultiSocket } = require('./challenge')
+
+let MULT_ADDR = ''
+let MULT_PORT = 0
 
 const options = {
   key: fs.readFileSync('key.pem'),
@@ -36,6 +40,7 @@ app.post('/auth', (req, res) => {
   CommWithSocket(username, pw, register)
   res.status(200).send()
 })
+
 
 // This function sends user data to 55556 where it is
 // ingested by crow_caw or to 55557 where it is used
@@ -137,6 +142,18 @@ function parseSettings(settingsFile){
         line.lastIndexOf(" ") + 1,
         line.length)
     }
+
+    else if (line.includes("MULT_ADDR")) {
+      MULT_ADDR = line.substring(
+        line.indexOf("'") + 1,
+        line.lastIndexOf("'"))
+    }
+
+    else if (line.includes("MULT_PORT")) {
+      MULT_PORT = line.substring(
+        line.lastIndexOf(" ") + 1,
+        line.length)
+    }
   }
   return settings;
 }
@@ -186,6 +203,7 @@ const server = https.createServer(options, app)
   .listen(port, () => {
     readSettingsFile();
     process.env.DEV !== 'true' && caw();
+    createMultiSocket(MULT_ADDR, MULT_PORT)
     console.log('Connect to server with one of the following addresses ' + returnIPs())
     console.log('Use the port ' + port)
   })
