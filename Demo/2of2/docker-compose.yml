@@ -1,0 +1,124 @@
+version: "3.7"
+
+services:
+    auth1: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of2/Dockerfile
+            args:
+                ID: auth
+        hostname: auth1
+        ports:
+            - "44444:22"
+            - "4001:3001"
+        networks: 
+            bridge:
+                ipv4_address: 172.28.1.2
+
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - auth1:/app/crow/shamir/assets
+    
+    ui: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of2/Dockerfile
+            args:
+                ID: ui
+        hostname: ui
+        ports:
+            - "44445:22"
+            - "4002:3001"
+        networks: 
+            bridge:
+                ipv4_address: 172.28.1.3
+
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - ui:/app/crow/shamir/assets
+
+    voice: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of2/Dockerfile
+            args:
+                ID: voice
+        hostname: voice
+        ports:
+            - "44440:22"
+            - "4003:3001"
+        networks: 
+            bridge:
+                ipv4_address: 172.28.1.4
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - voice:/app/crow/shamir/assets
+
+    web: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of2/Dockerfile
+            args:
+                ID: web
+        hostname: web
+        ports:
+            - "44441:22"
+            - "4004:3001"
+        networks: 
+            bridge:
+                ipv4_address: 172.28.1.5
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - web:/app/crow/shamir/assets
+
+    voice2: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of2/Dockerfile
+            args:
+                ID: voice
+        image: voice
+        hostname: voice
+        ports:
+            - "44442:22"
+            - "4005:3001"
+        networks: 
+            bridge:
+                ipv4_address: 172.28.1.6
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - voice2:/app/crow/shamir/assets
+
+    web2: 
+        build:
+            context: ../../../
+            dockerfile: crow/Demo/2of2/Dockerfile    
+            args:
+                ID: web
+        image: web
+        hostname: web
+        ports:
+            - "44443:22"
+            - "4006:3001"
+        networks: 
+            bridge:
+                ipv4_address: 172.28.1.7
+        volumes:
+            - hosts:/app/crow/shamir/assets/hosts
+            - web2:/app/crow/shamir/assets
+        
+volumes:
+    auth1:
+    web:
+    voice2:
+    ui:
+    web2:
+    hosts:
+    voice:
+
+networks: 
+    bridge:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.28.0.0/16

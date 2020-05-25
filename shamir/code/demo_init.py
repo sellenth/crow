@@ -17,9 +17,9 @@ print("THIS SCRIPT IS ONLY FOR DEMO PURPOSES PLEASE COPY KEYS RESPONSIBLY")
 files = os.listdir("../assets")
 
 #Lists of protected files in assets
-protected = ["auth.pub", my_id, my_id+".pub", "local", "local.pub", "DBs", "hosts"]
-protected_auth = ["auth", "auth.pub", "DBs", "hosts"]
-
+protected = ["auth.pub", my_id, my_id+".pub", "local", "local.pub", "DBs", "hosts", "comms_number"]
+protected_auth = ["auth", "auth.pub", "DBs", "hosts", "comms_number", "local", "local.pub"]
+protected_ui = ["auth", "auth.pub", "DBs", "hosts", "comms_number", "local", "local.pub"]
 #add variable number of databases
 for i in settings.DBS:
     protected_auth.append(i+".pub")
@@ -29,37 +29,48 @@ if os.path.exists("../assets/initialized"):
     print("already initialized")
     exit(0)
 
+#Random number for file name
+x = str(int.from_bytes(Random.get_random_bytes(8), "big"))
+
+#Generate comms number
+comms_number = int.from_bytes(Random.get_random_bytes(8), "big")
+comms_number = str(comms_number)
+with open(settings.assetsdir + "comms_number", "w") as c:
+    c.write(comms_number)
+
+#Generate a random rsa_2048 key
+key = RSA.generate(2048, Random.get_random_bytes)
+
+#name target directory
+dirr = "../assets/"
+#open the files to store the public and private keys
+f1 = open(dirr + 'local','wb')
+f2 = open(dirr+ "hosts/" +x+'.pub','wb')
+f3 = open(dirr + 'local.pub','wb')
+
+#Export the keys
+f1.write(key.exportKey('PEM'))
+f2.write(key.publickey().exportKey('PEM'))
+f3.write(key.publickey().exportKey('PEM'))
+
+#close the files
+f2.close()
+f3.close()
+f1.close()
+
 #If a client node
-if not my_id == "auth":
-    
+if not my_id == "auth" and not my_id == "ui":
     #Remove all unprotected files
     for i in files:
         if not i in protected:
             os.remove("../assets/" + i)
 
-    #Random number for file name
-    x = str(int.from_bytes(Random.get_random_bytes(8), "big"))
-
-    #Generate a random rsa_2048 key
-    key = RSA.generate(2048, Random.get_random_bytes)
-    
-    #name target directory
-    dirr = "../assets/"
-    #open the files to store the public and private keys
-    f1 = open(dirr + 'local','wb')
-    f2 = open(dirr+ "hosts/" +x+'.pub','wb')
-    f3 = open(dirr + 'local.pub','wb')
-    
-    #Export the keys
-    f1.write(key.exportKey('PEM'))
-    f2.write(key.publickey().exportKey('PEM'))
-    f3.write(key.publickey().exportKey('PEM'))
-    
-    #close the files
-    f2.close()
-    f3.close()
-    f1.close()
-
+#if an ui node
+elif my_id == "ui":
+    #Remove all unprotected files
+    for i in files:
+        if not i in protected_ui:
+            os.remove("../assets/" + i)
 
 #if an auth node remove files not in protected_auth
 else:

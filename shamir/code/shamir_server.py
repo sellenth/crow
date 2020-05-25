@@ -113,13 +113,16 @@ def add_secret(d):
 
 #tell other auth nodes a db was added and send info to webUI nodes
 def db_send(db, num):
+
+	ts = str(time.time())
+
+	comms.database_log([db, num, ts])
+
 	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
 		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
-		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "DBUP:" + db + ":" + num), (settings.MULT_ADDR, settings.MULT_PORT))
+		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "DBUP:" + db + ":" + num + ":" + ts), (settings.MULT_ADDR, settings.MULT_PORT))
 
-
-		payload = json.dumps({"Action": "newDB", "type":db, "number":num})
-		s.sendto(bytes(payload, ascii), (settings.COMMS_ADDR, settings.COMMS_PORT))
+	comms.send_clients()
 
 
 #this registers and updates a node at address
@@ -135,6 +138,8 @@ def register_node(data, address, keys, dbkeys):
 
 			#log databse name 
 			i.db = data[1]
+
+			#add database to clients db and share it with wb uis
 			db_send(data[1], comms_node)
 
 			#open connection to node for challenge-response authentication
@@ -236,6 +241,8 @@ def webreg(data):
 
 	#validate auth hash 
 	if data[0] == rsa_encrypt.get_auth_hash():
+		
+		print("Added User via web register")
 
 		#add user
 		shamir_gen.add_user(data[1], data[2], data[3:])
@@ -270,12 +277,8 @@ def handle_response(data, address, keys, dbkeys):
 	#If node is asking to register a user via web
 	elif data[0] == "usrW":
 		
-		#if this node is registering the user
-		if data[1] == str(my_number):
-			webreg(data[2:])
-
-			#broadcast user info
-			broadcast(data[3])
+		#register the user
+		webreg(data[1:])
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
@@ -299,6 +302,12 @@ def handle_response(data, address, keys, dbkeys):
 			#if asking for user info
 			if data[2] == "sndU":
 				comms.send_users()
+
+			if data[2] == "sndA":
+				comms.send_both()
+
+			if data[2] == "updN":
+				comms.send_clients_full(address[0])
 
 			#respond to startup update for client node
 			elif data[2] == "imup":
@@ -514,12 +523,62 @@ def broadcast_socket():
 			#close the client connection
 			cli.close()
 
+
+#Aquires a list of nodes from another auth node and stores them
+def get_nodes():
+	
+	print("Grabbing list of active nodes")
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		s.bind(('0.0.0.0', 55559))
+		s.listen(1)
+
+		try:	
+			auth_update.challenge(my_number, "updN")
+		
+		except:
+			s.close()
+			print("No auth node found")
+			return
+		
+		cli, addr = s.accept()
+
+		#Create empty data string
+		data = b""
+
+		#Recieve until done
+		try:
+			while 1==1:
+				temp = cli.recv(4096)
+				if temp and len(temp) == 4096:
+					data += temp
+				else:
+					break
+			data += temp
+		
+		#if the connection dies
+		except:
+			#Return no updates
+			return 0        
+		
+		#close the socket
+		cli.close()
+
+		data = json.loads(str(data, 'ascii'))
+		for i in data['payload']:
+			comms.database_log([i['type'], i['id'], i['timestamp']])
+	
+
 #Runs auth update every 3.5 minutes 
 def timer_update_start():
-    while 1 == 1:
-        time.sleep(60 * 3.5)
-        t = threading.Thread(target = auth_update.updateee, args=[my_number])
-        t.start()
+	while 1 == 1:
+		time.sleep(60 * 3.5)
+		
+		#re-add self to client database
+		db_send("auth", str(comms_number))
+
+		#Update
+		t = threading.Thread(target = auth_update.updateee, args=[my_number])
+		t.start()
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
@@ -534,13 +593,15 @@ def run():
 
 	#add self to database
 	db_send("auth", str(comms_number))
-	comms.database_log(["auth", str(comms_number)])
 
 	#Run the auth node update process which is required for the server to start properly
 	print("Looking for updates")
 	auth_update.updateee(my_number)
 	threading.Thread(target=timer_update_start).start() 
-	
+
+	#Grab all node entries for our webUI
+	get_nodes()
+
 	#Set up multicast listener
 	address = settings.MULT_ADDR
 	port = settings.MULT_PORT 

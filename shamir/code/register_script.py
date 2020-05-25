@@ -11,8 +11,8 @@ def register(user, name, keys):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
         s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
 
-        payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth, payload)
-        s.sendto(bytes(payload, 'ascii'), (settings.MULT_ADDR, settings.MULT_PORT))
+        payload = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload)
+        s.sendto(payload, (settings.MULT_ADDR, settings.MULT_PORT))
 
 
 if __name__ == "__main__":
