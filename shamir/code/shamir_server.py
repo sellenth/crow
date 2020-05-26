@@ -87,16 +87,13 @@ def auth_user(incoming, conn):
 
 
 def add_secret(d):
+
+	#initialize the shares db
+	initialize_db()
+
 	#open connection to shares database and set row generator and cursor
 	conn = sqlite3.connect(settings.DBdir + "shares.db")
 	conn.row_factory = sqlite3.Row
-
-	shares = ""
-	for i in range(settings.THRESH):
-		shares += "x" + str(i+1) +", y" + str(i+1) + ", "
-
-	#make sure that shares table exists
-	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY," + shares + "num_shares, timestamp FLOAT)")
 	
 	#create share object from provided data "d"
 	share = {}
@@ -320,6 +317,20 @@ def handle_response(data, address, keys, dbkeys):
 
 				print("Sending Update to Auth Node")
 				auth_update.updater(address[0])
+
+
+def initialize_db():
+	
+	conn = sqlite3.connect(settings.DBdir + "shares")
+	
+	shares = ""
+	for i in range(settings.THRESH):
+		shares += "x" + str(i+1) +", y" + str(i+1) + ", "
+
+	#make sure that shares table exists
+	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY," + shares + "num_shares, timestamp FLOAT)")
+	conn.commit()
+	conn.close()
 
 
 #Handles the reception of inserts and delets inserted on other nodes during execution
@@ -590,6 +601,9 @@ def run():
 	
 	#initialize database for comms
 	comms.initialize_db()
+
+	#initialize shares db
+	initialize_db()
 
 	#add self to database
 	db_send("auth", str(comms_number))
