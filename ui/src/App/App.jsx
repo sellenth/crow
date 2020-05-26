@@ -76,6 +76,7 @@ class App extends Component {
     } else {
       switch (id) {
         case 'auth':
+        case 'ui':
           return (
             <Dashboard
               savedState={dashboardState}
