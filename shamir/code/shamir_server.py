@@ -321,7 +321,7 @@ def handle_response(data, address, keys, dbkeys):
 
 def initialize_db():
 	
-	conn = sqlite3.connect(settings.DBdir + "shares")
+	conn = sqlite3.connect(settings.DBdir + "shares.db")
 	
 	shares = ""
 	for i in range(settings.THRESH):
