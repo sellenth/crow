@@ -37,6 +37,7 @@ export default class Dashboard extends React.Component {
     }
     socket.emit('DashboardUpdate')
     socket.on('DashboardUpdate', (data) => {
+        console.log(data);
         this.parseData(data);
     });
     this.scrollToBottom();

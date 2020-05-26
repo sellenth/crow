@@ -3,7 +3,6 @@ const app      = express()
 const https    = require('https')
 const path     = require('path')
 const cors     = require('cors')
-const sha256   = require('js-sha256').sha256
 const fs       = require('fs')
 const net      = require('net');
 const spawn    = require('child_process').spawn;
@@ -75,7 +74,7 @@ function CommWithSocket(username, password, registerFlag){
 
     console.log("-- In CommWithSocket, received this payload: " + payload)
 
-    client.connect(registerFlag ? 55557 : 55556, 'localhost', () => {
+    client.connect(55556, 'localhost', () => {
       client.write(payload)
       client.destroy()
     });
@@ -99,45 +98,20 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + './../ui/build/index.html'));
 })
 
-function parseUpdateJSON(obj){
-  switch(obj.action){
-    case "newDB":
-        console.log("New DB Ready")
-        break;
-    case "newUser":
-        console.log("New user share")    
-        break;
-    case "update_dbs":
-        console.log(obj.clients)
-        break;
-    case "update_dbs":
-        console.log(obj.clients)
-        break;
-    case "update_users":
-        console.log(obj.users)
-        break;
-    case "update_all":
-      console.log(obj.clients);
-      console.log(obj.users);
-
-  }
-}
-
-
-
-  const exObj = JSON.stringify({
-    action: "update_all",
-    clients: [
-      {database: "web", number: 2},
-      {database: "auth", number: 2},
-      {database: "face", number: 1},
-      {database: "qr", number: 3}
-    ],
-    users: [
-      {user: "r3k", num_shares: 1},
-      {user: "hal", num_shares: 3}
-    ]
-  })
+// an example object used for dev purposes
+const exObj = JSON.stringify({
+  action: "update_all",
+  clients: [
+    {database: "web", number: 2},
+    {database: "auth", number: 2},
+    {database: "face", number: 1},
+    {database: "qr", number: 3}
+  ],
+  users: [
+    {user: "r3k", num_shares: 1},
+    {user: "hal", num_shares: 3}
+  ]
+})
 
 // This function spawns a process that calls comms
 // which requests a full system state to be sent to the
@@ -245,7 +219,7 @@ function returnIPs(){
 
 // messages can be sent to the multicast addr with
 // $ echo "{\"action\":\"new_usr\"}" > /dev/udp/224.3.29.2/13338
-// for debug purposes
+// for dev purposes
 function createListenSocket(){
   const socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
   const PORT = commsPort
@@ -264,7 +238,7 @@ function createListenSocket(){
     );
   });
 
-  socket.on("message", function(message, rinfo) {
+  socket.on("message", function(message) {
     io.sockets.emit('DashboardUpdate', JSON.parse(message.toString()))
   });
 }
