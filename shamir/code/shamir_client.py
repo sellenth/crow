@@ -67,7 +67,7 @@ def auth_user(user, db,key):
         num_face = database_embed[0]
         database_embed = database_embed[1:]
         database_embed_norm = database_embed / num_face
-        dist = get_euclidian_distance(incoming_embed,database_embed_norm)
+        dist = get_euclidean_distance(incoming_embed,database_embed_norm)
         if dist <= settings.FACE_THRESH:
             send_share(share, Host())
             conn = sqlite3.connect(settings.DBdir + settings.ID + ".db")
