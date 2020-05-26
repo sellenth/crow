@@ -5,6 +5,8 @@ import socket
 import sqlite3
 import time
 import sys
+
+sys.path.append("../../face-recognition")
 from face_register import *
 from face_recog import *
 

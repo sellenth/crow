@@ -2,6 +2,9 @@
 
 import socket
 import settings
+
+import sys
+sys.path.append("../../face-recognition")
 from face_submit import *
 from face_recog import *
 
