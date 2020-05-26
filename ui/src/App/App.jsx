@@ -33,12 +33,9 @@ class App extends Component {
       this.setState(settingsJSON);
     });
     socket.on('Register', () => {
-      const { numRegistered } = this.state;
-      // the 3 in the line of code below is a magic number,
-      // it represents how many node types the system supports
-      // it would be equivalent to the length of the DBs assuming
-      // there is an authentication page for each type of DB
-      if (numRegistered >= 3) {
+      const { numRegistered, total } = this.state;
+      // this total comparison is a bit of a magic number, sorry :(
+      if (numRegistered >= total) {
         this.setState({
           registerUsername: '',
           registerMode: 0,
@@ -67,9 +64,9 @@ class App extends Component {
         case 1:
           return <Keypad register="true" />;
         case 2:
-          return <Qr username={registerUsername} register="true" socket={socket} />;
-        case 3:
           return <Voice register="true" socket={socket} />;
+        case 3:
+          return <Qr username={registerUsername} register="true" socket={socket} />;
         default:
           return <h1>Attempted to register node type that does not exit</h1>;
       }

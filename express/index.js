@@ -60,7 +60,8 @@ function CommWithSocket(username, password, registerFlag){
     if (registerFlag) {
       keys.push(password)
 
-      if (keys.length >= 3) {
+      console.log(`total count is ${parseInt(settings.total)}`)
+      if (keys.length >= parseInt(settings.total)) {
         sendKeysToRegister();
       }
 
@@ -69,6 +70,7 @@ function CommWithSocket(username, password, registerFlag){
     }
     // When authenticating a user, we send their username and password (unhashed)
     else {
+      password = new Buffer(crypto.createHmac('sha256', password).digest('ascii')).toString('base64')
       payload = username + ':' + password
     }
 
@@ -310,7 +312,7 @@ function VoiceRecognition(username, blob, registerFlag) {
             if (registerFlag) {
               keys.push(data.toString())
 
-              if (keys.length >= 3) {
+              if (keys.length >= parseInt(settings.total)) {
                 sendKeysToRegister();
               }
 
@@ -340,7 +342,7 @@ function sendKeysToRegister(){
   hashKeys(keys)
   console.log('going to register these keys (hashed)', keys)
   if (!require('process').env.DEV){
-    var process = spawn('python3', ['register_script.py', username, fullname].concat(keys),
+    var process = spawn('python3', ['register_script.py', currRegUsername, currRegFullname].concat(keys),
       {cwd: '../shamir/code/'})
 
     // Log script's stderr and redirect to our stderr

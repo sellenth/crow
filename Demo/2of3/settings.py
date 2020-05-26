@@ -1,7 +1,7 @@
 #Global settings variables for easy management
 
 #List of the databases you are using
-DBS = ["qr", "voice", "web"]
+DBS = ["web", "voice", "qr"]
 
 #The identity of this node, should be auth or one of the database names
 ID = 'auth'
