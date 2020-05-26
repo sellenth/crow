@@ -6,10 +6,8 @@ import rsa_encrypt
 import settings
 import json
 import threading
-<<<<<<< HEAD
 import numpy as np
 from face_recog import *
-=======
 import base64
 import hashlib
 
@@ -62,7 +60,6 @@ def challenge():
         #send payload and return expected address
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))
         return addr
->>>>>>> upstream/master
 
 
 #Host object to store multicast information
