@@ -8,3 +8,6 @@ shamir/DBs
 shamir/userlist.txt
 keypad/node_modules
 ui/node_modules
+*.wav
+*.mp3
+*.ogg

@@ -1,20 +1,26 @@
 const express = require('express')
-const app = express()
-const http = require('http')
-const path = require('path')
-const cors = require('cors')
+const app     = express()
+const https   = require('https')
+const path    = require('path')
+const cors    = require('cors')
+const sha256  = require('js-sha256').sha256
+const fs      = require('fs')
+const net     = require('net');
+const spawn   = require('child_process').spawn;
+const client  = new net.Socket();
+const port    = process.env.PORT || 3001
+const devOut  = require('debug')('dev')
 const socketIO = require('socket.io')
-const fs = require('fs')
-const net = require('net');
-const client = new net.Socket();
-const cookieParser = require('cookie-parser')
-const port = 3001
+const settings = {}
+const cookieParser   = require('cookie-parser')
 const pathToSettings = '../shamir/code/settings.py';
-var settings = {}
+
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
 
 // Middleware
-app.use(express.static('public'))
-// Serve the static files from the React app
 app.use(express.static(path.join(__dirname, './../ui/build')));
 app.use(express.json())
 app.use(cookieParser())
@@ -23,82 +29,92 @@ app.use(cors())
 
 // Authentication route
 app.post('/auth', (req, res) => {
+  console.log('-- In Authentication route')
   const username = req.body.username;
   const pw = req.body.pw;
-
-  if (pw === '111' || pw === '222'){
-
-    client.connect(55556, 'localhost', function () {
-      //client.write(username + ':' + pw); THE ACTUAL MESSAGE TO SEND
-      pw === '111' ? 
-        client.write("r3k has submitted 1 shares!") // demo message
-        : client.write("tim has submitted 1 shares!") // demo message
-    })
-
-    client.on('error', function(err){
-      console.log("Error: "+err.message);
-    })
-
-    client.close
-  }
-
+  const register = req.body.register;
+  CommWithSocket(username, pw, register)
   res.status(200).send()
 })
 
-app.get('/keypad', (req, res) => {
-  res.sendFile(path.join(__dirname + '/public/html/index.html'));
-})
+// This function sends user data to 55556 where it is
+// ingested by crow_caw or to 55557 where it is used
+// in the register_script.py
+function CommWithSocket(username, password, registerFlag){
+    if (password.length > 66){
+      io.emit("ErrChannel", "Password is too long to be securely hashed, try a shorter one")
+      return
+    }
+    devOut("-- The username is: " + username + ' and the password is: ' + password)
+    let payload
 
+    // When registering a user we send only a hash of their password
+    if (registerFlag) {
+      console.log("-- User is being registered")
+      let pw_hash = sha256(password)
+      let buff = new Buffer(pw_hash)
+      password = buff.toString('base64')
+      payload = password
+    }
+    // When authenticating a user, we send their username and password (unhashed)
+    else {
+      payload = username + ':' + password
+    }
+
+    console.log("-- In CommWithSocket, received this payload: " + payload)
+
+    client.connect(registerFlag ? 55557 : 55556, 'localhost', () => {
+      client.write(payload)
+      client.destroy()
+    });
+
+    client.on('error', function (err) {
+      console.error(err);
+      console.error("\nIt may be the case that nothing is listening on 55556/7!")
+      client.destroy()
+      process.exit()
+    })
+
+}
 
 // Send settings.py as json
 app.get('/settings', (req, res) => {
   res.json(settings);
 })
 
-// Serve correct homescreen for node type
-app.get('/sendit', (req, res) => {
-  //caw();
-  io.sockets.emit('testchannel',
-    "Sending Update to Client Node\n" +
-    "Got share\n" +
-    "Node registered: web\n" +
-    "Node registered: face\n" +
-    "Node registered: web\n" +
-    "Sending New Share to other Auth Nodes\n" + 
-    "Sending Update to Client Node\n" +
-    "Got share\n" +
-    "Sending New Share to other Auth Nodes\n" + 
-    "Recieved Share from Client Node\n" +
-    "r3k has submitted 1 shares!\n" +
-    "tim has submitted 1 shares!\n" +
-    "r3k has submitted 1 shares!\n" +
-    "r3k has submitted 1 shares!\n" +
-    "r3k has submitted 1 shares!\n" +
-    "(r3k) is Authorized!\n"
-    )
-  res.send('hi')
-})
-
+// Serve the finished React build document on /
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + './../ui/build/index.html'));
 })
 
+// This function spawns a child process that run's 
+// crow_caw which handles all the backend secret sharing 
 function caw(){
-  var spawn = require('child_process').spawn;
-  var process = spawn('netcat', 
-    ["-l", "-p", "55556", "-k"],
+  console.log('-- Spawning crow caw process')
+  var process = spawn('python3', ['crow_caw.py'],
     {cwd: '../shamir/code/'})
 
+  // Log crow_caw's stdout and send to dashboard
   process.stdout.on('data', function(data){
-    console.log(data.toString())
+    console.log('-- Caw stdout: ' + data.toString())
     io.sockets.emit('testchannel', data.toString())
   })
 
+  // Log crow_caw's stderr and redirect to our stderr
   process.stderr.on('data', function(data){
-    console.log(data.toString())
+    console.error(data.toString())
   });
+
+  // Log crow_caw's error and redirect to our stderr
+  process.on('error', (err) => {
+    console.error(err)
+  })
+
 }
 
+// A bit of a hack but this function serves to 
+// return specific details about the settings.py 
+// which configures parts of our overall system
 function parseSettings(settingsFile){
   let line = null;
 
@@ -125,11 +141,13 @@ function parseSettings(settingsFile){
   return settings;
 }
 
-fs.watchFile(pathToSettings, (curr, prev) => {
-  console.log('Settings file has changed');
+// Everytime the settings file is updated,
+// re-read its data and transmit to dashboard
+fs.watchFile(pathToSettings, () => {
+  console.log('-- Settings file has changed');
   readSettingsFile();
   try {
-    io.sockets.emit("SettingsUpdate", "pass") 
+    io.sockets.emit("SettingsUpdate", settings) 
   } catch (err) {
     console.log('SOCKET ERROR: ' + err)
   }
@@ -146,28 +164,119 @@ function readSettingsFile() {
   }
 }
 
-var os = require( 'os' );
-var networkInterfaces = Object.values(os.networkInterfaces())
-    .reduce((r,a)=>{
-        r = r.concat(a)
-        return r;
-    }, [])
-    .filter(({family, address}) => {
-        return family.toLowerCase().indexOf('v4') >= 0 &&
-            address !== '127.0.0.1'
-    })
-    .map(({address}) => address);
-var ipAddresses = networkInterfaces.join(', ')
+// This function takes the IPs addresses of the local machine
+// (it makes it easier to connect to the docker containers) 
+function returnIPs(){
+  var os = require( 'os' );
+  var networkInterfaces = Object.values(os.networkInterfaces())
+      .reduce((r,a)=>{
+          r = r.concat(a)
+          return r;
+      }, [])
+      .filter(({family, address}) => {
+          return family.toLowerCase().indexOf('v4') >= 0 &&
+              address !== '127.0.0.1'
+      })
+      .map(({address}) => address);
+  var ipAddresses = networkInterfaces.join(', ')
+  return ipAddresses
+}
 
-const server = http.createServer(app)
-    .listen(port, () => {
-        readSettingsFile();
-        caw();
-        console.log('Connect to server at ' + ipAddresses + ':' + port)
-    })
+const server = https.createServer(options, app)
+  .listen(port, () => {
+    readSettingsFile();
+    process.env.DEV !== 'true' && caw();
+    console.log('Connect to server with one of the following addresses ' + returnIPs())
+    console.log('Use the port ' + port)
+  })
 
+// Create the socketIO server
 const io = socketIO(server);
 
+// These are the channels that the socketIO server listens on
 io.on("connection", socket => {
-  socket.on("disconnect", () => console.log('A client disconnected'));
+  // Log when a user disconnects from the site
+  socket.on("disconnect", () => console.log('-- A client disconnected'));
+
+  // qrchannel takes data from qr scan or generated qr
+  // and sends it to crow_caw or register_script
+  socket.on("qrchannel", (username, password, registerFlag) => CommWithSocket(username, password, registerFlag));
+
+  // voice channel takes an audio data blob 
+  // and sends it to voice_reg.py or voice.py
+  socket.on("voiceChannel", (username, blob, registerFlag) => VoiceRecognition(username, blob, registerFlag));
+
+  // When socket hears a call for settingsUpdate, sends the newest version of settings
+  socket.on("SettingsUpdate", () => io.sockets.emit("SettingsUpdate", settings));
+
+  // When socket hears register, initiate the register_script.py
+  socket.on("Register", (usr, full) => register(usr, full));
 })
+
+// This function first spawns ffmpeg to convert the blob
+// into a more widely useable form and then spawns one 
+// voice_reg.py or voice.py, using the converted audio
+// file as input
+function VoiceRecognition(username, blob, registerFlag) {
+  // write the blob to file
+  fs.writeFile('../voice-recognition/capture.ogg', blob, (err) => {
+    if (!err) {
+
+      // -i option grabs input files
+      // -vn skip inclusion of video in output
+      // -y overwrite previous versions of output .wav
+      var process = spawn('ffmpeg',
+        ["-i", "./capture.ogg", "-vn", "./capture.wav", "-y"],
+        { cwd: '../voice-recognition/' })
+
+      // When the conversion is complete
+      process.on('close', () => {
+        // Decide which script to run
+        let scriptToRun = registerFlag ? "voice_reg.py" : "voice.py"
+        // spawn python3 with that script and supply the username
+        // that the transcription will be send with
+        var p2 = spawn('python3',
+          [scriptToRun, username, "capture.wav"],
+          { cwd: '../voice-recognition/' })
+        
+          p2.stdout.on('data', function (data) {
+            console.log('-- In voice recognition, transcript is: ' + data.toString())
+            io.sockets.emit('voiceChannel', data.toString())
+          })
+
+          process.stderr.on('data', function (data) {
+            console.error(data.toString())
+          });
+      })
+    }
+  })
+}
+
+
+// spawn the register script for a new user
+// given their username and fullname
+function register(username, fullname){
+  console.log('-- Spawning register process')
+  io.sockets.emit('Register')
+  var process = spawn('python3', ['register_script.py', username, fullname],
+    {cwd: '../shamir/code/'})
+
+  // Log crow_caw's stdout and send to dashboard
+  process.stdout.on('data', function(data){
+    let msg = data.toString()
+    console.log('-- Register stdout: ' + msg)
+    if (msg.indexOf("SUCCESS" !== -1)){
+      io.sockets.emit('Register')
+    }
+  })
+
+  // Log crow_caw's stderr and redirect to our stderr
+  process.stderr.on('data', function(data){
+    console.error(data.toString())
+  });
+
+  // Log crow_caw's error and redirect to our stderr
+  process.on('error', (err) => {
+    console.error(err)
+  })
+}

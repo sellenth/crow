@@ -18,7 +18,7 @@ if __name__ == "__main__":
             audio = r.record(source)
 
             try:
-                text = r.recognize_google(audio)
+                text = r.recognize_google(audio).lower().strip()
                 print(text)
             except:
                 print('Sorry could not recognize your voice')
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect(('localhost', 55556))
+            s.connect(('localhost', 55557))
 
             voicehash = base64.b64encode(hashlib.sha256(bytes(text, 'ascii')).digest())
 

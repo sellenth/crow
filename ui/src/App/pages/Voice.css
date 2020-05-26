@@ -1,0 +1,68 @@
+.App {
+  margin: 0px;
+  height: 100%;
+  background: #EEEEEE;
+}
+
+h1 {
+  font-size: 6em;
+  font-weight: 600;
+}
+
+.styled__control-is-focused {
+  outline: 0;
+}
+
+.sound-wave {
+  width: 100%;
+}
+
+.buttonsBar {
+  width: 50%;
+}
+
+.play-stop {
+  height: 20vw;
+  width: 20vw;
+  font-size: 4em;
+  background-color: #999;
+  border-radius: 7%;
+  outline: none;
+  box-shadow:
+    -6px -6px 12px 0 rgba(255,255,255,.5),
+    12px 12px 12px 0 rgba(0,0,0,.03);
+  background-color: #EEEEEE;
+}
+
+.play-stop:focus {
+  outline: 0;
+}
+
+.w_content {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+  .w_content h2 {
+    margin-right: 10px;
+    margin-bottom: 0px;
+  }
+
+  #i_username {
+    font-family: 'Questrial', sans-serif;
+    font-weight: bold;
+    font-size: 2em;
+    height: 100%;
+    background-color: #EEEEEE;
+    border-style: none;
+  }
+  
+  #i_username:focus {
+    outline: 0;
+  }
+
+#i_username {
+  display: inline-block;
+}

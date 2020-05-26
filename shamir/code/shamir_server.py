@@ -8,16 +8,23 @@ import rsa_encrypt
 import aes_crypt
 import threading
 import settings
+import shamir_gen
+import comms
 import base64
 import shamir_update_client
 import auth_update
 import sys
+import json
 
 from Crypto import Random
 
 #set unique number -- not actually unique but 1- (N* (1/2^16*8)) chance of being unique 
 my_number = int.from_bytes(Random.get_random_bytes(16), "big")
 
+#set number for communication with webservers from file
+comms_number = 0
+with open(settings.assetsdir + "comms_number", "r") as c:
+	comms_number = int(c.read())
 
 #insert a blank user into the database to use as a baseline
 def add_line(username, conn):
@@ -80,16 +87,13 @@ def auth_user(incoming, conn):
 
 
 def add_secret(d):
+
+	#initialize the shares db
+	initialize_db()
+
 	#open connection to shares database and set row generator and cursor
 	conn = sqlite3.connect(settings.DBdir + "shares.db")
 	conn.row_factory = sqlite3.Row
-
-	shares = ""
-	for i in range(settings.THRESH):
-		shares += "x" + str(i+1) +", y" + str(i+1) + ", "
-
-	#make sure that shares table exists
-	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY," + shares + "num_shares, timestamp FLOAT)")
 	
 	#create share object from provided data "d"
 	share = {}
@@ -104,18 +108,40 @@ def add_secret(d):
 		shamir_auth.auth_user(share['id'], conn)
 
 
+#tell other auth nodes a db was added and send info to webUI nodes
+def db_send(db, num):
+
+	ts = str(time.time())
+
+	comms.database_log([db, num, ts])
+
+	with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
+		s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+		s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "DBUP:" + db + ":" + num + ":" + ts), (settings.MULT_ADDR, settings.MULT_PORT))
+
+	comms.send_clients()
+
+
 #this registers and updates a node at address
 def register_node(data, address, keys, dbkeys):
 	#Determine if the public key sent by the node is in the system
+	
+	#register update type
+	comms_node = data[0]
+	data = data[1:]
+
 	for i in keys:
 		if str(base64.b64encode(hashlib.sha256(i.key.exportKey("PEM")).digest()), 'ascii') == data[0]:
 
 			#log databse name 
 			i.db = data[1]
 
+			#add database to clients db and share it with wb uis
+			db_send(data[1], comms_node)
+
 			#open connection to node for challenge-response authentication
 			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-				s.connect((address[0], 44432))
+				s.connect((address[0], 55550))
 				
 				#pick 2 numbers, one for the db key, and one for the decvice key
 				sum1 = str(int.from_bytes(Random.get_random_bytes(4), "big"))
@@ -176,8 +202,9 @@ def register_node(data, address, keys, dbkeys):
 					
 					#start node database update and print results when finished
 					shamir_update_client.update(i, timestamps, s)
-					print("Node registered:   " + i.db)
-   
+					
+					print("Node updated:   " + i.db)
+					
 
 #this sends the servers associated number to the address specified
 def contest(address, pub, keys):
@@ -191,7 +218,7 @@ def contest(address, pub, keys):
 			#send the node's number to the provided address, encrypted with their public key
 			with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 				data = aes_crypt.aes_enc(i.key, str(my_number)) 
-				s.sendto(data, (address, 44443))
+				s.sendto(data, (address, 55551))
 
 
 #this sends the servers associated number to the address specified
@@ -203,7 +230,19 @@ def contest_auth(address):
 		
 		#send the number
 		data = aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), str(my_number)) 
-		s.sendto(data, (address, 44443))
+		s.sendto(data, (address, 55551))
+
+
+#Handler for web ui registrations
+def webreg(data):
+
+	#validate auth hash 
+	if data[0] == rsa_encrypt.get_auth_hash():
+		
+		print("Added User via web register")
+
+		#add user
+		shamir_gen.add_user(data[1], data[2], data[3:])
 
 
 #Handler for any multicast message that is recieved
@@ -218,13 +257,25 @@ def handle_response(data, address, keys, dbkeys):
 
 	#split the message and determine how to respond to it
 	data = str(data, 'ascii').split(":")
+	
 	#Node is sending share for authentication
 	if data[0] == "auth":
 		add_secret(data[1:])
 	
+	#Node is sending db info
+	elif data[0] == "DBUP":
+		if data[1] in settings.DBS + ["auth"]:
+			comms.database_log(data[1:])
+
 	#Node needs an auth node, so the auth contest is started using a node public key
 	elif data[0] == "who?":
 		contest(address[0], data[1], keys)
+
+	#If node is asking to register a user via web
+	elif data[0] == "usrW":
+		
+		#register the user
+		webreg(data[1:])
 	
 	#An auth node has woken up, so the auth contest is started with the auth public key
 	elif data[0] == "regA":
@@ -240,17 +291,46 @@ def handle_response(data, address, keys, dbkeys):
 	#A node has picked an auth node to use, check if it is this server
 	elif data[0] == "you!":
 		if int(data[1]) == my_number:
+			
+			#if asking for database info
+			if data[2] == "sndC":
+				comms.send_clients()
+
+			#if asking for user info
+			if data[2] == "sndU":
+				comms.send_users()
+
+			if data[2] == "sndA":
+				comms.send_both()
+
+			if data[2] == "updN":
+				comms.send_clients_full(address[0])
+
 			#respond to startup update for client node
-			if data[2] == "imup":
+			elif data[2] == "imup":
 				
 				print("Sending Update to Client Node")
 				register_node(data[3:], address, keys, dbkeys)
 			
 			#respond to startup update for auth node
 			elif data[2] == "woke":
-				
+
 				print("Sending Update to Auth Node")
 				auth_update.updater(address[0])
+
+
+def initialize_db():
+	
+	conn = sqlite3.connect(settings.DBdir + "shares")
+	
+	shares = ""
+	for i in range(settings.THRESH):
+		shares += "x" + str(i+1) +", y" + str(i+1) + ", "
+
+	#make sure that shares table exists
+	conn.cursor().execute("CREATE TABLE IF NOT EXISTS shares(id PRIMARY KEY," + shares + "num_shares, timestamp FLOAT)")
+	conn.commit()
+	conn.close()
 
 
 #Handles the reception of inserts and delets inserted on other nodes during execution
@@ -440,7 +520,7 @@ def broadcast_socket():
 
 	#Create a local socket
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-		s.bind(('127.0.0.1', 55557))
+		s.bind(('127.0.0.1', 55558))
 		s.listen(5)
 
 		#For the remainder of execution
@@ -454,12 +534,62 @@ def broadcast_socket():
 			#close the client connection
 			cli.close()
 
+
+#Aquires a list of nodes from another auth node and stores them
+def get_nodes():
+	
+	print("Grabbing list of active nodes")
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		s.bind(('0.0.0.0', 55559))
+		s.listen(1)
+
+		try:	
+			auth_update.challenge(my_number, "updN")
+		
+		except:
+			s.close()
+			print("No auth node found")
+			return
+		
+		cli, addr = s.accept()
+
+		#Create empty data string
+		data = b""
+
+		#Recieve until done
+		try:
+			while 1==1:
+				temp = cli.recv(4096)
+				if temp and len(temp) == 4096:
+					data += temp
+				else:
+					break
+			data += temp
+		
+		#if the connection dies
+		except:
+			#Return no updates
+			return 0        
+		
+		#close the socket
+		cli.close()
+
+		data = json.loads(str(data, 'ascii'))
+		for i in data['payload']:
+			comms.database_log([i['type'], i['id'], i['timestamp']])
+	
+
 #Runs auth update every 3.5 minutes 
 def timer_update_start():
-    while 1 == 1:
-        time.sleep(60 * 3.5)
-        t = threading.Thread(target = auth_update.updateee, args=[my_number])
-        t.start()
+	while 1 == 1:
+		time.sleep(60 * 3.5)
+		
+		#re-add self to client database
+		db_send("auth", str(comms_number))
+
+		#Update
+		t = threading.Thread(target = auth_update.updateee, args=[my_number])
+		t.start()
 
 #Start runs the shamir server, it is responsible for listening on the multicast
 #address and assigning messages to the proper threads
@@ -468,12 +598,24 @@ def run():
 	#Grab database keys and device keys
 	keys = rsa_encrypt.get_keys_nodes()
 	dbkeys = rsa_encrypt.get_keys(settings.DBS)
-	#Run the auth node update process which is required for the server to start properly
 	
+	#initialize database for comms
+	comms.initialize_db()
+
+	#initialize shares db
+	initialize_db()
+
+	#add self to database
+	db_send("auth", str(comms_number))
+
+	#Run the auth node update process which is required for the server to start properly
 	print("Looking for updates")
 	auth_update.updateee(my_number)
 	threading.Thread(target=timer_update_start).start() 
-	
+
+	#Grab all node entries for our webUI
+	get_nodes()
+
 	#Set up multicast listener
 	address = settings.MULT_ADDR
 	port = settings.MULT_PORT 

@@ -1,19 +1,22 @@
 {
-  "name": "keypad",
+  "name": "project-crow",
   "version": "1.0.0",
-  "description": "a keypad webpage",
+  "description": "The nodeJS server for handling Project Crow's web UIs",
+  "repository": "https://www.github.com/sellenth/crow",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "DEBUG=dev DEV=true nodemon index.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Halston Sellentin",
+  "license": "MIT",
   "dependencies": {
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
+    "debug": "^4.1.1",
     "express": "^4.17.1",
     "fs": "0.0.1-security",
-    "nodemon": "^2.0.3",
+    "js-sha256": "^0.9.0",
     "socket.io": "^2.3.0"
   }
 }

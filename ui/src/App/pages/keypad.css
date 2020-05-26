@@ -7,8 +7,13 @@ body {
   background: #EEEEEE;
 }
 
+.outer {
+  height: 100%;
+}
+
 h1 {
-  font-size: 4em;
+  font-size: 6em;
+  font-weight: 600;
 }
 
 h2 {
@@ -40,6 +45,7 @@ h2 {
 
   .w_content h2 {
     margin-right: 10px;
+    margin-bottom: 0px;
   }
 
   #i_username {
@@ -78,7 +84,7 @@ h2 {
 }
 
 .cell {
-  flex: 0 0 32%;                       /* don't grow, don't shrink, width */
+  flex: 0 0 28%;                       /* don't grow, don't shrink, width */
   height: 20vh;
   max-width: 20vh;
   background-color: #999;
@@ -96,6 +102,10 @@ button {
   border: none;
   margin-left: 2vw;
   font-size: 4em;
+}
+
+button:focus {
+  outline: none;
 }
 
 .hidden {

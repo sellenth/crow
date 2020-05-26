@@ -32,7 +32,7 @@ def broadcast(uid):
     #Open a socket to the server
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect(('127.0.0.1', 55557))
+            s.connect(('127.0.0.1', 55558))
 
             #send the username
             s.send(bytes(uid, 'ascii'))
@@ -210,7 +210,7 @@ def net_register():
 
     #Create a socket to get user passwords
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('127.0.0.1', 55556))
+        s.bind(('127.0.0.1', 55557))
         s.listen(5)
 
         #For each db

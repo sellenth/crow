@@ -4,9 +4,65 @@ import sys
 import aes_crypt
 import rsa_encrypt
 import settings
+import json
 import threading
+<<<<<<< HEAD
 import numpy as np
 from face_recog import *
+=======
+import base64
+import hashlib
+
+
+def challenge():
+
+    #create host object
+    host = Host()
+
+    #Create a hash of the node's public key to send to the auth node for identity verification
+    keyhash = str(base64.b64encode(hashlib.sha256(rsa_encrypt.get_pub_key().exportKey("PEM")).digest()),'ascii')
+    
+    #creates a payload of the message that identifies that this is a client node that needs to be updated 
+    payload = "sndU"
+
+    #create a socket to communicate with the auth nodes
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) as s:
+        s.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 32)
+        
+        #Create an empty data and address variable and a socket to recieve the data
+        data = ""
+        addr = 0
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as us:
+            
+            #set a timeout for if there is no auth node ready
+            us.settimeout(1)
+            us.bind(('0.0.0.0', 55551))
+
+            #send the challenge tag to the auth nodes along with a public key to encrypt their return message with
+            s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "who?:" + keyhash), ((host.host, host.port)))
+            
+            #Recv a number from the auth node to connect to
+            try:
+                data, addr = us.recvfrom(4096)
+            #if it fails return an error
+            except socket.timeout:
+                us.close()
+                return -1
+
+        #Decrypt the recieved message
+        data = aes_crypt.aes_dec(rsa_encrypt.get_priv_key(), data)
+
+        #if message is bad return error
+        if data == -1 or data == -2:
+            return -1
+
+        #convert data to a string to return to the auth nodes along with the instruction payload
+        data = str(data, 'ascii')
+
+        #send payload and return expected address
+        s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), "you!:" + data + ":" + payload), ((host.host, host.port)))
+        return addr
+>>>>>>> upstream/master
 
 
 #Host object to store multicast information
@@ -28,6 +84,14 @@ def send_share(share, host):
         
         #encrypt the share with the auth public key and send it to the multicast address
         s.sendto(aes_crypt.aes_enc(rsa_encrypt.get_pub_key_auth(), payload), ((host.host, host.port)))
+
+    #get auth to push user updates
+    try:
+        challenge()
+
+    #exit if no auth
+    except:
+        return
 
 
 #Grab the share for a given user from the local database
