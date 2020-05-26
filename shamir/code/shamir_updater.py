@@ -131,12 +131,27 @@ def update(cli):
             if not new:
                 num_updates -= 1
             continue
-
-        #decrypt the share and concatenate it with the timestamp
-        temp = rsa_encrypt.get_priv_key_db(settings.ID).decrypt((base64.b64decode(d[0]),)) + b':' + bytes(d[1], 'ascii')
         
-        #Pass the share into the database
-        update_db(temp, conn)
+        if len(d[0]) > 344:
+            msg = b''
+            curr_len = len(d[0])
+            start = 0
+            end = 344
+            while curr_len > 0:
+                curr_len -= 344
+                dec_chunk = rsa_encrypt.get_priv_key_db(settings.ID).decrypt((base64.b64decode(d[0][start:end]),))
+                msg += dec_chunk
+                start += 344
+                end += 344
+            msg += b':' + bytes(d[1], 'ascii')
+            update_db(msg,conn)
+        else:
+
+            #decrypt the share and concatenate it with the timestamp
+            temp = rsa_encrypt.get_priv_key_db(settings.ID).decrypt((base64.b64decode(d[0]),)) + b':' + bytes(d[1], 'ascii')
+            
+            #Pass the share into the database
+            update_db(temp, conn)
 
     #close the connection and return the number of shares commited
     conn.close()

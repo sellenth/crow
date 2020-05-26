@@ -125,20 +125,9 @@ def auth_user(user, db,key):
     if db == 'face':
         incoming_embed = string_to_embed(key)
         database_embed = string_to_embed(share["key"])
-        num_face = database_embed[0]
-        database_embed = database_embed[1:]
-        database_embed_norm = database_embed / num_face
-        dist = get_euclidean_distance(incoming_embed,database_embed_norm)
+        dist = get_euclidean_distance(incoming_embed,database_embed)
         if dist <= settings.FACE_THRESH:
             send_share(share, Host())
-            conn = sqlite3.connect(settings.DBdir + settings.ID + ".db")
-            c = conn.cursor()
-            new_db_embed = incoming_embed + database_embed
-            new_db_embed_str = embed_to_string(new_db_embed)
-            new_num_face = (int)(num_face + 1)
-            new_db_embed_str = str(new_num_face) + "," + new_db_embed_str
-            params = (new_db_embed_str, share["id"])
-            c.execute('UPDATE shares SET key=? WHERE id=?',params)
             
     else:
 

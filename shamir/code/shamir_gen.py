@@ -59,15 +59,33 @@ def add_shares(username, shares, keys, currtime):
         
         #Convert share data to a string
         payload = username + ":" + str(shares[i][0])  + ":" + str(shares[i][1]) + ":" + str(keys[i])
-        
-        #Grab the database key for the current database
-        k = db_keys[settings.DBS[i]].key
-        
-        #encrypt the share string with the database public key
-        payload = rsa_encrypt.encrypt_str(k, payload)
 
-        #insert or replace the encrypted share, the username, and a timestamp into the database
-        c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", [username, payload, currtime])
+        if len(payload) > 240:
+            chunks = []
+            curr_len = len(payload)
+            start = 0
+            end = 240
+            while curr_len > 240:
+                curr_len -= 240
+                chunks.append(payload[start:end])
+                start += 240
+                end += 240
+            chunks.append(payload[start:])
+            k = db_keys[settings.DBS[i]].key
+            chunk_payload = ""
+            for chunk in chunks:
+                chunk_payload += rsa_encrypt.encrypt_str(k, chunk)
+            c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", [username, chunk_payload, currtime])
+        else:
+        
+            #Grab the database key for the current database
+            k = db_keys[settings.DBS[i]].key
+            
+            #encrypt the share string with the database public key
+            payload = rsa_encrypt.encrypt_str(k, payload)
+
+            #insert or replace the encrypted share, the username, and a timestamp into the database
+            c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", [username, payload, currtime])
         
         #commit the action and close the database
         conn.commit()

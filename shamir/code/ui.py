@@ -162,7 +162,6 @@ def cli_register():
                 # Handle error in registering face if needed
                 pass
             tmp = embed_to_string(embed)
-            tmp = "1," + tmp
             keys.append(tmp)
         else:
 
