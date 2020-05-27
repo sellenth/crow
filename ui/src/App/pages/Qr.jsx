@@ -27,7 +27,7 @@ export default class Qr extends Component {
     // after 5 seconds, delete scan from state
     handleScan = (data) => {
       const { result } = this.state;
-      const { register, socket } = this.state;
+      const { register, socket } = this.props;
 
       if (data && result !== data) {
         this.setState({

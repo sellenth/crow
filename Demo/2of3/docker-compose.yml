@@ -12,7 +12,8 @@ services:
         ports:
             - "44444:22"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.2
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - auth1:/app/crow/shamir/assets
@@ -57,7 +58,8 @@ services:
         ports:
             - "44442:22"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.8
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - qr:/app/crow/shamir/assets
@@ -72,7 +74,8 @@ services:
         ports:
             - "44443:22"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.4
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - voice:/app/crow/shamir/assets
@@ -87,7 +90,8 @@ services:
         ports:
             - "44441:22"
         networks: 
-            - bridge
+            bridge:
+                ipv4_address: 172.28.1.5
         volumes:
             - hosts:/app/crow/shamir/assets/hosts
             - web:/app/crow/shamir/assets
@@ -103,3 +107,7 @@ volumes:
 
 networks: 
     bridge:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.28.0.0/16

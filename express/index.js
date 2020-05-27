@@ -318,6 +318,7 @@ function VoiceRecognition(username, blob, registerFlag) {
 
               io.sockets.emit('Register')
             } else {
+              CommWithSocket(username, data.toString(), false)
               io.sockets.emit('voiceChannel', data.toString())
             }
           })

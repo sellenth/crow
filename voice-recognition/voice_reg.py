@@ -25,11 +25,6 @@ if __name__ == "__main__":
                 exit(1)
 
 
-        #with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        #    s.connect(('localhost', 55557))
-        #    voicehash = base64.b64encode(hashlib.sha256(bytes(text, 'ascii')).digest())
-
-        #    s.send(voicehash)
     else:
         print('calling convention: command <username> <audiofile>')
 

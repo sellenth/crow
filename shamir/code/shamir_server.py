@@ -579,10 +579,10 @@ def get_nodes():
 			comms.database_log([i['type'], i['id'], i['timestamp']])
 	
 
-#Runs auth update every 3.5 minutes 
+#Runs auth update every x seconds
 def timer_update_start():
 	while 1 == 1:
-		time.sleep(60 * 3.5)
+		time.sleep(settings.UPDATE_INTERVAL)
 		
 		#re-add self to client database
 		db_send("auth", str(comms_number))

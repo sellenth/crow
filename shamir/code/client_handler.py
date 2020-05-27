@@ -174,10 +174,10 @@ def grab_timestamps():
     return payload
 
 
-#Runs node registration every 3.5 minutes 
+#Runs node registration every x seconds
 def timer_update_start():
     while 1 == 1:
-        time.sleep(60 * 3.5)
+        time.sleep(settings.UPDATE_INTERVAL)
         t = threading.Thread(target = register)
         t.start()
 
