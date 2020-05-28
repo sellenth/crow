@@ -163,6 +163,8 @@ def cli_register():
             if embed is None:
                 # Handle error in registering face if needed
                 pass
+            
+            #convert embed to string to store in db
             tmp = embed_to_string(embed)
             keys.append(tmp)
         else:
@@ -217,25 +219,38 @@ def net_register():
         #For each db
         for i in settings.DBS:
 
-            #Prompt for password
-            print("Send the user's password for the " + i + " database: ")
-            
-            #accept connection
-            cli, addr = s.accept()
+            # register user's face
+            if i is "face":
+                print("Registering user's face")
+                embed = register_face()
+                if embed is None:
+                    # Handle error in registering face if needed
+                    pass
 
-            #Get password
-            temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
-            
-            #Close connection
-            cli.close()
+                #convert embed to string to store in db
+                tmp = embed_to_string(embed)
+                keys.append(tmp)
+            else:
 
-            #Make sure the password isnt longer than a sha256 hash
-            if len(temp) > 66:
-                print("ERROR recieving pass, needs to be under 66 chars")
-                return
+                #Prompt for password
+                print("Send the user's password for the " + i + " database: ")
+                
+                #accept connection
+                cli, addr = s.accept()
+
+                #Get password
+                temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
+                
+                #Close connection
+                cli.close()
+
+                #Make sure the password isnt longer than a sha256 hash
+                if len(temp) > 66:
+                    print("ERROR recieving pass, needs to be under 66 chars")
+                    return
             
-            #append the key to the list
-            keys.append(temp)
+                #append the key to the list
+                keys.append(temp)
 
     #Send the gathered information to be entered into the proper databases
     shamir_gen.add_user(uid, name, keys)

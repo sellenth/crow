@@ -60,19 +60,30 @@ def add_shares(username, shares, keys, currtime):
         #Convert share data to a string
         payload = username + ":" + str(shares[i][0])  + ":" + str(shares[i][1]) + ":" + str(keys[i])
 
+        # if the string is longer than a sha256 hash, chunk the string and encrypt each chunk individually
         if len(payload) > 240:
+
+            # store the individual chunks
             chunks = []
             curr_len = len(payload)
             start = 0
             end = 240
             while curr_len > 240:
+
+                # decrement the curr_len to indicate that a chunk has been encrypted
                 curr_len -= 240
+
+                # append a chunk of the payload 
                 chunks.append(payload[start:end])
                 start += 240
                 end += 240
+
+            #append the last chunk to the chunks list
             chunks.append(payload[start:])
             k = db_keys[settings.DBS[i]].key
             chunk_payload = ""
+
+            # encrypt each chunk in the payload
             for chunk in chunks:
                 chunk_payload += rsa_encrypt.encrypt_str(k, chunk)
             c.execute("REPLACE INTO enc_shares VALUES(?, ?, ?)", [username, chunk_payload, currtime])

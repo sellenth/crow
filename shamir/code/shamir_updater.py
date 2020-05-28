@@ -132,19 +132,35 @@ def update(cli):
                 num_updates -= 1
             continue
         
+        #if data is longer than 344 then it means the data was chunked then concatenated together
+        #need to decrypt each chunk individually
         if len(d[0]) > 344:
             msg = b''
             curr_len = len(d[0])
             start = 0
             end = 344
             while curr_len > 0:
+
+                # subtract 344 on each iteration
                 curr_len -= 344
+
+                # decrypt a single chunk, the starting and ending index are specified by start and end
                 dec_chunk = rsa_encrypt.get_priv_key_db(settings.ID).decrypt((base64.b64decode(d[0][start:end]),))
+
+                # append the single chunk to the full message
                 msg += dec_chunk
+
+                # increment start and end to the next chunk
                 start += 344
                 end += 344
+
+            # append the timestamp to the entire message
             msg += b':' + bytes(d[1], 'ascii')
+
+            #Pass the share into the database
             update_db(msg,conn)
+
+        # if the data was not chunked then pass the entire string
         else:
 
             #decrypt the share and concatenate it with the timestamp

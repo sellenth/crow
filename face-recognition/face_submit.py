@@ -4,6 +4,9 @@ from tkinter import filedialog
 from face_recog import *
 from keras.models import load_model
 
+# allows submitting a face through file upload
+# for demonstration purposes only, should not be used in final build
+
 def submit_face_tmp():
     root = tk.Tk()
     root.wm_attributes('-topmost',1)
@@ -22,6 +25,7 @@ def submit_face_tmp():
     else:
         return face
         
+# grab the user's face using screen capture
 
 def get_face_from_camera(cap):
 
