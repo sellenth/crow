@@ -4,7 +4,11 @@ import shamir_gen
 import socket
 import sqlite3
 import time
+import sys
 
+sys.path.append("../../face-recognition")
+from face_register import *
+from face_recog import *
 
 #Delete all entries refering to a specefic id
 def delete_all(uid):
@@ -152,17 +156,30 @@ def cli_register():
     #For each db
     for i in settings.DBS:
 
-        #Prompt for password
-        print("Enter the user's password for the " + i + " database: ")
-        temp = input().strip("\n").strip(":").strip("|")
+        # register user's face
+        if i is "face":
+            print("Registering user's face")
+            embed = register_face()
+            if embed is None:
+                # Handle error in registering face if needed
+                pass
+            
+            #convert embed to string to store in db
+            tmp = embed_to_string(embed)
+            keys.append(tmp)
+        else:
+
+            #Prompt for password
+            print("Enter the user's password for the " + i + " database: ")
+            temp = input().strip("\n").strip(":").strip("|")
+            
+            #Make sure the password isnt longer than a sha256 hash
+            while len(temp) > 66:
+                print("lets keep it under 66 chars")
+                temp = input().strip("\n").strip(":").strip("|")
         
-        #Make sure the password isnt longer than a sha256 hash
-        while len(temp) > 66:
-            print("lets keep it under 66 chars")
-            name = input().strip("\n").strip(":").strip("|")
-        
-        #append the key to the list
-        keys.append(temp)
+            #append the key to the list
+            keys.append(temp)
 
     #Send the gathered information to be entered into the proper databases
     shamir_gen.add_user(uid, name, keys)
@@ -202,25 +219,38 @@ def net_register():
         #For each db
         for i in settings.DBS:
 
-            #Prompt for password
-            print("Send the user's password for the " + i + " database: ")
-            
-            #accept connection
-            cli, addr = s.accept()
+            # register user's face
+            if i is "face":
+                print("Registering user's face")
+                embed = register_face()
+                if embed is None:
+                    # Handle error in registering face if needed
+                    pass
 
-            #Get password
-            temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
-            
-            #Close connection
-            cli.close()
+                #convert embed to string to store in db
+                tmp = embed_to_string(embed)
+                keys.append(tmp)
+            else:
 
-            #Make sure the password isnt longer than a sha256 hash
-            if len(temp) > 66:
-                print("ERROR recieving pass, needs to be under 66 chars")
-                return
+                #Prompt for password
+                print("Send the user's password for the " + i + " database: ")
+                
+                #accept connection
+                cli, addr = s.accept()
+
+                #Get password
+                temp = str(cli.recv(128), 'ascii').strip("\n").strip(":").strip("|")
+                
+                #Close connection
+                cli.close()
+
+                #Make sure the password isnt longer than a sha256 hash
+                if len(temp) > 66:
+                    print("ERROR recieving pass, needs to be under 66 chars")
+                    return
             
-            #append the key to the list
-            keys.append(temp)
+                #append the key to the list
+                keys.append(temp)
 
     #Send the gathered information to be entered into the proper databases
     shamir_gen.add_user(uid, name, keys)

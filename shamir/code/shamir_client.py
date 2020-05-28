@@ -6,6 +6,8 @@ import rsa_encrypt
 import settings
 import json
 import threading
+import numpy as np
+from face_recog import *
 import base64
 import hashlib
 
@@ -120,11 +122,20 @@ def auth_user(user, db,key):
     if share == -1:
         return
 
-    #Make sure that the given key matches the key in the database 
-    #and that the key is not null
-    if key == share["key"] and not key == "":
-        #Send the share if the key is valid
-        send_share(share, Host())
+    if db == 'face':
+        incoming_embed = string_to_embed(key)
+        database_embed = string_to_embed(share["key"])
+        dist = get_euclidean_distance(incoming_embed,database_embed)
+        if dist <= settings.FACE_THRESH:
+            send_share(share, Host())
+            
+    else:
+
+        #Make sure that the given key matches the key in the database 
+        #and that the key is not null
+        if key == share["key"] and not key == "":
+            #Send the share if the key is valid
+            send_share(share, Host())
 
 
 #Recieves the user credentials from another process on the same host

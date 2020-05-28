@@ -13,6 +13,9 @@ TOTAL = 3
 #Changing this number will break an active system. After changing you must regenerate shares for all users.
 THRESH = 3
 
+# Used exclusively for the face DB: any distance lower than this threshold means that two faces are similar
+FACE_THRESH = 0.75
+
 #Directory locations
 DBdir = "../assets/DBs/"
 assetsdir = "../assets/"
