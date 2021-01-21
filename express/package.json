@@ -18,6 +18,6 @@
     "express": "^4.17.1",
     "fs": "0.0.1-security",
     "js-sha256": "^0.9.0",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.4.0"
   }
 }
